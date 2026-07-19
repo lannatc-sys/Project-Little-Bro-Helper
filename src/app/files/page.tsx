@@ -236,14 +236,14 @@ export default function FilesScreen() {
           <div>
             <h4 className="text-xs font-bold text-text-main mb-1">คลังจัดเก็บไฟล์ปลอดภัย 📁</h4>
             <p className="text-[10px] text-text-sub leading-relaxed">
-              ไฟล์ที่อัปโหลดทั้งหมดจะถูกส่งตรงไปจัดเก็บใน Google Drive ส่วนตัว ภายใต้โฟลเดอร์หลัก "Little Bro Helper Files" แบบอัตโนมัติ 100% ครับ!
+              ไฟล์ที่อัปโหลดทั้งหมดจะถูกส่งตรงไปจัดเก็บใน Google Drive ส่วนตัว ภายใต้โฟลเดอร์หลัก "Little Bro Assistant Files" แบบอัตโนมัติ 100% ครับ!
             </p>
           </div>
         </div>
       </div>
 
       <footer className="mt-8 text-center text-[10px] text-text-sub/40">
-        <p>Little Bro Helper v1.0.0 • Antigravity Product Team</p>
+        <p>Little Bro Assistant v1.0.0 • Antigravity Product Team</p>
       </footer>
     </div>
   );

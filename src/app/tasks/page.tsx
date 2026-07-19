@@ -269,7 +269,7 @@ function TasksForm() {
       )}
 
       <footer className="mt-8 text-center text-[10px] text-text-sub/40">
-        <p>Little Bro Helper v1.0.0 • Antigravity Product Team</p>
+        <p>Little Bro Assistant v1.0.0 • Antigravity Product Team</p>
       </footer>
     </div>
   );

@@ -131,7 +131,7 @@ export default function OnboardingScreen() {
         <div className="flex-1 flex flex-col justify-center items-center text-center w-full z-10">
           <div className="mb-6 flex flex-col items-center">
             <span className="text-[10px] bg-[#5B5CEB]/15 text-[#5B5CEB] border border-[#5B5CEB]/30 px-3 py-1 rounded-full font-bold mb-3 tracking-wider uppercase">
-              Little Bro Helper
+              Little Bro Assistant
             </span>
             <h1 className="text-2xl font-black tracking-tight leading-tight">
               ผู้ช่วยส่วนตัวของคุณ<br />ในทุกกิจกรรมประจำวัน ✨
@@ -327,7 +327,7 @@ export default function OnboardingScreen() {
           </div>
 
           <p className="text-xs text-text-sub leading-relaxed max-w-xs mb-8">
-            พื้นที่เก็บไฟล์และแผ่นงานบันทึกข้อมูลส่วนตัว Little Bro Helper พร้อมอำนวยความสะดวกให้คุณใช้งานแล้วครับ!
+            พื้นที่เก็บไฟล์และแผ่นงานบันทึกข้อมูลส่วนตัว Little Bro Assistant พร้อมอำนวยความสะดวกให้คุณใช้งานแล้วครับ!
           </p>
 
           <button
@@ -358,7 +358,7 @@ export default function OnboardingScreen() {
             {authSubStep === 1 ? (
               <div className="w-full text-center">
                 <h3 className="text-xs font-bold text-text-main mb-1">ลงชื่อเข้าใช้งานด้วย Google</h3>
-                <p className="text-[10px] text-text-sub mb-4">เพื่อทำรายการเชื่อมต่อกับ Little Bro Helper</p>
+                <p className="text-[10px] text-text-sub mb-4">เพื่อทำรายการเชื่อมต่อกับ Little Bro Assistant</p>
                 
                 <button
                   onClick={selectMockAccount}
@@ -383,7 +383,7 @@ export default function OnboardingScreen() {
             ) : (
               <div className="w-full text-text-main">
                 <h3 className="text-xs font-bold text-text-main text-center mb-1">ยินยอมและอนุญาตสิทธิ์</h3>
-                <p className="text-[9px] text-text-sub text-center mb-4">Little Bro Helper ขอสิทธิ์เข้าถึงบัญชีส่วนตัวดังนี้:</p>
+                <p className="text-[9px] text-text-sub text-center mb-4">Little Bro Assistant ขอสิทธิ์เข้าถึงบัญชีส่วนตัวดังนี้:</p>
                 
                 <div className="space-y-2 mb-5 text-[10px] text-text-sub bg-background/40 p-3 rounded-xl">
                   <div className="flex items-start gap-2">

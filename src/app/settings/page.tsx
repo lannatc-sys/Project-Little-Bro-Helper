@@ -72,7 +72,7 @@ export default function SettingsScreen() {
       });
       const data = await response.json();
       if (data.status === "success") {
-        alert(`✅ สำรองข้อมูล Google Sheets สำเร็จเรียบร้อยครับบอส!\nไฟล์สำรองถูกเก็บไว้ใน Drive โฟลเดอร์ "Little Bro Helper Backups"\n\nบอสสามารถเปิดดูชีตสำรองได้ที่: ${data.backup_url}`);
+        alert(`✅ สำรองข้อมูล Google Sheets สำเร็จเรียบร้อยครับบอส!\nไฟล์สำรองถูกเก็บไว้ใน Drive โฟลเดอร์ "Little Bro Assistant Backups"\n\nบอสสามารถเปิดดูชีตสำรองได้ที่: ${data.backup_url}`);
         if (data.backup_url) {
           window.open(data.backup_url, "_blank");
         }
@@ -368,7 +368,7 @@ export default function SettingsScreen() {
       )}
 
       <footer className="mt-8 text-center text-[10px] text-text-sub/40">
-        <p>Little Bro Helper v1.0.0 • Antigravity Product Team</p>
+        <p>Little Bro Assistant v1.0.0 • Antigravity Product Team</p>
       </footer>
     </div>
   );

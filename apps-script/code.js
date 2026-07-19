@@ -1,5 +1,5 @@
 /**
- * Project: Little Bro Helper (Backend API Engine)
+ * Project: Little Bro Assistant (Backend API Engine)
  * Framework: Google Apps Script Web App
  * Security Role: Zero Server Data Storage & Privacy-First Architecture
  * Schema Control: English Column Headers (Fixed Template Layout)
@@ -32,11 +32,11 @@ function doPost(e) {
       var userName = requestData.user_name || "New User";
       
       // 1. สร้างโฟลเดอร์ใน Google Drive
-      var folderName = "Little Bro Helper - " + userName;
+      var folderName = "Little Bro Assistant - " + userName;
       var folder = DriveApp.createFolder(folderName);
       
       // 2. สร้าง Spreadsheet ใหม่
-      var newSS = SpreadsheetApp.create("Little Bro Helper Database");
+      var newSS = SpreadsheetApp.create("Little Bro Assistant Database");
       var newSSId = newSS.getId();
       
       // 3. ย้าย Spreadsheet ไปไว้ในโฟลเดอร์ที่สร้าง
@@ -258,7 +258,7 @@ function doPost(e) {
 
     // CASE G: อัปเดตอัปโหลดไฟล์ไป Google Drive (File Upload Module)
     if (action === "upload_file") {
-      var folderName = "Little Bro Helper Files";
+      var folderName = "Little Bro Assistant Files";
       var folder;
       var folders = DriveApp.getFoldersByName(folderName);
       if (folders.hasNext()) {
@@ -285,7 +285,7 @@ function doPost(e) {
 
     // CASE H: เรียกรายการไฟล์ทั้งหมดใน Google Drive (List Files Module)
     if (action === "list_files") {
-      var folderName = "Little Bro Helper Files";
+      var folderName = "Little Bro Assistant Files";
       var folder;
       var folders = DriveApp.getFoldersByName(folderName);
       var fileList = [];
@@ -314,7 +314,7 @@ function doPost(e) {
 
     // CASE I: สำรองข้อมูลสเปรดชีตไปที่โฟลเดอร์ Google Drive (Backup Database Module)
     if (action === "backup_workspace") {
-      var backupFolderName = "Little Bro Helper Backups";
+      var backupFolderName = "Little Bro Assistant Backups";
       var backupFolder;
       var folders = DriveApp.getFoldersByName(backupFolderName);
       if (folders.hasNext()) {
@@ -325,7 +325,7 @@ function doPost(e) {
       
       var file = DriveApp.getFileById(ssId);
       var dateString = Utilities.formatDate(new Date(), Session.getScriptTimeZone() || "GMT+7", "yyyy-MM-dd_HH-mm");
-      var backupCopy = file.makeCopy("Little Bro Helper Backup - " + dateString, backupFolder);
+      var backupCopy = file.makeCopy("Little Bro Assistant Backup - " + dateString, backupFolder);
       
       return createJsonResponse({ 
         status: "success", 
