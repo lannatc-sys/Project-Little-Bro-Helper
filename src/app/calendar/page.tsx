@@ -14,6 +14,7 @@ export default function CalendarScreen() {
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [newEventTitle, setNewEventTitle] = useState("");
   const [eventDay, setEventDay] = useState(20);
+  const [eventEndDay, setEventEndDay] = useState<number | null>(null);
   const [startTime, setStartTime] = useState("");
   const [endTime, setEndTime] = useState("");
   const [location, setLocation] = useState("");
@@ -74,14 +75,30 @@ export default function CalendarScreen() {
 
     setCreateLoading(true);
     try {
+      const startDayStr = String(eventDay).padStart(2, "0");
+      const endDayStr = String(eventEndDay || eventDay).padStart(2, "0");
+      const startIso = `2026-05-${startDayStr}T${startTime || "00:00"}:00`;
+      const endIso = `2026-05-${endDayStr}T${endTime || (startTime ? startTime : "23:59")}:00`;
+
+      const rangeDisplay = (eventEndDay && eventEndDay > eventDay)
+        ? `วันที่ ${eventDay} - ${eventEndDay} พฤษภาคม 2567`
+        : `วันที่ ${eventDay} พฤษภาคม 2567`;
+      const timeDisplay = (startTime && endTime)
+        ? ` เวลา ${startTime} - ${endTime} น.`
+        : startTime
+        ? ` เวลา ${startTime} น.`
+        : "";
+      const displayTimeStr = `${rangeDisplay}${timeDisplay}`;
+
       const res = await fetch("/api/expense", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           action: "add_event",
           event_title: newEventTitle,
-          start_time: `วันที่ ${eventDay} พฤษภาคม (${startTime} - ${endTime})`,
-          end_time: endTime,
+          start_time: displayTimeStr,
+          start_iso: startIso,
+          end_iso: endIso,
           location,
           notes
         })
@@ -135,8 +152,12 @@ export default function CalendarScreen() {
         <header className="mb-6 flex justify-between items-center">
           <h1 className="text-xl font-bold text-text-main">ปฏิทิน</h1>
           <button
-            onClick={() => setShowCreateModal(true)}
-            className="bg-[#5B5CEB] hover:bg-[#5B5CEB]/80 text-white font-semibold text-xs px-3 py-1.5 rounded-xl transition-all"
+            onClick={() => {
+              setEventDay(startDate || new Date().getDate());
+              setEventEndDay(endDate || startDate || new Date().getDate());
+              setShowCreateModal(true);
+            }}
+            className="bg-[#5B5CEB] hover:bg-[#5B5CEB]/80 text-white font-semibold text-xs px-3 py-1.5 rounded-xl transition-all cursor-pointer"
           >
             + นัดหมายกิจกรรม
           </button>
@@ -298,7 +319,7 @@ export default function CalendarScreen() {
               </div>
               <div className="grid grid-cols-2 gap-2">
                 <div>
-                  <label className="block mb-1 text-[10px] text-text-sub font-semibold">วันที่ในปฏิทิน (Day of May)</label>
+                  <label className="block mb-1 text-[10px] text-text-sub font-semibold">วันเริ่มต้น (Start Day)</label>
                   <input 
                     type="number" 
                     min="1"
@@ -310,15 +331,27 @@ export default function CalendarScreen() {
                   />
                 </div>
                 <div>
-                  <label className="block mb-1 text-[10px] text-text-sub font-semibold">สถานที่ (Location)</label>
+                  <label className="block mb-1 text-[10px] text-text-sub font-semibold">วันสิ้นสุด (End Day)</label>
                   <input 
-                    type="text" 
-                    value={location}
-                    onChange={(e) => setLocation(e.target.value)}
-                    placeholder="เช่น สวนสาธารณะ / ฟิตเนส"
-                    className="w-full bg-background border border-white/5 p-2.5 rounded-lg text-text-main text-xs focus:border-[#5B5CEB] focus:outline-none placeholder-text-sub/50"
+                    type="number" 
+                    min="1"
+                    max="31"
+                    value={eventEndDay || eventDay}
+                    onChange={(e) => setEventEndDay(Number(e.target.value))}
+                    required
+                    className="w-full bg-background border border-white/5 p-2.5 rounded-lg text-text-main text-xs focus:border-[#5B5CEB] focus:outline-none"
                   />
                 </div>
+              </div>
+              <div>
+                <label className="block mb-1 text-[10px] text-text-sub font-semibold">สถานที่ (Location)</label>
+                <input 
+                  type="text" 
+                  value={location}
+                  onChange={(e) => setLocation(e.target.value)}
+                  placeholder="เช่น สวนสาธารณะ / ฟิตเนส"
+                  className="w-full bg-background border border-white/5 p-2.5 rounded-lg text-text-main text-xs focus:border-[#5B5CEB] focus:outline-none placeholder-text-sub/50"
+                />
               </div>
               <div className="grid grid-cols-2 gap-2">
                 <div>
