@@ -45,12 +45,31 @@ export async function GET() {
     });
     const commandsResult = await commandsRes.json();
 
+    // 3. ตั้งค่าปุ่มเมนูแชทเปิด Web App (Set Chat Menu Button)
+    const menuButtonPayload = {
+      menu_button: {
+        type: "web_app",
+        text: "เปิดแอปผู้ช่วย 👔",
+        web_app: {
+          url: cleanUrl
+        }
+      }
+    };
+
+    const menuButtonRes = await fetch(`https://api.telegram.org/bot${token}/setChatMenuButton`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(menuButtonPayload)
+    });
+    const menuButtonResult = await menuButtonRes.json();
+
     return NextResponse.json({
       status: "success",
       message: "ตั้งค่าบอทและ Webhook สำเร็จ!",
       details: {
         webhook_setup: webhookResult,
         menu_commands_setup: commandsResult,
+        menu_button_setup: menuButtonResult,
         configured_webhook_url: webhookUrl
       }
     });
