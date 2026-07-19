@@ -280,6 +280,38 @@ function doPost(e) {
         backup_url: backupCopy.getUrl() 
       });
     }
+
+    // CASE J: เพิ่มชื่อผู้ใช้งานระบบ (User Registration Module)
+    if (action === "add_user") {
+      var usersSheet = ss.getSheetByName("Users");
+      if (!usersSheet) throw new Error("ไม่พบชีต 'Users'");
+      
+      var rows = usersSheet.getDataRange().getValues();
+      var userIdColIdx = SHEETS_SCHEMA["Users"].indexOf("user_id");
+      var exists = false;
+      var newUserId = requestData.user_id.toString();
+      
+      for (var i = 1; i < rows.length; i++) {
+        if (rows[i][userIdColIdx].toString() === newUserId) {
+          exists = true;
+          // เลื่อนตัวตนผู้รับการแจ้งเตือนมาอยู่แถวบนสุดหากซ้ำ
+          usersSheet.getRange(i + 1, SHEETS_SCHEMA["Users"].indexOf("registered_at") + 1).setValue(new Date());
+          break;
+        }
+      }
+      
+      if (!exists) {
+        // หากไม่มี ให้ต่อแถวเพิ่มข้อมูลผู้ใช้/กลุ่มสนทนาใหม่เพื่อรับแจ้งเตือนหลัก
+        usersSheet.appendRow([
+          newUserId,
+          requestData.telegram_username || "",
+          requestData.google_email || "",
+          new Date()
+        ]);
+      }
+      
+      return createJsonResponse({ status: "success", message: "สลับพิกัดจัดเก็บ Chat ID ล่าสุดลงชีตสำเร็จ" });
+    }
     
     throw new Error("Action command '" + action + "' not supported by Backend Engine.");
     
@@ -325,10 +357,24 @@ function checkTaskReminders() {
   var botToken = "8838172150:AAEYqB68iIygAtTxG1TqChycBXrBulB0BcQ";
   var chatId = "";
   
-  // พยายามค้นหา Telegram Chat ID จากสเปรดชีต Users แถวแรก
+  // ดึงสิทธิ์ผู้ส่งล่าสุดที่บันทึกไว้ในชีต Users (ค้นหาผู้ที่มีวันที่ลงทะเบียนล่าสุด)
   var usersSheet = ss.getSheetByName("Users");
   if (usersSheet && usersSheet.getLastRow() > 1) {
-    chatId = usersSheet.getRange(2, 1).getValue().toString();
+    var rows = usersSheet.getDataRange().getValues();
+    var registeredAtColIdx = SHEETS_SCHEMA["Users"].indexOf("registered_at");
+    var userIdColIdx = SHEETS_SCHEMA["Users"].indexOf("user_id");
+    
+    var latestTime = 0;
+    var targetChatId = "";
+    
+    for (var i = 1; i < rows.length; i++) {
+      var dateVal = new Date(rows[i][registeredAtColIdx]).getTime();
+      if (dateVal > latestTime) {
+        latestTime = dateVal;
+        targetChatId = rows[i][userIdColIdx].toString();
+      }
+    }
+    chatId = targetChatId;
   }
   
   if (!chatId) return;

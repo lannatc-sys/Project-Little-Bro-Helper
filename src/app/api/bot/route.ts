@@ -99,7 +99,27 @@ export async function POST(request: Request) {
 
     // Parse Bot Commands
     if (text.startsWith("/start")) {
-      replyText = `สวัสดีครับคุณ ${username}! ยินดีต้อนรับสู่ระบบ Little Bro Helper 👔\nผมคือผู้ช่วยส่วนตัวในการจัดการฐานข้อมูลและบันทึกการเงินของคุณครับ\n\nบอสสามารถพิมพ์คุยกับผมด่วน เช่น "จ่ายค่าข้าว 120 บาท" เพื่อบันทึกบัญชีลง Sheets ได้ทันที หรือกดเปิด Mini App ด้านล่างได้เลยครับ`;
+      // ลงทะเบียน หรืออัปเดตสิทธิ์ Chat ID ปัจจุบันลงชีต Users หลังบ้าน
+      const gasUrl = process.env.GOOGLE_APPS_SCRIPT_URL;
+      const ssId = process.env.GOOGLE_SPREADSHEET_ID;
+      if (gasUrl && ssId) {
+        try {
+          await fetch(gasUrl, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              action: "add_user",
+              spreadsheet_id: ssId,
+              user_id: chatId,
+              telegram_username: username
+            })
+          });
+        } catch (err) {
+          console.error("Failed to auto-register new chat ID in GAS:", err);
+        }
+      }
+
+      replyText = `สวัสดีครับคุณ ${username}! ยินดีต้อนรับสู่ระบบ Little Bro Helper 👔\nผมคือผู้ช่วยส่วนตัวในการจัดการฐานข้อมูลและบันทึกการเงินของคุณครับ\n\nผมได้ทำการสลับช่องทางการส่ง Push Notification และการเชื่อมโยงระบบมารายงานที่ห้องแชทนี้สำเร็จเรียบร้อยแล้วครับบอส! 📲\n\nบอสสามารถพิมพ์คุยบันทึกบัญชีด่วน หรือกดเปิด Mini App ด้านล่างได้เลยครับ`;
       inlineKeyboard = [
         [
           {
