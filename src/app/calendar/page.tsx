@@ -5,7 +5,8 @@ import Image from "next/image";
 
 export default function CalendarScreen() {
   const [view, setView] = useState("เดือน");
-  const [selectedDay, setSelectedDay] = useState<number | "">(20);
+  const [startDate, setStartDate] = useState<number | null>(20);
+  const [endDate, setEndDate] = useState<number | null>(22);
   
   // Dummy calendar days for May 2026
   const daysOfWeek = ["อา", "จ", "อ", "พ", "พฤ", "ศ", "ส"];
@@ -16,11 +17,42 @@ export default function CalendarScreen() {
     ...daysInMonth
   ];
 
-  const events = [
-    { id: 1, title: "เช็คอินลูกค้า Little Bro Hostel", time: "10:00 - 11:00", loc: "Lobby" },
-    { id: 2, title: "ประชุมทีม Google Meet", time: "14:00 - 15:30", loc: "Google Meet Link" },
-    { id: 3, title: "เตรียมเอกสารรายงานเงิน", time: "16:00 - 16:30", loc: "Office Room 1" }
-  ];
+  const handleDayClick = (day: number) => {
+    if (startDate === null || (startDate !== null && endDate !== null)) {
+      // Start a new range
+      setStartDate(day);
+      setEndDate(null);
+    } else {
+      // Finish the range
+      if (day < startDate) {
+        // If clicked day is before start day, reset start day to clicked day
+        setStartDate(day);
+        setEndDate(null);
+      } else if (day === startDate) {
+        // Toggle off if clicking the same start day
+        setStartDate(null);
+      } else {
+        setEndDate(day);
+      }
+    }
+  };
+
+  const getEventsForRange = () => {
+    const allEvents = [
+      { id: 1, title: "เช็คอินลูกค้า Little Bro Hostel", day: 20, time: "10:00 - 11:00", loc: "Lobby" },
+      { id: 2, title: "ประชุมทีม Google Meet", day: 20, time: "14:00 - 15:30", loc: "Google Meet Link" },
+      { id: 3, title: "เตรียมเอกสารรายงานเงิน", day: 21, time: "16:00 - 16:30", loc: "Office Room 1" },
+      { id: 4, title: "เช็คเอาท์ลูกค้า Little Bro Hostel", day: 22, time: "10:00 - 11:30", loc: "Lobby" }
+    ];
+
+    if (startDate === null) return [];
+    if (endDate === null) {
+      return allEvents.filter(e => e.day === startDate);
+    }
+    return allEvents.filter(e => e.day >= startDate && e.day <= endDate);
+  };
+
+  const filteredEvents = getEventsForRange();
 
   return (
     <div className="min-h-screen bg-[#09090B] p-6 text-white font-sans flex flex-col justify-between">
@@ -65,19 +97,25 @@ export default function CalendarScreen() {
           </div>
           <div className="grid grid-cols-7 gap-y-2 text-center text-xs">
             {calendarGrid.map((day, idx) => {
-              const isSelected = day === selectedDay;
               const isEmpty = day === "";
+              const isStart = day === startDate;
+              const isEnd = day === endDate;
+              const isSelected = isStart || isEnd;
+              const isBetween = startDate !== null && endDate !== null && day > startDate && day < endDate;
+
               return (
                 <div
                   key={idx}
-                  onClick={() => !isEmpty && setSelectedDay(day)}
+                  onClick={() => !isEmpty && handleDayClick(day)}
                   className={`py-1.5 flex items-center justify-center rounded-lg transition-all ${
-                    isEmpty 
-                      ? "opacity-0 pointer-events-none" 
+                    isEmpty
+                      ? "opacity-0 pointer-events-none"
                       : isSelected
                       ? "bg-[#5B5CEB] text-white font-bold shadow-md shadow-[#5B5CEB]/25 scale-105 cursor-pointer"
+                      : isBetween
+                      ? "bg-[#5B5CEB]/20 text-[#5B5CEB] font-semibold cursor-pointer rounded-none"
                       : "text-white hover:bg-white/5 cursor-pointer"
-                  }`}
+                  } ${isStart && endDate !== null ? "rounded-r-none" : ""} ${isEnd ? "rounded-l-none" : ""}`}
                 >
                   {day}
                 </div>
@@ -89,14 +127,23 @@ export default function CalendarScreen() {
         {/* Event List Group */}
         <section className="mb-6">
           <h3 className="text-xs font-semibold text-[#B3B3B3] mb-3">
-            รายการนัดหมาย วันที่ {selectedDay || "--"} พฤษภาคม
+            รายการนัดหมาย ช่วงวันที่{" "}
+            {startDate !== null
+              ? endDate !== null
+                ? `${startDate} - ${endDate}`
+                : `${startDate}`
+              : "--"}{" "}
+            พฤษภาคม
           </h3>
           <div className="space-y-3">
-            {selectedDay === 20 ? (
-              events.map((event) => (
+            {filteredEvents.length > 0 ? (
+              filteredEvents.map((event) => (
                 <div key={event.id} className="p-3 bg-[#18181B]/20 border-l-4 border-[#5B5CEB] rounded-r-xl">
                   <div className="flex justify-between items-start">
-                    <h4 className="text-xs font-semibold text-white">{event.title}</h4>
+                    <div>
+                      <span className="text-[8px] bg-[#5B5CEB]/20 text-[#5B5CEB] px-1.5 py-0.5 rounded font-mono font-bold mr-2">วันที่ {event.day}</span>
+                      <h4 className="text-xs font-semibold text-white inline-block">{event.title}</h4>
+                    </div>
                     <span className="text-[9px] text-[#B3B3B3] font-mono">{event.time}</span>
                   </div>
                   <p className="text-[9px] text-[#B3B3B3] mt-1">📍 {event.loc}</p>
@@ -104,7 +151,7 @@ export default function CalendarScreen() {
               ))
             ) : (
               <div className="p-6 bg-[#18181B]/25 border border-dashed border-white/5 rounded-2xl text-center text-xs text-[#B3B3B3]/70">
-                📭 ไม่มีรายการนัดหมายในวันนี้ครับบอส
+                📭 ไม่มีรายการนัดหมายในช่วงวันที่เลือกครับบอส
               </div>
             )}
           </div>
@@ -122,9 +169,9 @@ export default function CalendarScreen() {
             />
           </div>
           <div>
-            <h4 className="text-xs font-bold text-white mb-1">ตรวจสอบตารางเวลา 🗓️</h4>
+            <h4 className="text-xs font-bold text-white mb-1">ช่วงเวลาของนัดหมาย 🗓️</h4>
             <p className="text-[10px] text-[#B3B3B3] leading-relaxed">
-              ตารางช่วงบ่ายของบอสมี "ประชุมทีม" เวลา 14:00 น. ผมจะทำการแจ้งเตือนผ่านบอท Telegram ล่วงหน้า 15 นาทีก่อนประชุมเริ่มนะครับบอส!
+              บอสเลือกช่วงเวลาจัดตารางงานแบบเป็นช่วงวันแล้ว! ผมแสดงเฉพาะนัดหมายในช่วงที่บอสกำหนดไว้เท่านั้นครับบอส
             </p>
           </div>
         </div>
