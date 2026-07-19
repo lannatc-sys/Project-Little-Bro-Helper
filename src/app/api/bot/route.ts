@@ -4,7 +4,9 @@ import path from "path";
 
 export async function POST(request: Request) {
   const token = process.env.TELEGRAM_BOT_TOKEN;
-  const appUrl = process.env.NEXT_PUBLIC_APP_URL;
+  const appUrl = process.env.NEXT_PUBLIC_APP_URL || 
+                 (process.env.VERCEL_PROJECT_PRODUCTION_URL ? `https://${process.env.VERCEL_PROJECT_PRODUCTION_URL}` : undefined) || 
+                 (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : undefined);
 
   if (!token) {
     return NextResponse.json({ status: "error", message: "TELEGRAM_BOT_TOKEN is not configured" }, { status: 500 });

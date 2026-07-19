@@ -2,13 +2,15 @@ import { NextResponse } from "next/server";
 
 export async function GET() {
   const token = process.env.TELEGRAM_BOT_TOKEN;
-  const appUrl = process.env.NEXT_PUBLIC_APP_URL;
+  const appUrl = process.env.NEXT_PUBLIC_APP_URL || 
+                 (process.env.VERCEL_PROJECT_PRODUCTION_URL ? `https://${process.env.VERCEL_PROJECT_PRODUCTION_URL}` : undefined) || 
+                 (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : undefined);
 
   if (!token) {
     return NextResponse.json({ status: "error", message: "TELEGRAM_BOT_TOKEN is not configured" }, { status: 500 });
   }
   if (!appUrl) {
-    return NextResponse.json({ status: "error", message: "NEXT_PUBLIC_APP_URL is not configured" }, { status: 500 });
+    return NextResponse.json({ status: "error", message: "NEXT_PUBLIC_APP_URL and VERCEL_URL are not configured" }, { status: 500 });
   }
 
   const webhookUrl = `${appUrl}/api/bot`;
