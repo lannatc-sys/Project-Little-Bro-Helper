@@ -194,6 +194,21 @@ export default function SettingsScreen() {
               <span className="text-xs text-text-sub/45">➔</span>
             </div>
 
+            {/* Custom Workflows row */}
+            <div
+              onClick={() => window.location.href = "/workflows"}
+              className="p-3 bg-surface/20 border border-white/5 rounded-xl hover:bg-surface/40 transition-all cursor-pointer flex items-center justify-between"
+            >
+              <div className="flex items-center gap-3">
+                <span className="text-lg bg-surface p-2 rounded-lg">⚙️</span>
+                <div>
+                  <h4 className="text-xs font-semibold text-text-main">ระบบรันสูตรทำงานอัตโนมัติ (Workflows)</h4>
+                  <p className="text-[9px] text-text-sub">เปิด-ปิด สูตรคำสั่ง Trigger ข้อมูลลงคลาวด์</p>
+                </div>
+              </div>
+              <span className="text-xs text-text-sub/45">➔</span>
+            </div>
+
             {/* Other static options */}
             <div
               onClick={resetOnboarding}

@@ -186,21 +186,46 @@ function doPost(e) {
       return createJsonResponse({ status: "success", message: "อัปเดตสถานะภารกิจสำเร็จ" });
     }
 
-    // CASE F: เพิ่มนัดหมายลงปฏิทิน (Calendar Module)
+    // CASE F: เพิ่มนัดหมายลงปฏิทิน (Calendar Module & Google Calendar Integration)
     if (action === "add_event") {
       var calSheet = ss.getSheetByName("Calendar");
       if (!calSheet) throw new Error("ไม่พบชีต 'Calendar'");
       
+      var eventTitle = requestData.event_title || "Untitled Event";
+      var startTimeStr = requestData.start_time || "";
+      var endTimeStr = requestData.end_time || "";
+      var location = requestData.location || "";
+      var notes = requestData.notes || "";
+      
+      // 1. บันทึกข้อมูลลงแผ่นงาน Google Sheets
       calSheet.appendRow([
         "EVT_" + new Date().getTime(),
-        requestData.event_title || "Untitled Event",
-        requestData.start_time || "",
-        requestData.end_time || "",
-        requestData.location || "",
-        requestData.notes || ""
+        eventTitle,
+        startTimeStr,
+        endTimeStr,
+        location,
+        notes
       ]);
       
-      return createJsonResponse({ status: "success", message: "บันทึกนัดหมายลงปฏิทินสำเร็จ" });
+      // 2. สร้างนัดหมายจริงใน Google Calendar หลัก (Primary Calendar)
+      try {
+        var startTime = startTimeStr ? new Date(startTimeStr) : new Date();
+        var endTime = endTimeStr ? new Date(endTimeStr) : new Date(startTime.getTime() + 3600000);
+        
+        CalendarApp.getDefaultCalendar().createEvent(
+          eventTitle,
+          startTime,
+          endTime,
+          {
+            location: location,
+            description: notes
+          }
+        );
+      } catch (calErr) {
+        console.error("Google Calendar synchronization error: " + calErr.toString());
+      }
+      
+      return createJsonResponse({ status: "success", message: "บันทึกนัดหมายลงชีตและ Google Calendar สำเร็จเรียบร้อยครับ" });
     }
 
     // CASE G: อัปเดตอัปโหลดไฟล์ไป Google Drive (File Upload Module)
@@ -327,6 +352,44 @@ function doPost(e) {
       ]);
       
       return createJsonResponse({ status: "success", message: "บันทึกข้อมูลลูกค้าใหม่สำเร็จ" });
+    }
+
+    // CASE L: เรียกดูข้อมูลการตั้งค่าระบบ (Get Workspace Settings)
+    if (action === "get_settings") {
+      var settingsSheet = ss.getSheetByName("Settings");
+      if (!settingsSheet) throw new Error("ไม่พบชีต 'Settings'");
+      var rows = settingsSheet.getDataRange().getValues();
+      var settings = {};
+      for (var i = 1; i < rows.length; i++) {
+        settings[rows[i][0].toString()] = rows[i][1].toString();
+      }
+      return createJsonResponse({ status: "success", settings: settings });
+    }
+
+    // CASE M: บันทึก/อัปเดตค่าตั้งค่าระบบ (Save Workspace Settings)
+    if (action === "save_settings") {
+      var settingsSheet = ss.getSheetByName("Settings");
+      if (!settingsSheet) throw new Error("ไม่พบชีต 'Settings'");
+      var key = requestData.setting_key;
+      var val = requestData.setting_value;
+      if (!key) throw new Error("Missing 'setting_key'");
+      
+      var rows = settingsSheet.getDataRange().getValues();
+      var foundRowIdx = -1;
+      for (var i = 1; i < rows.length; i++) {
+        if (rows[i][0].toString() === key) {
+          foundRowIdx = i + 1;
+          break;
+        }
+      }
+      
+      if (foundRowIdx !== -1) {
+        settingsSheet.getRange(foundRowIdx, 2).setValue(val);
+      } else {
+        settingsSheet.appendRow([key, val]);
+      }
+      
+      return createJsonResponse({ status: "success", message: "บันทึกค่าระบบสำเร็จ" });
     }
     
     throw new Error("Action command '" + action + "' not supported by Backend Engine.");
