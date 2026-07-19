@@ -1,4 +1,6 @@
 import { NextResponse } from "next/server";
+import fs from "fs";
+import path from "path";
 
 export async function POST(request: Request) {
   const token = process.env.TELEGRAM_BOT_TOKEN;
@@ -12,6 +14,47 @@ export async function POST(request: Request) {
     const update = await request.json();
     console.log("Telegram update received:", JSON.stringify(update));
 
+    // A. Handle Inline Button Callback Queries (AI Agent Approvals)
+    if (update.callback_query) {
+      const callbackId = update.callback_query.id;
+      const callbackData = update.callback_query.data;
+      const chatId = update.callback_query.message.chat.id;
+      const messageId = update.callback_query.message.message_id;
+
+      let responseText = "";
+      const approvalFilePath = path.join(process.cwd(), "apps-script", "approval.json");
+
+      if (callbackData === "ai_approve") {
+        fs.writeFileSync(approvalFilePath, JSON.stringify({ status: "approved", timestamp: Date.now() }, null, 2));
+        responseText = "🟢 *บอสอนุมัติเรียบร้อยครับ!*\nเอเจนต์รับสิทธิ์และกำลังดำเนินงานต่อในเครื่องคอมพิวเตอร์ทันทีครับบอส 👔💻";
+      } else if (callbackData === "ai_reject") {
+        fs.writeFileSync(approvalFilePath, JSON.stringify({ status: "rejected", timestamp: Date.now() }, null, 2));
+        responseText = "❌ *บอสปฏิเสธการรันคำสั่งครับ!*\nเอเจนต์ระงับการทำงานชั่วคราวและแสตนด์บายรอคำสั่งแก้ไขจากบอสครับ 👔";
+      }
+
+      // 1. ตอบกลับ callback query ของ Telegram เพื่อให้ปุ่มหยุดหมุนโหลด
+      await fetch(`https://api.telegram.org/bot${token}/answerCallbackQuery`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ callback_query_id: callbackId, text: "รับทราบคำสั่งอนุมัติ!" })
+      });
+
+      // 2. อัปเดตข้อความเดิมเพื่อล็อกสถานะให้บอสเห็น
+      await fetch(`https://api.telegram.org/bot${token}/editMessageText`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          chat_id: chatId,
+          message_id: messageId,
+          text: responseText,
+          parse_mode: "Markdown"
+        })
+      });
+
+      return NextResponse.json({ status: "ok" });
+    }
+
+    // B. Handle regular text messages
     if (!update.message) {
       return NextResponse.json({ status: "ok", message: "No message in update" });
     }
