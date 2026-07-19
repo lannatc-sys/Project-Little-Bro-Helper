@@ -1,16 +1,70 @@
 "use client";
 
+import { useState, useEffect } from "react";
 import Image from "next/image";
 
 export default function SettingsScreen() {
-  const configs = [
-    { name: "ข้อมูลพื้นที่ทำงาน (Workspace Data)", desc: "ตั้งค่าไอดีโฟลเดอร์ Google Drive และไอดีชีต", icon: "📁", status: null },
-    { name: "การเชื่อมต่อภายนอก (Connections)", desc: "Google Drive, Sheets, Calendar", icon: "🔗", status: "เชื่อมต่อแล้ว ✅" },
-    { name: "ระบบการแจ้งเตือน (Notifications)", desc: "ตั้งเวลาแจ้งเตือนคิวงานและใบแจ้งหนี้ผ่านบอท", icon: "🔔", status: "เปิดใช้งาน" },
-    { name: "ผู้ใช้งานและสิทธิ์ (Users & Permissions)", desc: "จัดการรายชื่อสมาชิกที่มีสิทธิ์ป้อนธุรกรรมทางการเงิน", icon: "👥", status: "1 สิทธิ์เข้าถึง" },
-    { name: "สำรองข้อมูล (Backup Data)", desc: "สร้างไฟล์สำรองข้อมูล JSON และส่งออกตารางทั้งหมด", icon: "💾", status: null },
-    { name: "เกี่ยวกับระบบ (About)", desc: "Little Bro Helper เวอร์ชัน 1.0.0", icon: "ℹ️", status: null }
-  ];
+  const [theme, setTheme] = useState("dark");
+  const [layout, setLayout] = useState("mobile");
+  
+  // Workspace setup Modal States
+  const [showWorkspaceModal, setShowWorkspaceModal] = useState(false);
+  const [isInitializing, setIsInitializing] = useState(false);
+  const [initMessage, setInitMessage] = useState("");
+
+  useEffect(() => {
+    // Read from localStorage on mount
+    const savedTheme = localStorage.getItem("little_bro_theme") || "dark";
+    const savedLayout = localStorage.getItem("little_bro_layout") || "mobile";
+    setTheme(savedTheme);
+    setLayout(savedLayout);
+  }, []);
+
+  const handleThemeChange = (newTheme: string) => {
+    setTheme(newTheme);
+    if ((window as any).toggleLittleBroTheme) {
+      (window as any).toggleLittleBroTheme(newTheme);
+    }
+  };
+
+  const handleLayoutChange = (newLayout: string) => {
+    setLayout(newLayout);
+    if ((window as any).toggleLittleBroLayout) {
+      (window as any).toggleLittleBroLayout(newLayout);
+    }
+  };
+
+  const handleReinitializeWorkspace = async () => {
+    setIsInitializing(true);
+    setInitMessage("");
+    try {
+      const response = await fetch("/api/expense", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          action: "initialize_workspace",
+          spreadsheet_id: "1jANLkV4IxXa3mybLPTs7L1RoHtfik7lVLtTlB0Ay1X8"
+        })
+      });
+      const data = await response.json();
+      if (data.status === "success") {
+        setInitMessage("✅ สร้างพื้นที่ทำงานสำเร็จ ตารางชีตพร้อมใช้งานแล้วครับบอส!");
+      } else {
+        setInitMessage("❌ เกิดข้อผิดพลาด: " + data.message);
+      }
+    } catch (err: any) {
+      setInitMessage("❌ ไม่สามารถเปิดระบบสร้างได้: " + err.message);
+    } finally {
+      setIsInitializing(false);
+    }
+  };
+
+  const resetOnboarding = () => {
+    if (confirm("ต้องการรีเซ็ตเพื่อย้อนกลับไปทำขั้นตอนยินดีต้อนรับ (Onboarding) ใหม่หรือไม่ครับ?")) {
+      localStorage.removeItem("little_bro_onboarded");
+      window.location.href = "/onboarding";
+    }
+  };
 
   return (
     <div className="min-h-screen bg-[#09090B] p-6 text-white font-sans flex flex-col justify-between">
@@ -33,7 +87,7 @@ export default function SettingsScreen() {
           </div>
           <div className="flex-1">
             <h3 className="text-sm font-bold text-white">Little Bro</h3>
-            <p className="text-[9px] text-[#B3B3B3] mb-1">เจ้าของธุรกิจ • littlebro.owner@gmail.com</p>
+            <p className="text-[9px] text-[#B3B3B3] mb-1">เจ้าของธุรกิจ • lannatc@gmail.com</p>
             <button
               onClick={() => alert("ระบบเชื่อมต่อ Google OAuth จะเปิดในเฟสถัดไปครับบอส!")}
               className="bg-[#5B5CEB]/25 hover:bg-[#5B5CEB]/40 text-[#5B5CEB] border border-[#5B5CEB]/30 text-[9px] font-semibold px-2.5 py-1 rounded-lg transition-all"
@@ -43,32 +97,104 @@ export default function SettingsScreen() {
           </div>
         </div>
 
+        {/* Theme & Display Options */}
+        <section className="mb-6 bg-[#18181B]/20 border border-white/5 p-4 rounded-2xl space-y-4">
+          <h3 className="text-xs font-bold text-[#B3B3B3] uppercase tracking-wider">ตัวเลือกการแสดงผล (Device & Theme)</h3>
+          
+          {/* Theme Selector */}
+          <div className="flex justify-between items-center text-xs">
+            <span>ธีมสีหน้าต่าง (Color Theme)</span>
+            <div className="flex bg-[#18181B] p-1 rounded-xl border border-white/5">
+              <button
+                onClick={() => handleThemeChange("dark")}
+                className={`px-3 py-1 rounded-lg font-bold transition-all ${
+                  theme === "dark" ? "bg-[#5B5CEB] text-white" : "text-[#B3B3B3] hover:text-white"
+                }`}
+              >
+                🌙 Dark
+              </button>
+              <button
+                onClick={() => handleThemeChange("light")}
+                className={`px-3 py-1 rounded-lg font-bold transition-all ${
+                  theme === "light" ? "bg-[#5B5CEB] text-white" : "text-[#B3B3B3] hover:text-white"
+                }`}
+              >
+                ☀️ Light
+              </button>
+            </div>
+          </div>
+
+          {/* Layout Selector */}
+          <div className="flex justify-between items-center text-xs">
+            <span>รูปแบบการรันแอป (Device Mode)</span>
+            <div className="flex bg-[#18181B] p-1 rounded-xl border border-white/5">
+              <button
+                onClick={() => handleLayoutChange("mobile")}
+                className={`px-3 py-1 rounded-lg font-bold transition-all ${
+                  layout === "mobile" ? "bg-[#5B5CEB] text-white" : "text-[#B3B3B3] hover:text-white"
+                }`}
+              >
+                📱 Mobile Frame
+              </button>
+              <button
+                onClick={() => handleLayoutChange("desktop")}
+                className={`px-3 py-1 rounded-lg font-bold transition-all ${
+                  layout === "desktop" ? "bg-[#5B5CEB] text-white" : "text-[#B3B3B3] hover:text-white"
+                }`}
+              >
+                🖥️ Full Screen
+              </button>
+            </div>
+          </div>
+        </section>
+
         {/* Configuration List */}
         <section className="mb-6">
           <h3 className="text-xs font-semibold text-[#B3B3B3] uppercase tracking-wider mb-3">การตั้งค่าทั่วไป</h3>
           <div className="space-y-2.5">
-            {configs.map((config) => (
-              <div
-                key={config.name}
-                onClick={() => alert(`ฟีเจอร์ ${config.name} จะสามารถจัดการได้ในเฟสถัดไปครับบอส!`)}
-                className="p-3 bg-[#18181B]/20 border border-white/5 rounded-xl hover:bg-[#18181B]/40 transition-all cursor-pointer flex items-center justify-between"
-              >
-                <div className="flex items-center gap-3">
-                  <span className="text-lg bg-[#18181B] p-2 rounded-lg">{config.icon}</span>
-                  <div>
-                    <h4 className="text-xs font-semibold text-white">{config.name}</h4>
-                    <p className="text-[9px] text-[#B3B3B3]">{config.desc}</p>
-                  </div>
-                </div>
-                <div className="text-right">
-                  {config.status && (
-                    <span className="text-[9px] bg-[#10B981]/15 text-[#10B981] border border-[#10B981]/30 px-2 py-0.5 rounded-full font-semibold">
-                      {config.status}
-                    </span>
-                  )}
+            {/* Workspace Data row */}
+            <div
+              onClick={() => setShowWorkspaceModal(true)}
+              className="p-3 bg-[#18181B]/20 border border-white/5 rounded-xl hover:bg-[#18181B]/40 transition-all cursor-pointer flex items-center justify-between"
+            >
+              <div className="flex items-center gap-3">
+                <span className="text-lg bg-[#18181B] p-2 rounded-lg">📁</span>
+                <div>
+                  <h4 className="text-xs font-semibold text-white">ข้อมูลพื้นที่ทำงาน (Workspace Data)</h4>
+                  <p className="text-[9px] text-[#B3B3B3]">ตั้งค่าไอดีโฟลเดอร์ Google Drive และไอดีชีต</p>
                 </div>
               </div>
-            ))}
+              <span className="text-xs text-[#B3B3B3]/40">➔</span>
+            </div>
+
+            {/* Other static options */}
+            <div
+              onClick={resetOnboarding}
+              className="p-3 bg-[#18181B]/20 border border-white/5 rounded-xl hover:bg-[#18181B]/40 transition-all cursor-pointer flex items-center justify-between"
+            >
+              <div className="flex items-center gap-3">
+                <span className="text-lg bg-[#18181B] p-2 rounded-lg">🔄</span>
+                <div>
+                  <h4 className="text-xs font-semibold text-white">ย้อนกลับไปทำ Onboarding ใหม่</h4>
+                  <p className="text-[9px] text-[#B3B3B3]">ล้างข้อมูลเพื่อดูขั้นตอนต้อนรับ Google Auth</p>
+                </div>
+              </div>
+              <span className="text-xs text-[#B3B3B3]/40">➔</span>
+            </div>
+            
+            <div
+              onClick={() => alert("ระบบสำรองตารางจะเปิดใช้งานในเฟสถัดไปครับบอส!")}
+              className="p-3 bg-[#18181B]/20 border border-white/5 rounded-xl hover:bg-[#18181B]/40 transition-all cursor-pointer flex items-center justify-between"
+            >
+              <div className="flex items-center gap-3">
+                <span className="text-lg bg-[#18181B] p-2 rounded-lg">💾</span>
+                <div>
+                  <h4 className="text-xs font-semibold text-white">สำรองข้อมูล (Backup Data)</h4>
+                  <p className="text-[9px] text-[#B3B3B3]">ส่งออกตารางชีตเป็นไฟล์ JSON</p>
+                </div>
+              </div>
+              <span className="text-xs text-[#B3B3B3]/40">➔</span>
+            </div>
           </div>
         </section>
 
@@ -91,6 +217,69 @@ export default function SettingsScreen() {
           </div>
         </div>
       </div>
+
+      {/* Workspace Data Modal */}
+      {showWorkspaceModal && (
+        <div className="absolute inset-0 bg-[#09090B]/90 backdrop-blur-md flex items-center justify-center p-6 z-50">
+          <div className="bg-[#1C1C1E] border border-white/10 w-full max-w-sm rounded-3xl p-5 shadow-2xl flex flex-col relative">
+            <button 
+              onClick={() => {
+                setShowWorkspaceModal(false);
+                setInitMessage("");
+              }}
+              className="absolute top-4 right-4 text-[#B3B3B3] hover:text-white"
+            >
+              ✕
+            </button>
+            <h3 className="text-sm font-bold text-white mb-4">📁 ตั้งค่าข้อมูลพื้นที่ทำงาน</h3>
+            
+            <div className="space-y-3 mb-6 text-xs text-[#B3B3B3]">
+              <div>
+                <label className="block mb-1 font-semibold uppercase text-[9px]">GOOGLE_SPREADSHEET_ID</label>
+                <input 
+                  type="text" 
+                  value="1jANLkV4IxXa3mybLPTs7L1RoHtfik7lVLtTlB0Ay1X8" 
+                  disabled
+                  className="w-full bg-[#18181B] border border-white/5 p-2.5 rounded-lg text-white font-mono text-[9px] opacity-75"
+                />
+              </div>
+              <div>
+                <label className="block mb-1 font-semibold uppercase text-[9px]">GOOGLE_APPS_SCRIPT_URL</label>
+                <input 
+                  type="text" 
+                  value="https://script.google.com/macros/s/.../exec" 
+                  disabled
+                  className="w-full bg-[#18181B] border border-white/5 p-2.5 rounded-lg text-white font-mono text-[9px] opacity-75"
+                />
+              </div>
+            </div>
+
+            {initMessage && (
+              <div className="mb-4 p-3 bg-white/5 border border-white/10 text-[10px] rounded-xl text-center">
+                {initMessage}
+              </div>
+            )}
+
+            <button
+              onClick={handleReinitializeWorkspace}
+              disabled={isInitializing}
+              className="w-full bg-[#5B5CEB] hover:bg-[#5B5CEB]/90 disabled:bg-[#5B5CEB]/50 text-white font-bold text-xs py-3 rounded-xl shadow-lg transition-all flex items-center justify-center gap-2"
+            >
+              {isInitializing ? (
+                <>
+                  <svg className="animate-spin h-3.5 w-3.5 text-white" fill="none" viewBox="0 0 24 24">
+                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                  </svg>
+                  กำลังจัดตั้งตารางชีตใหม่...
+                </>
+              ) : (
+                "สร้างและล้างพื้นที่ทำงานใหม่ 🔨"
+              )}
+            </button>
+          </div>
+        </div>
+      )}
 
       <footer className="mt-8 text-center text-[10px] text-[#B3B3B3]/40">
         <p>Little Bro Helper v1.0.0 • Antigravity Product Team</p>

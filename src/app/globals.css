@@ -1,29 +1,76 @@
 @import "tailwindcss";
 
 @theme {
-  --color-background: #09090B;
-  --color-surface: #18181B;
+  --color-background: var(--bg-color);
+  --color-surface: var(--surface-color);
   --color-primary: #5B5CEB;
   --color-secondary: #3B82F6;
   --color-success: #10B981;
   --color-warning: #F59E0B;
   --color-danger: #EF4444;
-  --color-text-main: #FFFFFF;
-  --color-text-sub: #B3B3B3;
+  --color-text-main: var(--text-main-color);
+  --color-text-sub: var(--text-sub-color);
 
   --font-sans: var(--font-noto-sans-thai), sans-serif;
 }
 
 :root {
-  --background: #09090B;
+  --bg-color: #09090B;
+  --surface-color: #18181B;
+  --text-main-color: #FFFFFF;
+  --text-sub-color: #B3B3B3;
   --foreground: #FFFFFF;
 }
 
+:root.light-mode {
+  --bg-color: #F4F4F5;
+  --surface-color: #FFFFFF;
+  --text-main-color: #18181B;
+  --text-sub-color: #71717A;
+  --foreground: #18181B;
+}
+
 body {
-  background-color: var(--color-background);
+  background-color: var(--bg-color);
   color: var(--foreground);
   font-family: var(--font-sans);
   margin: 0;
   padding: 0;
   box-sizing: border-box;
+  transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+/* Light mode modifications for glassmorphic elements */
+:root.light-mode .bg-\[\#18181B\]\/40 {
+  background-color: rgba(228, 228, 231, 0.4);
+}
+:root.light-mode .bg-\[\#18181B\]\/60 {
+  background-color: rgba(228, 228, 231, 0.6);
+}
+:root.light-mode .bg-\[\#18181B\]\/80 {
+  background-color: rgba(228, 228, 231, 0.8);
+}
+:root.light-mode .bg-\[\#18181B\]\/20 {
+  background-color: rgba(228, 228, 231, 0.2);
+}
+:root.light-mode .bg-\[\#18181B\]\/30 {
+  background-color: rgba(228, 228, 231, 0.3);
+}
+:root.light-mode .bg-\[\#18181B\] {
+  background-color: #E4E4E7;
+}
+:root.light-mode .border-white\/5 {
+  border-color: rgba(9, 9, 11, 0.05);
+}
+:root.light-mode .border-white\/10 {
+  border-color: rgba(9, 9, 11, 0.1);
+}
+:root.light-mode .text-\[\#B3B3B3\] {
+  color: #71717A;
+}
+:root.light-mode .text-\[\#B3B3B3\]\/60 {
+  color: rgba(113, 113, 122, 0.6);
+}
+:root.light-mode .text-white {
+  color: #18181B;
 }

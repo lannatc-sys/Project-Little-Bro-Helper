@@ -89,16 +89,16 @@ export default function HomeScreen() {
 
         {/* Quick Action Grid */}
         <div className="grid grid-cols-4 gap-2 mb-6">
-          <button
-            onClick={() => alert("ระบบบันทึกรายรับจะเปิดใช้งานในเฟสถัดไปครับบอส!")}
-            className="flex flex-col items-center gap-1.5 p-2 bg-[#18181B]/40 hover:bg-[#18181B]/60 border border-white/5 rounded-xl transition-all"
+          <Link
+            href="/add-expense?type=income"
+            className="flex flex-col items-center gap-1.5 p-2 bg-[#18181B]/40 hover:bg-[#18181B]/60 border border-white/5 rounded-xl transition-all text-center"
           >
             <span className="text-xl bg-[#10B981]/20 p-2.5 rounded-xl text-[#10B981]">📈</span>
             <span className="text-[10px] text-[#B3B3B3]">เพิ่มรายรับ</span>
-          </button>
+          </Link>
           
           <Link
-            href="/add-expense"
+            href="/add-expense?type=expense"
             className="flex flex-col items-center gap-1.5 p-2 bg-[#18181B]/40 hover:bg-[#18181B]/60 border border-white/5 rounded-xl transition-all text-center"
           >
             <span className="text-xl bg-[#EF4444]/20 p-2.5 rounded-xl text-[#EF4444]">📉</span>

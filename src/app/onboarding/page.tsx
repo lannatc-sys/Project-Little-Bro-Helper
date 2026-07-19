@@ -9,6 +9,10 @@ export default function OnboardingScreen() {
   const [step, setStep] = useState(1);
   const [isInitializing, setIsInitializing] = useState(false);
   const [initSuccess, setInitSuccess] = useState(false);
+  
+  // Google Auth Mock states
+  const [showAuthModal, setShowAuthModal] = useState(false);
+  const [authSubStep, setAuthSubStep] = useState(1); // 1: account selection, 2: permissions list
 
   // States for permissions checklist
   const [permissions, setPermissions] = useState({
@@ -20,7 +24,6 @@ export default function OnboardingScreen() {
   const handleInitialize = async () => {
     setIsInitializing(true);
     try {
-      // Fetch GAS URL from backend api config
       const response = await fetch("/api/expense", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -35,7 +38,6 @@ export default function OnboardingScreen() {
       setInitSuccess(true);
     } catch (err) {
       console.error("Initialization error:", err);
-      // Fallback success for local testing/demo
       setInitSuccess(true);
     } finally {
       setIsInitializing(false);
@@ -44,9 +46,23 @@ export default function OnboardingScreen() {
   };
 
   const handleLogin = () => {
-    // Save state in localStorage to mark onboarding completed
     localStorage.setItem("little_bro_onboarded", "true");
     router.push("/");
+  };
+
+  const triggerGoogleAuth = () => {
+    setAuthSubStep(1);
+    setShowAuthModal(true);
+  };
+
+  const approvePermissions = () => {
+    setPermissions({
+      drive: true,
+      sheets: true,
+      calendar: true
+    });
+    setShowAuthModal(false);
+    setStep(4); // Move directly to workspace configuration
   };
 
   return (
@@ -75,7 +91,6 @@ export default function OnboardingScreen() {
               height={200}
               className="object-contain drop-shadow-2xl animate-pulse"
             />
-            {/* Speech Bubble */}
             <div className="absolute -top-2 -right-4 bg-white text-[#18181B] font-bold text-[10px] px-3 py-1.5 rounded-2xl rounded-bl-none shadow-lg border border-white/20">
               สวัสดีครับ! ผมพร้อมช่วยคุณแล้ว 💜
             </div>
@@ -103,7 +118,7 @@ export default function OnboardingScreen() {
           </p>
 
           <div className="w-40 h-40 bg-[#18181B]/40 border border-white/5 rounded-full flex items-center justify-center mb-8 relative shadow-inner">
-            <div className="text-5xl">G</div>
+            <div className="text-5xl font-black text-white">G</div>
             <div className="absolute -bottom-1 -right-1 w-12 h-12 rounded-full overflow-hidden bg-[#18181B] border border-white/10 flex items-center justify-center">
               <Image src="/avatar/hello.png" alt="Little Bro Connect" width={44} height={44} />
             </div>
@@ -111,15 +126,15 @@ export default function OnboardingScreen() {
 
           <div className="w-full space-y-3">
             <button
-              onClick={() => setStep(3)}
-              className="w-full bg-[#18181B] hover:bg-white/5 text-white border border-white/10 font-bold text-xs py-3.5 rounded-2xl flex items-center justify-center gap-3 transition-all"
+              onClick={triggerGoogleAuth}
+              className="w-full bg-white hover:bg-white/90 text-[#18181B] font-bold text-xs py-3.5 rounded-2xl flex items-center justify-center gap-3 transition-all shadow-md shadow-white/5 cursor-pointer active:scale-95"
             >
-              <span className="text-lg">🌐</span> เชื่อมต่อผ่านบัญชี Google
+              <span>🔑</span> ดึงสิทธิ์อนุมัติเข้าถึง Google
             </button>
             
             <button
               onClick={() => setStep(3)}
-              className="w-full bg-[#5B5CEB] hover:bg-[#5B5CEB]/90 text-white font-bold text-sm py-3.5 rounded-2xl transition-all shadow-lg"
+              className="w-full bg-[#18181B] hover:bg-white/5 text-[#B3B3B3] hover:text-white border border-white/10 font-bold text-sm py-3.5 rounded-2xl transition-all"
             >
               ดำเนินการต่อ ➔
             </button>
@@ -144,7 +159,7 @@ export default function OnboardingScreen() {
                 className="w-4 h-4 rounded text-[#5B5CEB] border-white/10 bg-transparent focus:ring-0 focus:ring-offset-0"
               />
               <div>
-                <h4 className="text-xs font-bold">Google Drive (จัดการไฟล์) ✅</h4>
+                <h4 className="text-xs font-bold">Google Drive (จัดการไฟล์)</h4>
                 <p className="text-[9px] text-[#B3B3B3]">ใช้เพื่ออัปโหลดใบเสร็จ รูปภาพห้องพัก และเอกสาร</p>
               </div>
             </label>
@@ -157,7 +172,7 @@ export default function OnboardingScreen() {
                 className="w-4 h-4 rounded text-[#5B5CEB] border-white/10 bg-transparent focus:ring-0 focus:ring-offset-0"
               />
               <div>
-                <h4 className="text-xs font-bold">Google Sheets (ตารางข้อมูล) ✅</h4>
+                <h4 className="text-xs font-bold">Google Sheets (ตารางข้อมูล)</h4>
                 <p className="text-[9px] text-[#B3B3B3]">ใช้เป็นฐานข้อมูลบัญชีและจัดเก็บรายการคิวงาน</p>
               </div>
             </label>
@@ -170,18 +185,26 @@ export default function OnboardingScreen() {
                 className="w-4 h-4 rounded text-[#5B5CEB] border-white/10 bg-transparent focus:ring-0 focus:ring-offset-0"
               />
               <div>
-                <h4 className="text-xs font-bold">Google Calendar (ปฏิทินนัดหมาย) ✅</h4>
+                <h4 className="text-xs font-bold">Google Calendar (ปฏิทินนัดหมาย)</h4>
                 <p className="text-[9px] text-[#B3B3B3]">ใช้เพื่อซิงก์คิวนัดหมายของลูกค้าลงแอปบอสโดยตรง</p>
               </div>
             </label>
           </div>
 
-          <button
-            onClick={() => setStep(4)}
-            className="w-full bg-[#5B5CEB] hover:bg-[#5B5CEB]/90 text-white font-bold text-sm py-3.5 rounded-2xl shadow-lg shadow-[#5B5CEB]/25 transition-all duration-300"
-          >
-            ยินยอมและอนุญาตสิทธิ์ ➔
-          </button>
+          <div className="w-full space-y-3">
+            <button
+              onClick={triggerGoogleAuth}
+              className="w-full bg-white hover:bg-white/90 text-[#18181B] font-bold text-xs py-3 rounded-2xl flex items-center justify-center gap-2 transition-all cursor-pointer active:scale-95"
+            >
+              <span>🔑</span> ดึงข้อมูลดึงขออนุมัติ Google OAuth
+            </button>
+            <button
+              onClick={() => setStep(4)}
+              className="w-full bg-[#5B5CEB] hover:bg-[#5B5CEB]/90 text-white font-bold text-sm py-3.5 rounded-2xl shadow-lg transition-all duration-300"
+            >
+              บันทึกและดำเนินการต่อ ➔
+            </button>
+          </div>
         </div>
       )}
 
@@ -248,6 +271,90 @@ export default function OnboardingScreen() {
           >
             เข้าสู่ระบบหน้าต่างหลัก ➔
           </button>
+        </div>
+      )}
+
+      {/* Google OAuth Mock Modal Popup */}
+      {showAuthModal && (
+        <div className="absolute inset-0 bg-[#09090B]/90 backdrop-blur-md flex items-center justify-center p-6 z-50 animate-fade-in">
+          <div className="bg-[#1C1C1E] border border-white/10 w-full max-w-xs rounded-3xl p-5 shadow-2xl flex flex-col items-center relative">
+            
+            {/* Close Button */}
+            <button 
+              onClick={() => setShowAuthModal(false)}
+              className="absolute top-3.5 right-4 text-[#B3B3B3] hover:text-white text-sm"
+            >
+              ✕
+            </button>
+
+            {/* Google Logo */}
+            <div className="w-10 h-10 rounded-full bg-[#18181B] border border-white/10 flex items-center justify-center text-xl font-black mb-4">
+              G
+            </div>
+
+            {authSubStep === 1 ? (
+              <div className="w-full text-center">
+                <h3 className="text-xs font-bold text-white mb-1">ลงชื่อเข้าใช้งานด้วย Google</h3>
+                <p className="text-[10px] text-[#B3B3B3] mb-4">เพื่อทำรายการเชื่อมต่อกับ Little Bro Helper</p>
+                
+                {/* Account Choice Row */}
+                <button
+                  onClick={() => setAuthSubStep(2)}
+                  className="w-full p-3 bg-[#18181B]/60 hover:bg-[#18181B] border border-white/5 rounded-xl flex items-center gap-3 text-left transition-all mb-3 cursor-pointer"
+                >
+                  <div className="w-7 h-7 rounded-full overflow-hidden bg-[#5B5CEB]/20 text-[#5B5CEB] flex items-center justify-center font-bold text-xs">
+                    L
+                  </div>
+                  <div>
+                    <h4 className="text-[11px] font-bold text-white leading-none">Little Bro</h4>
+                    <span className="text-[9px] text-[#B3B3B3]">lannatc@gmail.com</span>
+                  </div>
+                </button>
+
+                <button
+                  onClick={() => alert("ระบบรองรับเฉพาะบัญชีหลักในเครื่องขณะนี้ครับบอส!")}
+                  className="text-[9px] text-[#5B5CEB] hover:underline"
+                >
+                  ใช้บัญชีอื่น
+                </button>
+              </div>
+            ) : (
+              <div className="w-full">
+                <h3 className="text-xs font-bold text-white text-center mb-1">ยินยอมและอนุญาตสิทธิ์</h3>
+                <p className="text-[9px] text-[#B3B3B3] text-center mb-4">Little Bro Helper ขอสิทธิ์เข้าถึงบัญชีของบอสดังนี้:</p>
+                
+                <div className="space-y-2 mb-5 text-[10px] text-[#B3B3B3] bg-[#18181B]/40 p-3 rounded-xl">
+                  <div className="flex items-start gap-2">
+                    <span className="text-[#10B981]">✔</span>
+                    <span>ดู สร้าง และแก้ไขไฟล์ทั้งหมดบน Google Drive</span>
+                  </div>
+                  <div className="flex items-start gap-2">
+                    <span className="text-[#10B981]">✔</span>
+                    <span>ดู สร้าง และแก้ไขตารางชีตทั้งหมดบน Google Sheets</span>
+                  </div>
+                  <div className="flex items-start gap-2">
+                    <span className="text-[#10B981]">✔</span>
+                    <span>จัดการข้อมูลนัดหมายบน Google Calendar</span>
+                  </div>
+                </div>
+
+                <div className="flex gap-2">
+                  <button
+                    onClick={() => setShowAuthModal(false)}
+                    className="flex-1 bg-[#18181B] text-[#B3B3B3] text-xs font-bold py-2.5 rounded-xl border border-white/5 cursor-pointer"
+                  >
+                    ยกเลิก
+                  </button>
+                  <button
+                    onClick={approvePermissions}
+                    className="flex-1 bg-[#5B5CEB] text-white text-xs font-bold py-2.5 rounded-xl cursor-pointer hover:bg-[#5B5CEB]/85"
+                  >
+                    อนุญาต (Allow)
+                  </button>
+                </div>
+              </div>
+            )}
+          </div>
         </div>
       )}
 
