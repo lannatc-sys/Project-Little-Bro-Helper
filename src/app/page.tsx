@@ -181,11 +181,11 @@ export default function HomeScreen() {
           </Link>
 
           <Link
-            href="/tasks"
+            href="/tasks?create=true"
             className="flex flex-col items-center gap-1.5 p-2 bg-surface/40 hover:bg-surface/60 border border-white/5 rounded-xl transition-all text-center"
           >
             <span className="text-xl bg-[#F59E0B]/20 p-2.5 rounded-xl text-[#F59E0B]">📝</span>
-            <span className="text-[10px] text-text-sub">จัดการงาน</span>
+            <span className="text-[10px] text-text-sub">สร้างงาน</span>
           </Link>
 
           <Link

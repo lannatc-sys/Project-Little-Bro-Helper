@@ -16,7 +16,7 @@ const SHEETS_SCHEMA = {
 };
 
 /**
- * 1. ฟังก์ชันหลักสำหรับรับ HTTP POST Request จาก Telegram Mini App
+ * 1. ฟังก์ชันหลักสำหรับรับ HTTP POST Request จาก Telegram Mini App และ Bot
  */
 function doPost(e) {
   var lock = LockService.getScriptLock();
@@ -181,6 +181,62 @@ function doPost(e) {
       ]);
       
       return createJsonResponse({ status: "success", message: "บันทึกนัดหมายลงปฏิทินสำเร็จ" });
+    }
+
+    // CASE G: อัปเดตอัปโหลดไฟล์ไป Google Drive (File Upload Module)
+    if (action === "upload_file") {
+      var folderName = "Little Bro Helper Files";
+      var folder;
+      var folders = DriveApp.getFoldersByName(folderName);
+      if (folders.hasNext()) {
+        folder = folders.next();
+      } else {
+        folder = DriveApp.createFolder(folderName);
+      }
+      
+      var fileData = requestData.file_data; // base64 string
+      var fileName = requestData.file_name || "upload_" + new Date().getTime();
+      var mimeType = requestData.mime_type || "application/octet-stream";
+      
+      var decodedBytes = Utilities.base64Decode(fileData);
+      var blob = Utilities.newBlob(decodedBytes, mimeType, fileName);
+      var file = folder.createFile(blob);
+      file.setSharing(DriveApp.Access.ANYONE_WITH_LINK, DriveApp.Permission.VIEW);
+      
+      return createJsonResponse({ 
+        status: "success", 
+        message: "อัปโหลดไฟล์ไป Google Drive สำเร็จ", 
+        file_url: file.getUrl() 
+      });
+    }
+
+    // CASE H: เรียกรายการไฟล์ทั้งหมดใน Google Drive (List Files Module)
+    if (action === "list_files") {
+      var folderName = "Little Bro Helper Files";
+      var folder;
+      var folders = DriveApp.getFoldersByName(folderName);
+      var fileList = [];
+      
+      if (folders.hasNext()) {
+        folder = folders.next();
+        var files = folder.getFiles();
+        while (files.hasNext()) {
+          var f = files.next();
+          var sizeStr = f.getSize() >= 1048576 
+            ? (f.getSize() / 1048576).toFixed(1) + " MB" 
+            : Math.round(f.getSize() / 1024) + " KB";
+            
+          fileList.push({
+            name: f.getName(),
+            size: sizeStr,
+            date: Utilities.formatDate(f.getDateCreated(), Session.getScriptTimeZone() || "GMT+7", "dd/MM/yyyy"),
+            url: f.getUrl(),
+            icon: f.getName().toLowerCase().endsWith(".pdf") ? "📄" : "🖼️"
+          });
+        }
+      }
+      
+      return createJsonResponse({ status: "success", files: fileList });
     }
     
     throw new Error("Action command '" + action + "' not supported by Backend Engine.");

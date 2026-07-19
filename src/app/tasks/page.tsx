@@ -1,9 +1,11 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, Suspense } from "react";
 import Image from "next/image";
+import { useSearchParams } from "next/navigation";
 
-export default function TasksScreen() {
+function TasksForm() {
+  const searchParams = useSearchParams();
   const [activeTab, setActiveTab] = useState("ทั้งหมด");
   const [loading, setLoading] = useState(true);
   const [tasks, setTasks] = useState<any[]>([]);
@@ -35,7 +37,10 @@ export default function TasksScreen() {
 
   useEffect(() => {
     fetchTasks();
-  }, []);
+    if (searchParams.get("create") === "true") {
+      setShowCreateModal(true);
+    }
+  }, [searchParams]);
 
   const toggleTask = async (task: any) => {
     const nextStatus = task.status === "Completed" ? "Pending" : "Completed";
@@ -91,6 +96,15 @@ export default function TasksScreen() {
     }
   };
 
+  const filteredTasks = tasks.filter((t) => {
+    const isCompleted = t.status === "Completed";
+    if (activeTab === "ทั้งหมด") return true;
+    if (activeTab === "วันนี้") return true; // simplified grouping
+    if (activeTab === "กำลังทำ") return !isCompleted;
+    if (activeTab === "เสร็จแล้ว") return isCompleted;
+    return true;
+  });
+
   if (loading) {
     return (
       <div className="min-h-screen bg-background flex flex-col items-center justify-center text-text-main p-6 font-sans">
@@ -101,15 +115,6 @@ export default function TasksScreen() {
       </div>
     );
   }
-
-  const filteredTasks = tasks.filter((t) => {
-    const isCompleted = t.status === "Completed";
-    if (activeTab === "ทั้งหมด") return true;
-    if (activeTab === "วันนี้") return true; // simplified grouping
-    if (activeTab === "กำลังทำ") return !isCompleted;
-    if (activeTab === "เสร็จแล้ว") return isCompleted;
-    return true;
-  });
 
   return (
     <div className="min-h-screen bg-background p-6 text-text-main font-sans flex flex-col justify-between transition-colors duration-300">
@@ -267,5 +272,17 @@ export default function TasksScreen() {
         <p>Little Bro Helper v1.0.0 • Antigravity Product Team</p>
       </footer>
     </div>
+  );
+}
+
+export default function TasksScreen() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen bg-background flex items-center justify-center text-text-main">
+        กำลังโหลดรายการภารกิจ...
+      </div>
+    }>
+      <TasksForm />
+    </Suspense>
   );
 }
