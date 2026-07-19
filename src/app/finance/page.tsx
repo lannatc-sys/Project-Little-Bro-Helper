@@ -310,7 +310,7 @@ export default function FinanceScreen() {
                 <span className="text-xl">🩺</span>
                 <div>
                   <h4 className="text-xs font-bold text-text-main">ตรวจสุขภาพการเงิน (SET Happy Money)</h4>
-                  <p className="text-[9px] text-text-sub">วิเคราะห์อัตราการออมและภาระหนี้สิน เพื่อประเมินเกรดผลลัพธ์ A-F</p>
+                  <p className="text-[9px] text-text-sub">มอนิเตอร์การเงินฉบับ Little Bro 🩺 วิเคราะห์อัตราการออมและภาระหนี้สินเพื่อประเมินเกรด A-F</p>
                 </div>
               </div>
               

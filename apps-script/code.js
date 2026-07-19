@@ -900,7 +900,7 @@ function checkMonthlyFinancialHealth(ssId) {
   var monthName = monthsThai[currentMonth];
   var thaiYear = currentYear + 543;
   
-  var reportText = "🩺 *รายงานตรวจสุขภาพการเงินสิ้นเดือน (SET Happy Money)*\n" +
+  var reportText = "🩺 *ตรวจสุขภาพการเงิน (SET Happy Money)*\n*« มอนิเตอร์การเงินฉบับ Little Bro »*\n" +
                    "📅 ประจำเดือน: *" + monthName + " " + thaiYear + "*\n" +
                    "──────────────────\n" +
                    "📈 *สรุปข้อมูลประจำเดือน*:\n" +
