@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import fs from "fs";
 import path from "path";
+import { supabase } from "@/lib/supabase";
 
 const registrationFilePath = path.join(process.cwd(), "apps-script", "registration.json");
 
@@ -38,6 +39,26 @@ export async function GET(request: Request) {
     return NextResponse.json({ status: "error", message: "Missing email parameter" }, { status: 400 });
   }
 
+  // Check Supabase first for absolute persistence
+  try {
+    const { data: profile, error } = await supabase
+      .from("profiles")
+      .select("*")
+      .eq("google_email", email)
+      .maybeSingle();
+
+    if (profile) {
+      return NextResponse.json({
+        status: "approved",
+        spreadsheet_id: profile.user_id || "",
+        folder_id: ""
+      });
+    }
+  } catch (err) {
+    console.error("Supabase profile check error:", err);
+  }
+
+  // Fallback to local registrations cache
   const data = readRegistrations();
   const reg = data[email];
 
@@ -62,9 +83,24 @@ export async function POST(request: Request) {
       return NextResponse.json({ status: "error", message: "Missing email or username" }, { status: 400 });
     }
 
+    // Check Supabase first
+    const { data: profile } = await supabase
+      .from("profiles")
+      .select("*")
+      .eq("google_email", email)
+      .maybeSingle();
+
+    if (profile) {
+      return NextResponse.json({ 
+        status: "approved", 
+        spreadsheet_id: profile.user_id, 
+        folder_id: ""
+      });
+    }
+
     const data = readRegistrations();
     
-    // Check if already approved or pending
+    // Check if already approved or pending in cache
     if (data[email] && data[email].status === "approved") {
       return NextResponse.json({ 
         status: "approved", 
@@ -85,7 +121,7 @@ export async function POST(request: Request) {
 
     writeRegistrations(data);
 
-    // Trigger Telegram Admin Alert (we'll notify via Telegram in the same flow or separate)
+    // Trigger Telegram Admin Alert
     const token = process.env.TELEGRAM_BOT_TOKEN;
     const adminChatId = "5581598534"; // active user iGAMER
 
@@ -131,6 +167,13 @@ export async function DELETE(request: Request) {
 
     if (!email) {
       return NextResponse.json({ status: "error", message: "Missing email parameter" }, { status: 400 });
+    }
+
+    // Wipe from Supabase
+    try {
+      await supabase.from("profiles").delete().eq("google_email", email);
+    } catch (err) {
+      console.error("Failed to delete profile from Supabase:", err);
     }
 
     const data = readRegistrations();

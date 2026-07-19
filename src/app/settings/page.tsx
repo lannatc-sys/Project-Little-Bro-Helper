@@ -13,6 +13,7 @@ export default function SettingsScreen() {
   const [isInitializing, setIsInitializing] = useState(false);
   const [initMessage, setInitMessage] = useState("");
   const [isBackingUp, setIsBackingUp] = useState(false);
+  const [isMigrating, setIsMigrating] = useState(false);
 
   useEffect(() => {
     const savedTheme = localStorage.getItem("little_bro_theme") || "dark";
@@ -79,6 +80,28 @@ export default function SettingsScreen() {
       alert("❌ ไม่สามารถเชื่อมต่อเพื่อสำรองข้อมูลได้: " + err.message);
     } finally {
       setIsBackingUp(false);
+    }
+  };
+
+  const handleMigrateToSupabase = async () => {
+    if (!confirm("⚠️ คำเตือน: ระบบจะย้ายข้อมูลทั้งหมดจาก Google Sheets ปัจจุบันของบอส ไปเขียนทับใน Supabase บอสต้องการดำเนินการหรือไม่ครับ?")) {
+      return;
+    }
+    setIsMigrating(true);
+    try {
+      const response = await fetch("/api/migrate", {
+        method: "POST"
+      });
+      const data = await response.json();
+      if (data.status === "success") {
+        alert(`✅ ย้ายฐานข้อมูลสำเร็จเรียบร้อยครับบอส!\n\nจำนวนข้อมูลที่ก๊อปปี้อพยพไป:\n- บัญชีการเงิน: ${data.stats.finance} รายการ\n- รายการงาน: ${data.stats.tasks} รายการ\n- นัดหมายกิจกรรม: ${data.stats.calendar} รายการ\n- ข้อมูลโปรไฟล์และตั้งค่าเสร็จสมบูรณ์ 📊✨`);
+      } else {
+        alert("❌ ย้ายข้อมูลขัดข้อง: " + data.message);
+      }
+    } catch (err: any) {
+      alert("❌ เกิดข้อผิดพลาดในการเชื่อมต่อเซิร์ฟเวอร์: " + err.message);
+    } finally {
+      setIsMigrating(false);
     }
   };
 
@@ -203,6 +226,27 @@ export default function SettingsScreen() {
                 </div>
               </div>
               <span className="text-xs text-text-sub/45">➔</span>
+            </div>
+
+            {/* Supabase Migration row */}
+            <div
+              onClick={handleMigrateToSupabase}
+              className={`p-3 bg-[#10B981]/5 border border-[#10B981]/15 rounded-xl hover:bg-[#10B981]/15 transition-all cursor-pointer flex items-center justify-between ${
+                isMigrating ? "opacity-50 pointer-events-none" : ""
+              }`}
+            >
+              <div className="flex items-center gap-3">
+                <span className="text-lg bg-[#10B981]/20 p-2 rounded-lg">
+                  {isMigrating ? "⏳" : "⚡"}
+                </span>
+                <div>
+                  <h4 className="text-xs font-semibold text-text-main">
+                    {isMigrating ? "กำลังอพยพข้อมูล..." : "อพยพข้อมูลเก่าไป Supabase"}
+                  </h4>
+                  <p className="text-[9px] text-text-sub">ย้ายรายการธุรกรรมการเงินและงานทั้งหมดจาก Google Sheets ไป Supabase ในคลิกเดียว</p>
+                </div>
+              </div>
+              <span className="text-xs text-[#10B981]/60">➔</span>
             </div>
 
             {/* Other static options */}

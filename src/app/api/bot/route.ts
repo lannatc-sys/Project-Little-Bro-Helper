@@ -83,6 +83,18 @@ export async function POST(request: Request) {
                   reg.status = "approved";
                   responseText = `🟢 *อนุมัติคำขอเรียบร้อยแล้ว!*\nระบบจัดตั้งฐานข้อมูลและเชื่อม Workspace ให้ผู้ใช้แล้วครับ 💻\n\n*ID ชีต*: \`${gasResult.spreadsheet_id}\``;
                   
+                  try {
+                    const { supabase } = await import("@/lib/supabase");
+                    await supabase.from("profiles").upsert({
+                      user_id: gasResult.spreadsheet_id,
+                      telegram_username: reg.username || "",
+                      google_email: email,
+                      registered_at: new Date().toISOString()
+                    }, { onConflict: "user_id" });
+                  } catch (supaErr) {
+                    console.error("Failed to insert profile into Supabase:", supaErr);
+                  }
+                  
                   // Notify user if Telegram ID exists
                   if (reg.telegram_chat_id) {
                     await fetch(`https://api.telegram.org/bot${token}/sendMessage`, {
@@ -197,6 +209,18 @@ export async function POST(request: Request) {
       // ลงทะเบียน หรืออัปเดตสิทธิ์ Chat ID ปัจจุบันลงชีต Profiles หลังบ้าน
       const gasUrl = process.env.GOOGLE_APPS_SCRIPT_URL;
       const ssId = process.env.GOOGLE_SPREADSHEET_ID;
+      try {
+        const { supabase } = await import("@/lib/supabase");
+        await supabase.from("profiles").upsert({
+          user_id: String(chatId),
+          telegram_username: username || "",
+          google_email: "",
+          registered_at: new Date().toISOString()
+        }, { onConflict: "user_id" });
+      } catch (supaErr) {
+        console.error("Failed to upsert profile in Supabase on /start:", supaErr);
+      }
+
       if (gasUrl && ssId) {
         try {
           await fetch(gasUrl, {
@@ -284,9 +308,30 @@ export async function POST(request: Request) {
         const gasUrl = process.env.GOOGLE_APPS_SCRIPT_URL;
         const ssId = process.env.GOOGLE_SPREADSHEET_ID;
 
-        if (gasUrl && ssId) {
-          try {
-            const gasRes = await fetch(gasUrl, {
+        // Write directly to Supabase first for sub-100ms speed!
+        let supaSuccess = false;
+        try {
+          const { supabase } = await import("@/lib/supabase");
+          const { error } = await supabase.from("finance").insert({
+            transaction_type: isIncome ? "Income" : "Expense",
+            category,
+            amount,
+            description: desc,
+            timestamp: new Date().toISOString()
+          });
+          if (!error) {
+            supaSuccess = true;
+          }
+        } catch (supaErr) {
+          console.error("Supabase insert from Telegram bot failed:", supaErr);
+        }
+
+        if (supaSuccess) {
+          replyText = `✅ *บันทึกรายการลงบัญชีสำเร็จเรียบร้อยครับ!*\n\n*ประเภท*: ${isIncome ? "📈 รายรับ" : "📉 รายจ่าย"}\n*จำนวน*: ฿${amount.toLocaleString("th-TH", { minimumFractionDigits: 2 })}\n*หมวดหมู่*: ${category}\n*รายละเอียด*: ${desc}\n\nข้อมูลการเงินถูกซิงก์เรียบร้อยแล้วครับ!`;
+
+          // Fire-and-forget sync to Google Sheets in background
+          if (gasUrl && ssId) {
+            fetch(gasUrl, {
               method: "POST",
               headers: { "Content-Type": "application/json" },
               body: JSON.stringify({
@@ -296,18 +341,35 @@ export async function POST(request: Request) {
                 category,
                 description: desc
               })
-            });
-            const gasResult = await gasRes.json();
-            if (gasResult.status === "success") {
-              replyText = `✅ *บันทึกรายการลงบัญชีสำเร็จเรียบร้อยครับ!*\n\n*ประเภท*: ${isIncome ? "📈 รายรับ" : "📉 รายจ่าย"}\n*จำนวน*: ฿${amount.toLocaleString("th-TH", { minimumFractionDigits: 2 })}\n*หมวดหมู่*: ${category}\n*รายละเอียด*: ${desc}\n\nข้อมูลการเงินถูกซิงก์ซ้อนเรียบร้อยแล้วครับ!`;
-            } else {
-              replyText = `❌ เกิดข้อผิดพลาดในการเขียนแผ่นงาน: ${gasResult.message}`;
-            }
-          } catch (err: any) {
-            replyText = `⚠️ ระบบขัดข้องขณะซิงก์ข้อมูล: ${err.message}`;
+            }).catch(e => console.error("GAS sync background error from bot:", e));
           }
         } else {
-          replyText = `⚠️ ระบบหลังบ้านยังไม่ได้เปิดตาราง Google Sheets สำหรับรับรายการจากแชทบอทครับ`;
+          // Fallback to legacy wait for GAS
+          if (gasUrl && ssId) {
+            try {
+              const gasRes = await fetch(gasUrl, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                  action,
+                  spreadsheet_id: ssId,
+                  amount,
+                  category,
+                  description: desc
+                })
+              });
+              const gasResult = await gasRes.json();
+              if (gasResult.status === "success") {
+                replyText = `✅ *บันทึกรายการลงบัญชีสำเร็จเรียบร้อยครับ!*\n\n*ประเภท*: ${isIncome ? "📈 รายรับ" : "📉 รายจ่าย"}\n*จำนวน*: ฿${amount.toLocaleString("th-TH", { minimumFractionDigits: 2 })}\n*หมวดหมู่*: ${category}\n*รายละเอียด*: ${desc}\n\nข้อมูลการเงินถูกซิงก์ซ้อนเรียบร้อยแล้วครับ!`;
+              } else {
+                replyText = `❌ เกิดข้อผิดพลาดในการเขียนแผ่นงาน: ${gasResult.message}`;
+              }
+            } catch (err: any) {
+              replyText = `⚠️ ระบบขัดข้องขณะซิงก์ข้อมูล: ${err.message}`;
+            }
+          } else {
+            replyText = `⚠️ ระบบหลังบ้านยังไม่ได้เปิดตาราง Google Sheets สำหรับรับรายการจากแชทบอทครับ`;
+          }
         }
       } else {
         // Default text parser response
