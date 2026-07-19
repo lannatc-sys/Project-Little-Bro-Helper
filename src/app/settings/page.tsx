@@ -45,7 +45,7 @@ export default function SettingsScreen() {
       });
       const data = await response.json();
       if (data.status === "success") {
-        setInitMessage("✅ สร้างพื้นที่ทำงานสำเร็จ ตารางชีตพร้อมใช้งานแล้วครับบอส!");
+        setInitMessage("✅ สร้างพื้นที่ทำงานสำเร็จ ตารางชีตพร้อมใช้งานแล้วครับพี่!");
       } else {
         setInitMessage("❌ เกิดข้อผิดพลาด: " + data.message);
       }
@@ -69,7 +69,7 @@ export default function SettingsScreen() {
       });
       const data = await response.json();
       if (data.status === "success") {
-        alert(`✅ สำรองข้อมูล Google Sheets สำเร็จเรียบร้อยครับบอส!\nไฟล์สำรองถูกเก็บไว้ใน Drive โฟลเดอร์ "Little Bro Assistant Backups"\n\nบอสสามารถเปิดดูชีตสำรองได้ที่: ${data.backup_url}`);
+        alert(`✅ สำรองข้อมูล Google Sheets สำเร็จเรียบร้อยครับพี่!\nไฟล์สำรองถูกเก็บไว้ใน Drive โฟลเดอร์ "Little Bro Assistant Backups"\n\nพี่สามารถเปิดดูชีตสำรองได้ที่: ${data.backup_url}`);
         if (data.backup_url) {
           window.open(data.backup_url, "_blank");
         }
@@ -84,7 +84,7 @@ export default function SettingsScreen() {
   };
 
   const handleMigrateToSupabase = async () => {
-    if (!confirm("⚠️ คำเตือน: ระบบจะย้ายข้อมูลทั้งหมดจาก Google Sheets ปัจจุบันของบอส ไปเขียนทับใน Supabase บอสต้องการดำเนินการหรือไม่ครับ?")) {
+    if (!confirm("⚠️ คำเตือน: ระบบจะย้ายข้อมูลทั้งหมดจาก Google Sheets ปัจจุบันของพี่ ไปเขียนทับใน Supabase พี่ต้องการดำเนินการหรือไม่ครับ?")) {
       return;
     }
     setIsMigrating(true);
@@ -94,7 +94,7 @@ export default function SettingsScreen() {
       });
       const data = await response.json();
       if (data.status === "success") {
-        alert(`✅ ย้ายฐานข้อมูลสำเร็จเรียบร้อยครับบอส!\n\nจำนวนข้อมูลที่ก๊อปปี้อพยพไป:\n- บัญชีการเงิน: ${data.stats.finance} รายการ\n- รายการงาน: ${data.stats.tasks} รายการ\n- นัดหมายกิจกรรม: ${data.stats.calendar} รายการ\n- ข้อมูลโปรไฟล์และตั้งค่าเสร็จสมบูรณ์ 📊✨`);
+        alert(`✅ ย้ายฐานข้อมูลสำเร็จเรียบร้อยครับพี่!\n\nจำนวนข้อมูลที่ก๊อปปี้อพยพไป:\n- บัญชีการเงิน: ${data.stats.finance} รายการ\n- รายการงาน: ${data.stats.tasks} รายการ\n- นัดหมายกิจกรรม: ${data.stats.calendar} รายการ\n- ข้อมูลโปรไฟล์และตั้งค่าเสร็จสมบูรณ์ 📊✨`);
       } else {
         alert("❌ ย้ายข้อมูลขัดข้อง: " + data.message);
       }

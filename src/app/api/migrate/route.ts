@@ -107,7 +107,7 @@ export async function POST(request: Request) {
 
     return NextResponse.json({
       status: "success",
-      message: "ย้ายฐานข้อมูลจาก Google Sheets ไปยัง Supabase สำเร็จเรียบร้อยครับบอส! 🎉",
+      message: "ย้ายฐานข้อมูลจาก Google Sheets ไปยัง Supabase สำเร็จเรียบร้อยครับพี่! 🎉",
       stats: {
         profiles: profiles.length || 1,
         finance: finance.length,

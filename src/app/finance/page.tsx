@@ -79,7 +79,7 @@ export default function FinanceScreen() {
   };
 
   const handleDeleteTransaction = async (item: any) => {
-    if (!confirm("🚨 เฮ้ยบอส!!! แน่ใจนะว่าจะลบรายการเงินนี้จริง ๆ?! ลบแล้วกู้คืนไม่ได้นะบอส!!! 😱")) return;
+    if (!confirm("🚨 เฮ้ยพี่!!! แน่ใจนะว่าจะลบรายการเงินนี้จริง ๆ?! ลบแล้วกู้คืนไม่ได้นะพี่!!! 😱")) return;
     
     setLoading(true);
     try {
@@ -123,7 +123,7 @@ export default function FinanceScreen() {
       });
       const data = await response.json();
       if (data.status === "success") {
-        alert("📊 ประเมินสุขภาพการเงินสำเร็จ!\n\nระบบวิเคราะห์ตามเกณฑ์ SET Happy Money และส่งการ์ดรายงานผลประเมิน (Grade A-F) ส่งตรงเข้าสู่ Telegram ของบอสแล้วครับบอส! 🩺✨");
+        alert("📊 ประเมินสุขภาพการเงินสำเร็จ!\n\nระบบวิเคราะห์ตามเกณฑ์ SET Happy Money และส่งการ์ดรายงานผลประเมิน (Grade A-F) ส่งตรงเข้าสู่ Telegram ของพี่เรียบร้อยแล้วครับพี่! 🩺✨");
       } else {
         alert("❌ ประเมินขัดข้อง: " + data.message);
       }

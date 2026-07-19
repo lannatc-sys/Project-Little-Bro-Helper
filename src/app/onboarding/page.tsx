@@ -244,7 +244,7 @@ export default function OnboardingScreen() {
         <div className="flex-1 flex flex-col justify-center items-center text-center w-full z-10">
           <h2 className="text-xl font-bold mb-2">อนุญาตสิทธิ์การเข้าถึง</h2>
           <p className="text-xs text-text-sub max-w-xs mb-6">
-            กรุณาเลือกอนุญาตขอบเขตการทำงานเพื่อให้ระบบจัดการสิ่งต่าง ๆ แทนบอสได้
+            กรุณาเลือกอนุญาตขอบเขตการทำงานเพื่อให้ระบบจัดการสิ่งต่าง ๆ แทนพี่ได้
           </p>
 
           <div className="w-full bg-surface/40 border border-white/5 rounded-2xl p-4 mb-6 space-y-4 text-left">

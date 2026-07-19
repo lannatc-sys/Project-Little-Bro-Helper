@@ -7,7 +7,7 @@ import { useRouter } from "next/navigation";
 
 export default function HomeScreen() {
   const router = useRouter();
-  const [greeting, setGreeting] = useState("สวัสดีครับบอส 👔");
+  const [greeting, setGreeting] = useState("สวัสดีครับพี่ 💜");
   const [avatar, setAvatar] = useState("/avatar/hello.png");
   
   // Notification states
@@ -110,7 +110,7 @@ export default function HomeScreen() {
           const localEmail = localStorage.getItem("little_bro_email");
           
           if (localEmail && localEmail !== data.google_email) {
-            alert(`⚠️ ตรวจพบการลงทะเบียนด้วยบัญชีอีเมลอื่น (${data.google_email}) บนช่องทาง ${platformName} ของบอสครับ!\n\nระบบจะล้างข้อมูลและให้เริ่มตั้งค่า Onboarding ใหม่ทั้งหมดเพื่อความปลอดภัยครับ`);
+            alert(`⚠️ น้องตรวจพบการลงทะเบียนด้วยบัญชีอีเมลอื่น (${data.google_email}) บนช่องทาง ${platformName} ของพี่ครับ!\n\nน้องขออนุญาตล้างข้อมูลแล้วกลับไปเริ่มตั้งค่า Onboarding ใหม่ทั้งหมดเพื่อความปลอดภัยนะครับพี่`);
             localStorage.clear();
             window.location.href = "/onboarding";
           }

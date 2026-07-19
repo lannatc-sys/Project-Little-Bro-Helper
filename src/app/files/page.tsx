@@ -117,7 +117,7 @@ export default function FilesScreen() {
       <div>
         {/* Header Section */}
         <header className="mb-6 flex justify-between items-center">
-          <h1 className="text-xl font-bold text-text-main">ไฟล์ของบอส</h1>
+          <h1 className="text-xl font-bold text-text-main">ไฟล์ของพี่</h1>
           
           <div>
             {/* Hidden File Input */}
@@ -216,7 +216,7 @@ export default function FilesScreen() {
               ))
             ) : (
               <div className="p-8 bg-surface/20 border border-dashed border-white/5 rounded-2xl text-center text-xs text-text-sub">
-                📭 ยังไม่มีการอัปโหลดไฟล์ในโฟลเดอร์นี้ครับบอส
+                📭 ยังไม่มีการอัปโหลดไฟล์ในโฟลเดอร์นี้เลยครับพี่
               </div>
             )}
           </div>
