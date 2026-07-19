@@ -33,11 +33,11 @@ export default function TasksScreen() {
   const tomorrowTasks = filteredTasks.filter((t) => t.date === "tomorrow");
 
   return (
-    <div className="min-h-screen bg-[#09090B] p-6 text-white font-sans flex flex-col justify-between">
+    <div className="min-h-screen bg-background p-6 text-text-main font-sans flex flex-col justify-between transition-colors duration-300">
       <div>
         {/* Header Section */}
         <header className="mb-6 flex justify-between items-center">
-          <h1 className="text-xl font-bold text-white">งานของฉัน</h1>
+          <h1 className="text-xl font-bold text-text-main">งานของฉัน</h1>
           <button
             onClick={() => alert("ระบบสร้างงานผ่าน Apps Script จะเพิ่มในเฟสถัดไปครับบอส!")}
             className="bg-[#5B5CEB] hover:bg-[#5B5CEB]/80 text-white font-semibold text-xs px-3 py-1.5 rounded-xl transition-all"
@@ -47,7 +47,7 @@ export default function TasksScreen() {
         </header>
 
         {/* Tab Headers */}
-        <div className="flex bg-[#18181B] p-1.5 rounded-xl border border-white/5 mb-6 justify-between text-center">
+        <div className="flex bg-surface p-1.5 rounded-xl border border-white/5 mb-6 justify-between text-center">
           {["ทั้งหมด", "วันนี้", "กำลังทำ", "เสร็จแล้ว"].map((tab) => (
             <button
               key={tab}
@@ -55,7 +55,7 @@ export default function TasksScreen() {
               className={`flex-1 text-[11px] py-1.5 rounded-lg transition-all ${
                 activeTab === tab
                   ? "bg-[#5B5CEB] text-white font-bold"
-                  : "text-[#B3B3B3] hover:text-white"
+                  : "text-text-sub hover:text-text-main"
               }`}
             >
               {tab}
@@ -66,7 +66,7 @@ export default function TasksScreen() {
         {/* Today's Tasks Group */}
         {todayTasks.length > 0 && (
           <section className="mb-6">
-            <h3 className="text-xs font-semibold text-[#B3B3B3] mb-3 flex items-center gap-2">
+            <h3 className="text-xs font-semibold text-text-sub mb-3 flex items-center gap-2">
               <span className="w-1.5 h-1.5 rounded-full bg-[#5B5CEB]"></span>
               วันนี้ • 20 พฤษภาคม 2567
             </h3>
@@ -75,7 +75,7 @@ export default function TasksScreen() {
                 <div
                   key={task.id}
                   onClick={() => toggleTask(task.id)}
-                  className="flex items-center justify-between p-3.5 bg-[#18181B]/30 hover:bg-[#18181B]/50 border border-white/5 rounded-xl cursor-pointer transition-all duration-200"
+                  className="flex items-center justify-between p-3.5 bg-surface/30 hover:bg-surface/50 border border-white/5 rounded-xl cursor-pointer transition-all duration-200"
                 >
                   <div className="flex items-center gap-3">
                     <div className={`w-4 h-4 rounded border flex items-center justify-center transition-all ${
@@ -87,11 +87,11 @@ export default function TasksScreen() {
                         </svg>
                       )}
                     </div>
-                    <span className={`text-xs ${task.done ? "text-[#B3B3B3] line-through" : "text-white"}`}>
+                    <span className={`text-xs ${task.done ? "text-text-sub line-through" : "text-text-main"}`}>
                       {task.text}
                     </span>
                   </div>
-                  <span className="text-[10px] text-[#B3B3B3] font-mono">{task.time}</span>
+                  <span className="text-[10px] text-text-sub font-mono">{task.time}</span>
                 </div>
               ))}
             </div>
@@ -101,7 +101,7 @@ export default function TasksScreen() {
         {/* Tomorrow's Tasks Group */}
         {tomorrowTasks.length > 0 && (
           <section className="mb-6">
-            <h3 className="text-xs font-semibold text-[#B3B3B3] mb-3 flex items-center gap-2">
+            <h3 className="text-xs font-semibold text-text-sub mb-3 flex items-center gap-2">
               <span className="w-1.5 h-1.5 rounded-full bg-[#B3B3B3]"></span>
               พรุ่งนี้ • 21 พฤษภาคม 2567
             </h3>
@@ -110,7 +110,7 @@ export default function TasksScreen() {
                 <div
                   key={task.id}
                   onClick={() => toggleTask(task.id)}
-                  className="flex items-center justify-between p-3.5 bg-[#18181B]/30 hover:bg-[#18181B]/50 border border-white/5 rounded-xl cursor-pointer transition-all duration-200"
+                  className="flex items-center justify-between p-3.5 bg-surface/30 hover:bg-surface/50 border border-white/5 rounded-xl cursor-pointer transition-all duration-200"
                 >
                   <div className="flex items-center gap-3">
                     <div className={`w-4 h-4 rounded border flex items-center justify-center transition-all ${
@@ -122,11 +122,11 @@ export default function TasksScreen() {
                         </svg>
                       )}
                     </div>
-                    <span className={`text-xs ${task.done ? "text-[#B3B3B3] line-through" : "text-white"}`}>
+                    <span className={`text-xs ${task.done ? "text-text-sub line-through" : "text-text-main"}`}>
                       {task.text}
                     </span>
                   </div>
-                  <span className="text-[10px] text-[#B3B3B3] font-mono">{task.time}</span>
+                  <span className="text-[10px] text-text-sub font-mono">{task.time}</span>
                 </div>
               ))}
             </div>
@@ -134,8 +134,8 @@ export default function TasksScreen() {
         )}
 
         {/* Stance Avatar Card */}
-        <div className="bg-[#18181B]/40 border border-[#5B5CEB]/25 p-4 rounded-2xl flex items-center gap-4 mt-6">
-          <div className="w-14 h-14 rounded-full overflow-hidden bg-[#18181B] flex-shrink-0 border border-white/10">
+        <div className="bg-surface/40 border border-[#5B5CEB]/25 p-4 rounded-2xl flex items-center gap-4 mt-6">
+          <div className="w-14 h-14 rounded-full overflow-hidden bg-surface flex-shrink-0 border border-white/10">
             <Image
               src="/avatar/plan.png"
               alt="Plan Stance"
@@ -145,15 +145,15 @@ export default function TasksScreen() {
             />
           </div>
           <div>
-            <h4 className="text-xs font-bold text-white mb-1">จัดการคิวงานระบบ 📋</h4>
-            <p className="text-[10px] text-[#B3B3B3] leading-relaxed">
+            <h4 className="text-xs font-bold text-text-main mb-1">จัดการคิวงานระบบ 📋</h4>
+            <p className="text-[10px] text-text-sub leading-relaxed">
               งานวันนี้เคลียร์ไปแล้ว 1 รายการ เหลืออีก 4 รายการด่วน ผมเรียงลำดับเวลาการดำเนินงานของบอสตามเป้าหมายของ Google Sheets ให้เรียบร้อยครับ!
             </p>
           </div>
         </div>
       </div>
 
-      <footer className="mt-8 text-center text-[10px] text-[#B3B3B3]/40">
+      <footer className="mt-8 text-center text-[10px] text-text-sub/40">
         <p>Little Bro Helper v1.0.0 • Antigravity Product Team</p>
       </footer>
     </div>

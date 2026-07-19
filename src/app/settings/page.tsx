@@ -13,7 +13,6 @@ export default function SettingsScreen() {
   const [initMessage, setInitMessage] = useState("");
 
   useEffect(() => {
-    // Read from localStorage on mount
     const savedTheme = localStorage.getItem("little_bro_theme") || "dark";
     const savedLayout = localStorage.getItem("little_bro_layout") || "mobile";
     setTheme(savedTheme);
@@ -67,16 +66,16 @@ export default function SettingsScreen() {
   };
 
   return (
-    <div className="min-h-screen bg-[#09090B] p-6 text-white font-sans flex flex-col justify-between">
+    <div className="min-h-screen bg-background p-6 text-text-main font-sans flex flex-col justify-between transition-colors duration-300">
       <div>
         {/* Header Section */}
         <header className="mb-6">
-          <h1 className="text-xl font-bold text-white">ตั้งค่าระบบ</h1>
+          <h1 className="text-xl font-bold text-text-main">ตั้งค่าระบบ</h1>
         </header>
 
         {/* Profile Card */}
-        <div className="bg-[#18181B]/40 border border-white/5 p-4 rounded-2xl mb-6 flex items-center gap-4">
-          <div className="w-12 h-12 rounded-full overflow-hidden border border-[#5B5CEB]/30 bg-[#18181B]">
+        <div className="bg-surface/40 border border-white/5 p-4 rounded-2xl mb-6 flex items-center gap-4">
+          <div className="w-12 h-12 rounded-full overflow-hidden border border-[#5B5CEB]/30 bg-surface">
             <Image
               src="/avatar/hello.png"
               alt="Owner Avatar"
@@ -86,8 +85,8 @@ export default function SettingsScreen() {
             />
           </div>
           <div className="flex-1">
-            <h3 className="text-sm font-bold text-white">Little Bro</h3>
-            <p className="text-[9px] text-[#B3B3B3] mb-1">เจ้าของธุรกิจ • lannatc@gmail.com</p>
+            <h3 className="text-sm font-bold text-text-main">Little Bro</h3>
+            <p className="text-[9px] text-text-sub mb-1">เจ้าของธุรกิจ • lannatc@gmail.com</p>
             <button
               onClick={() => alert("ระบบเชื่อมต่อ Google OAuth จะเปิดในเฟสถัดไปครับบอส!")}
               className="bg-[#5B5CEB]/25 hover:bg-[#5B5CEB]/40 text-[#5B5CEB] border border-[#5B5CEB]/30 text-[9px] font-semibold px-2.5 py-1 rounded-lg transition-all"
@@ -98,25 +97,25 @@ export default function SettingsScreen() {
         </div>
 
         {/* Theme & Display Options */}
-        <section className="mb-6 bg-[#18181B]/20 border border-white/5 p-4 rounded-2xl space-y-4">
-          <h3 className="text-xs font-bold text-[#B3B3B3] uppercase tracking-wider">ตัวเลือกการแสดงผล (Device & Theme)</h3>
+        <section className="mb-6 bg-surface/20 border border-white/5 p-4 rounded-2xl space-y-4">
+          <h3 className="text-xs font-bold text-text-sub uppercase tracking-wider">ตัวเลือกการแสดงผล (Device & Theme)</h3>
           
           {/* Theme Selector */}
           <div className="flex justify-between items-center text-xs">
             <span>ธีมสีหน้าต่าง (Color Theme)</span>
-            <div className="flex bg-[#18181B] p-1 rounded-xl border border-white/5">
+            <div className="flex bg-surface p-1 rounded-xl border border-white/5">
               <button
                 onClick={() => handleThemeChange("dark")}
-                className={`px-3 py-1 rounded-lg font-bold transition-all ${
-                  theme === "dark" ? "bg-[#5B5CEB] text-white" : "text-[#B3B3B3] hover:text-white"
+                className={`px-3 py-1 rounded-lg font-bold transition-all text-xs ${
+                  theme === "dark" ? "bg-[#5B5CEB] text-white" : "text-text-sub hover:text-text-main"
                 }`}
               >
                 🌙 Dark
               </button>
               <button
                 onClick={() => handleThemeChange("light")}
-                className={`px-3 py-1 rounded-lg font-bold transition-all ${
-                  theme === "light" ? "bg-[#5B5CEB] text-white" : "text-[#B3B3B3] hover:text-white"
+                className={`px-3 py-1 rounded-lg font-bold transition-all text-xs ${
+                  theme === "light" ? "bg-[#5B5CEB] text-white" : "text-text-sub hover:text-text-main"
                 }`}
               >
                 ☀️ Light
@@ -127,19 +126,19 @@ export default function SettingsScreen() {
           {/* Layout Selector */}
           <div className="flex justify-between items-center text-xs">
             <span>รูปแบบการรันแอป (Device Mode)</span>
-            <div className="flex bg-[#18181B] p-1 rounded-xl border border-white/5">
+            <div className="flex bg-surface p-1 rounded-xl border border-white/5">
               <button
                 onClick={() => handleLayoutChange("mobile")}
-                className={`px-3 py-1 rounded-lg font-bold transition-all ${
-                  layout === "mobile" ? "bg-[#5B5CEB] text-white" : "text-[#B3B3B3] hover:text-white"
+                className={`px-3 py-1 rounded-lg font-bold transition-all text-xs ${
+                  layout === "mobile" ? "bg-[#5B5CEB] text-white" : "text-text-sub hover:text-text-main"
                 }`}
               >
                 📱 Mobile Frame
               </button>
               <button
                 onClick={() => handleLayoutChange("desktop")}
-                className={`px-3 py-1 rounded-lg font-bold transition-all ${
-                  layout === "desktop" ? "bg-[#5B5CEB] text-white" : "text-[#B3B3B3] hover:text-white"
+                className={`px-3 py-1 rounded-lg font-bold transition-all text-xs ${
+                  layout === "desktop" ? "bg-[#5B5CEB] text-white" : "text-text-sub hover:text-text-main"
                 }`}
               >
                 🖥️ Full Screen
@@ -150,57 +149,57 @@ export default function SettingsScreen() {
 
         {/* Configuration List */}
         <section className="mb-6">
-          <h3 className="text-xs font-semibold text-[#B3B3B3] uppercase tracking-wider mb-3">การตั้งค่าทั่วไป</h3>
+          <h3 className="text-xs font-semibold text-text-sub uppercase tracking-wider mb-3">การตั้งค่าทั่วไป</h3>
           <div className="space-y-2.5">
             {/* Workspace Data row */}
             <div
               onClick={() => setShowWorkspaceModal(true)}
-              className="p-3 bg-[#18181B]/20 border border-white/5 rounded-xl hover:bg-[#18181B]/40 transition-all cursor-pointer flex items-center justify-between"
+              className="p-3 bg-surface/20 border border-white/5 rounded-xl hover:bg-surface/40 transition-all cursor-pointer flex items-center justify-between"
             >
               <div className="flex items-center gap-3">
-                <span className="text-lg bg-[#18181B] p-2 rounded-lg">📁</span>
+                <span className="text-lg bg-surface p-2 rounded-lg">📁</span>
                 <div>
-                  <h4 className="text-xs font-semibold text-white">ข้อมูลพื้นที่ทำงาน (Workspace Data)</h4>
-                  <p className="text-[9px] text-[#B3B3B3]">ตั้งค่าไอดีโฟลเดอร์ Google Drive และไอดีชีต</p>
+                  <h4 className="text-xs font-semibold text-text-main">ข้อมูลพื้นที่ทำงาน (Workspace Data)</h4>
+                  <p className="text-[9px] text-text-sub">ตั้งค่าไอดีโฟลเดอร์ Google Drive และไอดีชีต</p>
                 </div>
               </div>
-              <span className="text-xs text-[#B3B3B3]/40">➔</span>
+              <span className="text-xs text-text-sub/45">➔</span>
             </div>
 
             {/* Other static options */}
             <div
               onClick={resetOnboarding}
-              className="p-3 bg-[#18181B]/20 border border-white/5 rounded-xl hover:bg-[#18181B]/40 transition-all cursor-pointer flex items-center justify-between"
+              className="p-3 bg-surface/20 border border-white/5 rounded-xl hover:bg-surface/40 transition-all cursor-pointer flex items-center justify-between"
             >
               <div className="flex items-center gap-3">
-                <span className="text-lg bg-[#18181B] p-2 rounded-lg">🔄</span>
+                <span className="text-lg bg-surface p-2 rounded-lg">🔄</span>
                 <div>
-                  <h4 className="text-xs font-semibold text-white">ย้อนกลับไปทำ Onboarding ใหม่</h4>
-                  <p className="text-[9px] text-[#B3B3B3]">ล้างข้อมูลเพื่อดูขั้นตอนต้อนรับ Google Auth</p>
+                  <h4 className="text-xs font-semibold text-text-main">ย้อนกลับไปทำ Onboarding ใหม่</h4>
+                  <p className="text-[9px] text-text-sub">ล้างข้อมูลเพื่อดูขั้นตอนต้อนรับ Google Auth</p>
                 </div>
               </div>
-              <span className="text-xs text-[#B3B3B3]/40">➔</span>
+              <span className="text-xs text-text-sub/45">➔</span>
             </div>
             
             <div
               onClick={() => alert("ระบบสำรองตารางจะเปิดใช้งานในเฟสถัดไปครับบอส!")}
-              className="p-3 bg-[#18181B]/20 border border-white/5 rounded-xl hover:bg-[#18181B]/40 transition-all cursor-pointer flex items-center justify-between"
+              className="p-3 bg-surface/20 border border-white/5 rounded-xl hover:bg-surface/40 transition-all cursor-pointer flex items-center justify-between"
             >
               <div className="flex items-center gap-3">
-                <span className="text-lg bg-[#18181B] p-2 rounded-lg">💾</span>
+                <span className="text-lg bg-surface p-2 rounded-lg">💾</span>
                 <div>
-                  <h4 className="text-xs font-semibold text-white">สำรองข้อมูล (Backup Data)</h4>
-                  <p className="text-[9px] text-[#B3B3B3]">ส่งออกตารางชีตเป็นไฟล์ JSON</p>
+                  <h4 className="text-xs font-semibold text-text-main">สำรองข้อมูล (Backup Data)</h4>
+                  <p className="text-[9px] text-text-sub">ส่งออกตารางชีตเป็นไฟล์ JSON</p>
                 </div>
               </div>
-              <span className="text-xs text-[#B3B3B3]/40">➔</span>
+              <span className="text-xs text-text-sub/45">➔</span>
             </div>
           </div>
         </section>
 
         {/* Stance Avatar Card */}
-        <div className="bg-[#18181B]/40 border border-[#5B5CEB]/25 p-4 rounded-2xl flex items-center gap-4">
-          <div className="w-14 h-14 rounded-full overflow-hidden bg-[#18181B] flex-shrink-0 border border-white/10">
+        <div className="bg-surface/40 border border-[#5B5CEB]/25 p-4 rounded-2xl flex items-center gap-4">
+          <div className="w-14 h-14 rounded-full overflow-hidden bg-surface flex-shrink-0 border border-white/10">
             <Image
               src="/avatar/manageable.png"
               alt="Manage Stance"
@@ -210,8 +209,8 @@ export default function SettingsScreen() {
             />
           </div>
           <div>
-            <h4 className="text-xs font-bold text-white mb-1">ความลับทางธุรกิจเป็นสิ่งสำคัญ! 🔒</h4>
-            <p className="text-[10px] text-[#B3B3B3] leading-relaxed">
+            <h4 className="text-xs font-bold text-text-main mb-1">ความลับทางธุรกิจเป็นสิ่งสำคัญ! 🔒</h4>
+            <p className="text-[10px] text-text-sub leading-relaxed">
               ข้อมูลทุกอย่างของบอสจะถูกส่งตรงไปที่คลังข้อมูลส่วนตัวโดยไม่ผ่านเซิร์ฟเวอร์คนกลาง ปลอดภัยและเป็นส่วนตัว 100% ครับ!
             </p>
           </div>
@@ -220,27 +219,27 @@ export default function SettingsScreen() {
 
       {/* Workspace Data Modal */}
       {showWorkspaceModal && (
-        <div className="absolute inset-0 bg-[#09090B]/90 backdrop-blur-md flex items-center justify-center p-6 z-50">
-          <div className="bg-[#1C1C1E] border border-white/10 w-full max-w-sm rounded-3xl p-5 shadow-2xl flex flex-col relative">
+        <div className="absolute inset-0 bg-background/90 backdrop-blur-md flex items-center justify-center p-6 z-50">
+          <div className="bg-surface border border-white/10 w-full max-w-sm rounded-3xl p-5 shadow-2xl flex flex-col relative text-text-main">
             <button 
               onClick={() => {
                 setShowWorkspaceModal(false);
                 setInitMessage("");
               }}
-              className="absolute top-4 right-4 text-[#B3B3B3] hover:text-white"
+              className="absolute top-4 right-4 text-text-sub hover:text-text-main"
             >
               ✕
             </button>
-            <h3 className="text-sm font-bold text-white mb-4">📁 ตั้งค่าข้อมูลพื้นที่ทำงาน</h3>
+            <h3 className="text-sm font-bold text-text-main mb-4">📁 ตั้งค่าข้อมูลพื้นที่ทำงาน</h3>
             
-            <div className="space-y-3 mb-6 text-xs text-[#B3B3B3]">
+            <div className="space-y-3 mb-6 text-xs text-text-sub">
               <div>
                 <label className="block mb-1 font-semibold uppercase text-[9px]">GOOGLE_SPREADSHEET_ID</label>
                 <input 
                   type="text" 
                   value="1jANLkV4IxXa3mybLPTs7L1RoHtfik7lVLtTlB0Ay1X8" 
                   disabled
-                  className="w-full bg-[#18181B] border border-white/5 p-2.5 rounded-lg text-white font-mono text-[9px] opacity-75"
+                  className="w-full bg-background border border-white/5 p-2.5 rounded-lg text-text-main font-mono text-[9px] opacity-75"
                 />
               </div>
               <div>
@@ -249,13 +248,13 @@ export default function SettingsScreen() {
                   type="text" 
                   value="https://script.google.com/macros/s/.../exec" 
                   disabled
-                  className="w-full bg-[#18181B] border border-white/5 p-2.5 rounded-lg text-white font-mono text-[9px] opacity-75"
+                  className="w-full bg-background border border-white/5 p-2.5 rounded-lg text-text-main font-mono text-[9px] opacity-75"
                 />
               </div>
             </div>
 
             {initMessage && (
-              <div className="mb-4 p-3 bg-white/5 border border-white/10 text-[10px] rounded-xl text-center">
+              <div className="mb-4 p-3 bg-background/40 border border-white/10 text-[10px] rounded-xl text-center">
                 {initMessage}
               </div>
             )}
@@ -281,7 +280,7 @@ export default function SettingsScreen() {
         </div>
       )}
 
-      <footer className="mt-8 text-center text-[10px] text-[#B3B3B3]/40">
+      <footer className="mt-8 text-center text-[10px] text-text-sub/40">
         <p>Little Bro Helper v1.0.0 • Antigravity Product Team</p>
       </footer>
     </div>

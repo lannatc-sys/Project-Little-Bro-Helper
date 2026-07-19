@@ -18,16 +18,16 @@
   --bg-color: #09090B;
   --surface-color: #18181B;
   --text-main-color: #FFFFFF;
-  --text-sub-color: #B3B3B3;
+  --text-sub-color: #A1A1AA;
   --foreground: #FFFFFF;
 }
 
 :root.light-mode {
   --bg-color: #F4F4F5;
-  --surface-color: #FFFFFF;
-  --text-main-color: #18181B;
+  --surface-color: #E4E4E7;
+  --text-main-color: #09090B;
   --text-sub-color: #71717A;
-  --foreground: #18181B;
+  --foreground: #09090B;
 }
 
 body {
@@ -38,39 +38,4 @@ body {
   padding: 0;
   box-sizing: border-box;
   transition: background-color 0.3s ease, color 0.3s ease;
-}
-
-/* Light mode modifications for glassmorphic elements */
-:root.light-mode .bg-\[\#18181B\]\/40 {
-  background-color: rgba(228, 228, 231, 0.4);
-}
-:root.light-mode .bg-\[\#18181B\]\/60 {
-  background-color: rgba(228, 228, 231, 0.6);
-}
-:root.light-mode .bg-\[\#18181B\]\/80 {
-  background-color: rgba(228, 228, 231, 0.8);
-}
-:root.light-mode .bg-\[\#18181B\]\/20 {
-  background-color: rgba(228, 228, 231, 0.2);
-}
-:root.light-mode .bg-\[\#18181B\]\/30 {
-  background-color: rgba(228, 228, 231, 0.3);
-}
-:root.light-mode .bg-\[\#18181B\] {
-  background-color: #E4E4E7;
-}
-:root.light-mode .border-white\/5 {
-  border-color: rgba(9, 9, 11, 0.05);
-}
-:root.light-mode .border-white\/10 {
-  border-color: rgba(9, 9, 11, 0.1);
-}
-:root.light-mode .text-\[\#B3B3B3\] {
-  color: #71717A;
-}
-:root.light-mode .text-\[\#B3B3B3\]\/60 {
-  color: rgba(113, 113, 122, 0.6);
-}
-:root.light-mode .text-white {
-  color: #18181B;
 }

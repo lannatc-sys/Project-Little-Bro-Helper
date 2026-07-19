@@ -12,7 +12,7 @@ export default function OnboardingScreen() {
   
   // Google Auth Mock states
   const [showAuthModal, setShowAuthModal] = useState(false);
-  const [authSubStep, setAuthSubStep] = useState(1); // 1: account selection, 2: permissions list
+  const [authSubStep, setAuthSubStep] = useState(1);
 
   // States for permissions checklist
   const [permissions, setPermissions] = useState({
@@ -41,7 +41,7 @@ export default function OnboardingScreen() {
       setInitSuccess(true);
     } finally {
       setIsInitializing(false);
-      setStep(5); // Go to step 5 (Success page)
+      setStep(5);
     }
   };
 
@@ -62,11 +62,11 @@ export default function OnboardingScreen() {
       calendar: true
     });
     setShowAuthModal(false);
-    setStep(4); // Move directly to workspace configuration
+    setStep(4);
   };
 
   return (
-    <div className="min-h-screen bg-[#09090B] p-6 text-white font-sans flex flex-col justify-between items-center max-w-md mx-auto relative overflow-hidden">
+    <div className="min-h-screen bg-background p-6 text-text-main font-sans flex flex-col justify-between items-center max-w-md mx-auto relative overflow-hidden transition-colors duration-300">
       
       {/* Background radial highlight */}
       <div className="absolute top-1/4 left-1/2 -translate-x-1/2 -translate-y-1/2 w-72 h-72 bg-[#5B5CEB]/10 rounded-full blur-[80px] pointer-events-none" />
@@ -96,7 +96,7 @@ export default function OnboardingScreen() {
             </div>
           </div>
 
-          <p className="text-xs text-[#B3B3B3] leading-relaxed max-w-xs mb-8">
+          <p className="text-xs text-text-sub leading-relaxed max-w-xs mb-8">
             รวบรวมบัญชีรายรับ-รายจ่าย คิวงาน ปฏิทินนัดหมาย และไฟล์ใน Google Drive ของคุณไว้ในที่เดียวแบบเป็นส่วนตัว 100%
           </p>
 
@@ -113,13 +113,13 @@ export default function OnboardingScreen() {
       {step === 2 && (
         <div className="flex-1 flex flex-col justify-center items-center text-center w-full z-10">
           <h2 className="text-xl font-bold mb-2">เชื่อมต่อ Google Account</h2>
-          <p className="text-xs text-[#B3B3B3] max-w-xs mb-8">
+          <p className="text-xs text-text-sub max-w-xs mb-8">
             เราจะทำการจัดเก็บและซิงก์ข้อมูลทางธุรกิจลงบน Google Drive และ Sheets ของคุณโดยตรง
           </p>
 
-          <div className="w-40 h-40 bg-[#18181B]/40 border border-white/5 rounded-full flex items-center justify-center mb-8 relative shadow-inner">
-            <div className="text-5xl font-black text-white">G</div>
-            <div className="absolute -bottom-1 -right-1 w-12 h-12 rounded-full overflow-hidden bg-[#18181B] border border-white/10 flex items-center justify-center">
+          <div className="w-40 h-40 bg-surface/40 border border-white/5 rounded-full flex items-center justify-center mb-8 relative shadow-inner">
+            <div className="text-5xl font-black text-text-main">G</div>
+            <div className="absolute -bottom-1 -right-1 w-12 h-12 rounded-full overflow-hidden bg-surface border border-white/10 flex items-center justify-center">
               <Image src="/avatar/hello.png" alt="Little Bro Connect" width={44} height={44} />
             </div>
           </div>
@@ -134,7 +134,7 @@ export default function OnboardingScreen() {
             
             <button
               onClick={() => setStep(3)}
-              className="w-full bg-[#18181B] hover:bg-white/5 text-[#B3B3B3] hover:text-white border border-white/10 font-bold text-sm py-3.5 rounded-2xl transition-all"
+              className="w-full bg-surface hover:bg-white/5 text-text-sub hover:text-text-main border border-white/10 font-bold text-sm py-3.5 rounded-2xl transition-all"
             >
               ดำเนินการต่อ ➔
             </button>
@@ -146,11 +146,11 @@ export default function OnboardingScreen() {
       {step === 3 && (
         <div className="flex-1 flex flex-col justify-center items-center text-center w-full z-10">
           <h2 className="text-xl font-bold mb-2">อนุญาตสิทธิ์การเข้าถึง</h2>
-          <p className="text-xs text-[#B3B3B3] max-w-xs mb-6">
+          <p className="text-xs text-text-sub max-w-xs mb-6">
             กรุณาเลือกอนุญาตขอบเขตการทำงานเพื่อให้ระบบจัดการสิ่งต่าง ๆ แทนบอสได้
           </p>
 
-          <div className="w-full bg-[#18181B]/40 border border-white/5 rounded-2xl p-4 mb-6 space-y-4 text-left">
+          <div className="w-full bg-surface/40 border border-white/5 rounded-2xl p-4 mb-6 space-y-4 text-left">
             <label className="flex items-center gap-3.5 cursor-pointer">
               <input
                 type="checkbox"
@@ -160,7 +160,7 @@ export default function OnboardingScreen() {
               />
               <div>
                 <h4 className="text-xs font-bold">Google Drive (จัดการไฟล์)</h4>
-                <p className="text-[9px] text-[#B3B3B3]">ใช้เพื่ออัปโหลดใบเสร็จ รูปภาพห้องพัก และเอกสาร</p>
+                <p className="text-[9px] text-text-sub">ใช้เพื่ออัปโหลดใบเสร็จ รูปภาพห้องพัก และเอกสาร</p>
               </div>
             </label>
 
@@ -173,7 +173,7 @@ export default function OnboardingScreen() {
               />
               <div>
                 <h4 className="text-xs font-bold">Google Sheets (ตารางข้อมูล)</h4>
-                <p className="text-[9px] text-[#B3B3B3]">ใช้เป็นฐานข้อมูลบัญชีและจัดเก็บรายการคิวงาน</p>
+                <p className="text-[9px] text-text-sub">ใช้เป็นฐานข้อมูลบัญชีและจัดเก็บรายการคิวงาน</p>
               </div>
             </label>
 
@@ -186,7 +186,7 @@ export default function OnboardingScreen() {
               />
               <div>
                 <h4 className="text-xs font-bold">Google Calendar (ปฏิทินนัดหมาย)</h4>
-                <p className="text-[9px] text-[#B3B3B3]">ใช้เพื่อซิงก์คิวนัดหมายของลูกค้าลงแอปบอสโดยตรง</p>
+                <p className="text-[9px] text-text-sub">ใช้เพื่อซิงก์คิวนัดหมายของลูกค้าลงแอปบอสโดยตรง</p>
               </div>
             </label>
           </div>
@@ -212,11 +212,11 @@ export default function OnboardingScreen() {
       {step === 4 && (
         <div className="flex-1 flex flex-col justify-center items-center text-center w-full z-10">
           <h2 className="text-xl font-bold mb-2">ตั้งค่าพื้นที่ทำงาน</h2>
-          <p className="text-xs text-[#B3B3B3] max-w-xs mb-8">
+          <p className="text-xs text-text-sub max-w-xs mb-8">
             ระบบจะสร้างตารางฐานข้อมูลและโฟลเดอร์สำหรับแยกประเภทงานของบอสใน Google Drive อัตโนมัติ
           </p>
 
-          <div className="w-56 bg-[#18181B]/40 border border-white/5 rounded-2xl p-4 text-left space-y-2 mb-8 text-[10px] text-[#B3B3B3]">
+          <div className="w-56 bg-surface/40 border border-white/5 rounded-2xl p-4 text-left space-y-2 mb-8 text-[10px] text-text-sub">
             <div className="flex items-center gap-2">📂 Database (Google Sheets)</div>
             <div className="flex items-center gap-2">📂 Files (เก็บรูปภาพและหลักฐานเงิน)</div>
             <div className="flex items-center gap-2">📂 Reports (ประมวลผลรายเดือน)</div>
@@ -261,7 +261,7 @@ export default function OnboardingScreen() {
             />
           </div>
 
-          <p className="text-xs text-[#B3B3B3] leading-relaxed max-w-xs mb-8">
+          <p className="text-xs text-text-sub leading-relaxed max-w-xs mb-8">
             ตั้งค่าระบบฐานข้อมูลชีต Little Bro Helper พร้อมอำนวยความสะดวกให้บอสใช้งานแล้วครับ!
           </p>
 
@@ -276,38 +276,35 @@ export default function OnboardingScreen() {
 
       {/* Google OAuth Mock Modal Popup */}
       {showAuthModal && (
-        <div className="absolute inset-0 bg-[#09090B]/90 backdrop-blur-md flex items-center justify-center p-6 z-50 animate-fade-in">
-          <div className="bg-[#1C1C1E] border border-white/10 w-full max-w-xs rounded-3xl p-5 shadow-2xl flex flex-col items-center relative">
+        <div className="absolute inset-0 bg-background/90 backdrop-blur-md flex items-center justify-center p-6 z-50 animate-fade-in">
+          <div className="bg-surface border border-white/10 w-full max-w-xs rounded-3xl p-5 shadow-2xl flex flex-col items-center relative text-text-main">
             
-            {/* Close Button */}
             <button 
               onClick={() => setShowAuthModal(false)}
-              className="absolute top-3.5 right-4 text-[#B3B3B3] hover:text-white text-sm"
+              className="absolute top-3.5 right-4 text-text-sub hover:text-text-main text-sm"
             >
               ✕
             </button>
 
-            {/* Google Logo */}
-            <div className="w-10 h-10 rounded-full bg-[#18181B] border border-white/10 flex items-center justify-center text-xl font-black mb-4">
+            <div className="w-10 h-10 rounded-full bg-background border border-white/10 flex items-center justify-center text-xl font-black mb-4">
               G
             </div>
 
             {authSubStep === 1 ? (
               <div className="w-full text-center">
-                <h3 className="text-xs font-bold text-white mb-1">ลงชื่อเข้าใช้งานด้วย Google</h3>
-                <p className="text-[10px] text-[#B3B3B3] mb-4">เพื่อทำรายการเชื่อมต่อกับ Little Bro Helper</p>
+                <h3 className="text-xs font-bold text-text-main mb-1">ลงชื่อเข้าใช้งานด้วย Google</h3>
+                <p className="text-[10px] text-text-sub mb-4">เพื่อทำรายการเชื่อมต่อกับ Little Bro Helper</p>
                 
-                {/* Account Choice Row */}
                 <button
                   onClick={() => setAuthSubStep(2)}
-                  className="w-full p-3 bg-[#18181B]/60 hover:bg-[#18181B] border border-white/5 rounded-xl flex items-center gap-3 text-left transition-all mb-3 cursor-pointer"
+                  className="w-full p-3 bg-background/60 hover:bg-background border border-white/5 rounded-xl flex items-center gap-3 text-left transition-all mb-3 cursor-pointer"
                 >
                   <div className="w-7 h-7 rounded-full overflow-hidden bg-[#5B5CEB]/20 text-[#5B5CEB] flex items-center justify-center font-bold text-xs">
                     L
                   </div>
                   <div>
-                    <h4 className="text-[11px] font-bold text-white leading-none">Little Bro</h4>
-                    <span className="text-[9px] text-[#B3B3B3]">lannatc@gmail.com</span>
+                    <h4 className="text-[11px] font-bold text-text-main leading-none">Little Bro</h4>
+                    <span className="text-[9px] text-text-sub">lannatc@gmail.com</span>
                   </div>
                 </button>
 
@@ -319,11 +316,11 @@ export default function OnboardingScreen() {
                 </button>
               </div>
             ) : (
-              <div className="w-full">
-                <h3 className="text-xs font-bold text-white text-center mb-1">ยินยอมและอนุญาตสิทธิ์</h3>
-                <p className="text-[9px] text-[#B3B3B3] text-center mb-4">Little Bro Helper ขอสิทธิ์เข้าถึงบัญชีของบอสดังนี้:</p>
+              <div className="w-full text-text-main">
+                <h3 className="text-xs font-bold text-text-main text-center mb-1">ยินยอมและอนุญาตสิทธิ์</h3>
+                <p className="text-[9px] text-text-sub text-center mb-4">Little Bro Helper ขอสิทธิ์เข้าถึงบัญชีของบอสดังนี้:</p>
                 
-                <div className="space-y-2 mb-5 text-[10px] text-[#B3B3B3] bg-[#18181B]/40 p-3 rounded-xl">
+                <div className="space-y-2 mb-5 text-[10px] text-text-sub bg-background/40 p-3 rounded-xl">
                   <div className="flex items-start gap-2">
                     <span className="text-[#10B981]">✔</span>
                     <span>ดู สร้าง และแก้ไขไฟล์ทั้งหมดบน Google Drive</span>
@@ -341,7 +338,7 @@ export default function OnboardingScreen() {
                 <div className="flex gap-2">
                   <button
                     onClick={() => setShowAuthModal(false)}
-                    className="flex-1 bg-[#18181B] text-[#B3B3B3] text-xs font-bold py-2.5 rounded-xl border border-white/5 cursor-pointer"
+                    className="flex-1 bg-background text-text-sub text-xs font-bold py-2.5 rounded-xl border border-white/5 cursor-pointer"
                   >
                     ยกเลิก
                   </button>

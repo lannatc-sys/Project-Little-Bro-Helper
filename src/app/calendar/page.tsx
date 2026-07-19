@@ -19,17 +19,13 @@ export default function CalendarScreen() {
 
   const handleDayClick = (day: number) => {
     if (startDate === null || (startDate !== null && endDate !== null)) {
-      // Start a new range
       setStartDate(day);
       setEndDate(null);
     } else {
-      // Finish the range
       if (day < startDate) {
-        // If clicked day is before start day, reset start day to clicked day
         setStartDate(day);
         setEndDate(null);
       } else if (day === startDate) {
-        // Toggle off if clicking the same start day
         setStartDate(null);
       } else {
         setEndDate(day);
@@ -55,11 +51,11 @@ export default function CalendarScreen() {
   const filteredEvents = getEventsForRange();
 
   return (
-    <div className="min-h-screen bg-[#09090B] p-6 text-white font-sans flex flex-col justify-between">
+    <div className="min-h-screen bg-background p-6 text-text-main font-sans flex flex-col justify-between transition-colors duration-300">
       <div>
         {/* Header Section */}
         <header className="mb-6 flex justify-between items-center">
-          <h1 className="text-xl font-bold text-white">ปฏิทิน</h1>
+          <h1 className="text-xl font-bold text-text-main">ปฏิทิน</h1>
           <button
             onClick={() => alert("ระบบบันทึกปฏิทินลง Google Calendar จะเชื่อมต่อในเฟสถัดไปครับบอส!")}
             className="bg-[#5B5CEB] hover:bg-[#5B5CEB]/80 text-white font-semibold text-xs px-3 py-1.5 rounded-xl transition-all"
@@ -69,7 +65,7 @@ export default function CalendarScreen() {
         </header>
 
         {/* View Selector */}
-        <div className="flex bg-[#18181B] p-1.5 rounded-xl border border-white/5 mb-6 justify-between text-center">
+        <div className="flex bg-surface p-1.5 rounded-xl border border-white/5 mb-6 justify-between text-center">
           {["วัน", "สัปดาห์", "เดือน", "วาระ"].map((v) => (
             <button
               key={v}
@@ -77,7 +73,7 @@ export default function CalendarScreen() {
               className={`flex-1 text-[11px] py-1.5 rounded-lg transition-all ${
                 view === v
                   ? "bg-[#5B5CEB] text-white font-bold"
-                  : "text-[#B3B3B3] hover:text-white"
+                  : "text-text-sub hover:text-text-main"
               }`}
             >
               {v}
@@ -89,8 +85,8 @@ export default function CalendarScreen() {
         <h2 className="text-sm font-bold text-center mb-4">พฤษภาคม 2567</h2>
 
         {/* Calendar Grid representation */}
-        <div className="bg-[#18181B]/40 border border-white/5 p-4 rounded-2xl mb-6">
-          <div className="grid grid-cols-7 gap-1 text-center text-[10px] text-[#B3B3B3] mb-2 font-semibold">
+        <div className="bg-surface/40 border border-white/5 p-4 rounded-2xl mb-6">
+          <div className="grid grid-cols-7 gap-1 text-center text-[10px] text-text-sub mb-2 font-semibold">
             {daysOfWeek.map((d) => (
               <div key={d}>{d}</div>
             ))}
@@ -114,7 +110,7 @@ export default function CalendarScreen() {
                       ? "bg-[#5B5CEB] text-white font-bold shadow-md shadow-[#5B5CEB]/25 scale-105 cursor-pointer"
                       : isBetween
                       ? "bg-[#5B5CEB]/20 text-[#5B5CEB] font-semibold cursor-pointer rounded-none"
-                      : "text-white hover:bg-white/5 cursor-pointer"
+                      : "text-text-main hover:bg-white/5 cursor-pointer"
                   } ${isStart && endDate !== null ? "rounded-r-none" : ""} ${isEnd ? "rounded-l-none" : ""}`}
                 >
                   {day}
@@ -126,7 +122,7 @@ export default function CalendarScreen() {
 
         {/* Event List Group */}
         <section className="mb-6">
-          <h3 className="text-xs font-semibold text-[#B3B3B3] mb-3">
+          <h3 className="text-xs font-semibold text-text-sub mb-3">
             รายการนัดหมาย ช่วงวันที่{" "}
             {startDate !== null
               ? endDate !== null
@@ -138,19 +134,19 @@ export default function CalendarScreen() {
           <div className="space-y-3">
             {filteredEvents.length > 0 ? (
               filteredEvents.map((event) => (
-                <div key={event.id} className="p-3 bg-[#18181B]/20 border-l-4 border-[#5B5CEB] rounded-r-xl">
+                <div key={event.id} className="p-3 bg-surface/20 border-l-4 border-[#5B5CEB] rounded-r-xl">
                   <div className="flex justify-between items-start">
                     <div>
                       <span className="text-[8px] bg-[#5B5CEB]/20 text-[#5B5CEB] px-1.5 py-0.5 rounded font-mono font-bold mr-2">วันที่ {event.day}</span>
-                      <h4 className="text-xs font-semibold text-white inline-block">{event.title}</h4>
+                      <h4 className="text-xs font-semibold text-text-main inline-block">{event.title}</h4>
                     </div>
-                    <span className="text-[9px] text-[#B3B3B3] font-mono">{event.time}</span>
+                    <span className="text-[9px] text-text-sub font-mono">{event.time}</span>
                   </div>
-                  <p className="text-[9px] text-[#B3B3B3] mt-1">📍 {event.loc}</p>
+                  <p className="text-[9px] text-text-sub mt-1">📍 {event.loc}</p>
                 </div>
               ))
             ) : (
-              <div className="p-6 bg-[#18181B]/25 border border-dashed border-white/5 rounded-2xl text-center text-xs text-[#B3B3B3]/70">
+              <div className="p-6 bg-surface/25 border border-dashed border-white/5 rounded-2xl text-center text-xs text-text-sub/70">
                 📭 ไม่มีรายการนัดหมายในช่วงวันที่เลือกครับบอส
               </div>
             )}
@@ -158,8 +154,8 @@ export default function CalendarScreen() {
         </section>
 
         {/* Stance Avatar Card */}
-        <div className="bg-[#18181B]/40 border border-[#5B5CEB]/25 p-4 rounded-2xl flex items-center gap-4">
-          <div className="w-14 h-14 rounded-full overflow-hidden bg-[#18181B] flex-shrink-0 border border-white/10">
+        <div className="bg-surface/40 border border-[#5B5CEB]/25 p-4 rounded-2xl flex items-center gap-4">
+          <div className="w-14 h-14 rounded-full overflow-hidden bg-surface flex-shrink-0 border border-white/10">
             <Image
               src="/avatar/inspect.png"
               alt="Inspect Stance"
@@ -169,15 +165,15 @@ export default function CalendarScreen() {
             />
           </div>
           <div>
-            <h4 className="text-xs font-bold text-white mb-1">ช่วงเวลาของนัดหมาย 🗓️</h4>
-            <p className="text-[10px] text-[#B3B3B3] leading-relaxed">
+            <h4 className="text-xs font-bold text-text-main mb-1">ช่วงเวลาของนัดหมาย 🗓️</h4>
+            <p className="text-[10px] text-text-sub leading-relaxed">
               บอสเลือกช่วงเวลาจัดตารางงานแบบเป็นช่วงวันแล้ว! ผมแสดงเฉพาะนัดหมายในช่วงที่บอสกำหนดไว้เท่านั้นครับบอส
             </p>
           </div>
         </div>
       </div>
 
-      <footer className="mt-8 text-center text-[10px] text-[#B3B3B3]/40">
+      <footer className="mt-8 text-center text-[10px] text-text-sub/40">
         <p>Little Bro Helper v1.0.0 • Antigravity Product Team</p>
       </footer>
     </div>

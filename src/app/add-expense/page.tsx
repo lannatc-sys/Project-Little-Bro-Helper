@@ -79,27 +79,25 @@ function AddExpenseForm() {
     }
   };
 
-  const themeColor = isIncome ? "#10B981" : "#EF4444";
   const themeBgClass = isIncome ? "bg-[#10B981]" : "bg-[#EF4444]";
   const themeHoverBgClass = isIncome ? "hover:bg-[#10B981]/80" : "hover:bg-[#EF4444]/80";
   const themeTextClass = isIncome ? "text-[#10B981]" : "text-[#EF4444]";
-  const themeBorderClass = isIncome ? "border-[#10B981]" : "border-[#EF4444]";
   const themeFocusClass = isIncome ? "focus:border-[#10B981]" : "focus:border-[#EF4444]";
 
   return (
-    <div className="min-h-screen bg-[#09090B] p-6 text-white font-sans flex flex-col justify-between">
+    <div className="min-h-screen bg-background p-6 text-text-main font-sans flex flex-col justify-between transition-colors duration-300">
       <div>
         {/* Header with Back Button */}
         <header className="mb-6 flex items-center justify-between">
-          <Link href="/" className="text-sm text-[#B3B3B3] hover:text-white transition-colors flex items-center gap-1">
+          <Link href="/" className="text-sm text-text-sub hover:text-text-main transition-colors flex items-center gap-1">
             <span>←</span> กลับหน้าหลัก
           </Link>
           
-          <div className="flex bg-[#18181B] border border-white/5 p-1 rounded-xl">
+          <div className="flex bg-surface border border-white/5 p-1 rounded-xl">
             <button
               onClick={() => toggleType(true)}
               className={`text-[10px] px-2.5 py-1 rounded-lg font-bold transition-all ${
-                isIncome ? "bg-[#10B981] text-white" : "text-[#B3B3B3] hover:text-white"
+                isIncome ? "bg-[#10B981] text-white" : "text-text-sub hover:text-text-main"
               }`}
             >
               รายรับ
@@ -107,7 +105,7 @@ function AddExpenseForm() {
             <button
               onClick={() => toggleType(false)}
               className={`text-[10px] px-2.5 py-1 rounded-lg font-bold transition-all ${
-                !isIncome ? "bg-[#EF4444] text-white" : "text-[#B3B3B3] hover:text-white"
+                !isIncome ? "bg-[#EF4444] text-white" : "text-text-sub hover:text-text-main"
               }`}
             >
               รายจ่าย
@@ -121,7 +119,7 @@ function AddExpenseForm() {
         
         {/* Large Currency Input Area */}
         <div className="text-center mb-8">
-          <span className="text-4xl font-bold block mb-4 text-white font-mono">
+          <span className="text-4xl font-bold block mb-4 text-text-main font-mono">
             ฿ {amount ? Number(amount).toLocaleString("th-TH", { minimumFractionDigits: 2, maximumFractionDigits: 2 }) : "0.00"}
           </span>
           <input
@@ -132,13 +130,13 @@ function AddExpenseForm() {
               setErrorMessage("");
             }}
             placeholder="0.00"
-            className={`bg-[#18181B] border border-white/10 text-center text-xl rounded-xl p-3 w-full focus:outline-none transition-all duration-300 placeholder-[#B3B3B3] ${themeFocusClass}`}
+            className={`bg-surface border border-white/10 text-center text-xl rounded-xl p-3 w-full focus:outline-none transition-all duration-300 placeholder-text-sub ${themeFocusClass}`}
           />
         </div>
 
         {/* Quick Category Grid Selection */}
         <div className="mb-4">
-          <label className="text-xs text-[#B3B3B3] font-semibold uppercase tracking-wider block mb-3">
+          <label className="text-xs text-text-sub font-semibold uppercase tracking-wider block mb-3">
             {isIncome ? "หมวดหมู่รายรับ" : "หมวดหมู่รายจ่าย"}
           </label>
           <div className="grid grid-cols-2 gap-2">
@@ -153,7 +151,7 @@ function AddExpenseForm() {
                       ? isIncome
                         ? "bg-[#10B981]/20 border-[#10B981] text-[#10B981] font-bold shadow-md shadow-[#10B981]/10"
                         : "bg-[#EF4444]/20 border-[#EF4444] text-[#EF4444] font-bold shadow-md shadow-[#EF4444]/10"
-                      : "bg-[#18181B]/60 border-white/5 text-[#B3B3B3] hover:border-white/20"
+                      : "bg-surface/60 border-white/5 text-text-sub hover:border-white/20"
                   }`}
                 >
                   {cat}
@@ -165,13 +163,13 @@ function AddExpenseForm() {
 
         {/* Notes Input */}
         <div className="mb-6">
-          <label className="text-xs text-[#B3B3B3] font-semibold uppercase tracking-wider block mb-2">คำอธิบายเพิ่มเติม</label>
+          <label className="text-xs text-text-sub font-semibold uppercase tracking-wider block mb-2">คำอธิบายเพิ่มเติม</label>
           <input
             type="text"
             value={desc}
             onChange={(e) => setDesc(e.target.value)}
             placeholder={isIncome ? "เช่น ค่าเช่าห้อง 201, ค่าขายน้ำส้ม..." : "เช่น ข้าวกะเพราไข่ดาว, น้ำมันดีเซล..."}
-            className={`bg-[#18181B] border border-white/5 p-4 rounded-xl w-full focus:outline-none text-sm text-[#FFFFFF] transition-colors placeholder-[#B3B3B3]/60 ${
+            className={`bg-surface border border-white/5 p-4 rounded-xl w-full focus:outline-none text-sm text-[#FFFFFF] transition-colors placeholder-text-sub/60 ${
               isIncome ? "focus:border-[#10B981]/50" : "focus:border-[#EF4444]/50"
             }`}
           />
@@ -222,7 +220,7 @@ function AddExpenseForm() {
 export default function AddExpenseScreen() {
   return (
     <Suspense fallback={
-      <div className="min-h-screen bg-[#09090B] flex items-center justify-center text-white">
+      <div className="min-h-screen bg-background flex items-center justify-center text-text-main">
         กำลังโหลด...
       </div>
     }>
