@@ -19,12 +19,10 @@ const SHEETS_SCHEMA = {
  * 1. ฟังก์ชันหลักสำหรับรับ HTTP POST Request จาก Telegram Mini App
  */
 function doPost(e) {
-  // เปิดระบบ Script Lock เพื่อคุมคิวคอยข้อมูลชนกัน (Concurrency Control)
   var lock = LockService.getScriptLock();
   try {
     lock.waitLock(10000); // รอคิวนานสูงสุด 10 วินาที
     
-    // แกะก้อนข้อมูล JSON
     var requestData = JSON.parse(e.postData.contents);
     var action = requestData.action;
     var ssId = requestData.spreadsheet_id;
@@ -39,17 +37,79 @@ function doPost(e) {
       return createJsonResponse({ status: "success", message: "Workspace Initialized Successfully", sheets_processed: initResult });
     }
     
-    // เปิดตัวเชื่อมฐานข้อมูล Google Sheets ของบอส
     var ss = SpreadsheetApp.openById(ssId);
     
-    // CASE B: บันทึกรายการเงิน รายรับ-รายจ่าย (Finance Module)
+    // CASE B: เรียกอ่านข้อมูลทั้งหมดสำหรับแสดงผลแดชบอร์ด (Sync Dashboard Data)
+    if (action === "get_dashboard_data") {
+      var data = {};
+      
+      // 1. Finance data
+      var financeSheet = ss.getSheetByName("Finance");
+      if (financeSheet) {
+        var financeRows = financeSheet.getDataRange().getValues();
+        var headers = financeRows[0];
+        var transactions = [];
+        for (var i = 1; i < financeRows.length; i++) {
+          var row = financeRows[i];
+          var tx = {};
+          for (var j = 0; j < headers.length; j++) {
+            tx[headers[j]] = row[j];
+          }
+          transactions.push(tx);
+        }
+        data.finance = transactions;
+      } else {
+        data.finance = [];
+      }
+      
+      // 2. Task data
+      var taskSheet = ss.getSheetByName("Task");
+      if (taskSheet) {
+        var taskRows = taskSheet.getDataRange().getValues();
+        var headers = taskRows[0];
+        var tasks = [];
+        for (var i = 1; i < taskRows.length; i++) {
+          var row = taskRows[i];
+          var t = {};
+          for (var j = 0; j < headers.length; j++) {
+            t[headers[j]] = row[j];
+          }
+          tasks.push(t);
+        }
+        data.tasks = tasks;
+      } else {
+        data.tasks = [];
+      }
+      
+      // 3. Calendar data
+      var calSheet = ss.getSheetByName("Calendar");
+      if (calSheet) {
+        var calRows = calSheet.getDataRange().getValues();
+        var headers = calRows[0];
+        var events = [];
+        for (var i = 1; i < calRows.length; i++) {
+          var row = calRows[i];
+          var ev = {};
+          for (var j = 0; j < headers.length; j++) {
+            ev[headers[j]] = row[j];
+          }
+          events.push(ev);
+        }
+        data.calendar = events;
+      } else {
+        data.calendar = [];
+      }
+      
+      return createJsonResponse({ status: "success", data: data });
+    }
+    
+    // CASE C: บันทึกรายการเงิน รายรับ-รายจ่าย (Finance Module)
     if (action === "add_expense" || action === "add_income") {
       var financeSheet = ss.getSheetByName("Finance");
       if (!financeSheet) throw new Error("ไม่พบชีต 'Finance' กรุณารัน initialize_workspace ก่อน");
       
       var txType = (action === "add_expense") ? "Expense" : "Income";
       
-      // สั่ง Append Row เติมแถวข้อมูลตรงๆ ตามลำดับ Schema ภาษาอังกฤษ
       financeSheet.appendRow([
         new Date(),                               // timestamp
         txType,                                   // transaction_type
@@ -62,31 +122,73 @@ function doPost(e) {
       return createJsonResponse({ status: "success", message: "บันทึกธุรกรรมการเงินลงแผ่นงานเป๊ะ 100% เรียบร้อย" });
     }
     
-    // CASE C: เพิ่มงานในตารางจัดการงาน (Task Module)
+    // CASE D: เพิ่มงานในตารางจัดการงาน (Task Module)
     if (action === "add_task") {
       var taskSheet = ss.getSheetByName("Task");
       if (!taskSheet) throw new Error("ไม่พบชีต 'Task'");
       
       taskSheet.appendRow([
-        "TASK_" + new Date().getTime(),          // task_id (สุ่มจากเวลาเสี้ยววินาที)
-        requestData.task_name || "Untitled Task", // task_name
-        requestData.details || "",                // details
-        requestData.status || "Pending",          // status
-        requestData.due_date || "",               // due_date
-        requestData.reminder_time || ""           // reminder_time
+        "TASK_" + new Date().getTime(),          // task_id
+        requestData.task_name || "Untitled Task",
+        requestData.details || "",
+        requestData.status || "Pending",
+        requestData.due_date || "",
+        requestData.reminder_time || ""
       ]);
       
       return createJsonResponse({ status: "success", message: "เพิ่มภารกิจใหม่ลงฐานข้อมูลสำเร็จ" });
     }
+
+    // CASE E: อัปเดตสถานะงาน (Update Task Status)
+    if (action === "update_task_status") {
+      var taskId = requestData.task_id;
+      var newStatus = requestData.status; // "Completed" หรือ "Pending"
+      if (!taskId) throw new Error("Missing 'task_id'");
+      
+      var taskSheet = ss.getSheetByName("Task");
+      if (!taskSheet) throw new Error("ไม่พบชีต 'Task'");
+      
+      var rows = taskSheet.getDataRange().getValues();
+      var taskIdColIdx = SHEETS_SCHEMA["Task"].indexOf("task_id");
+      var statusColIdx = SHEETS_SCHEMA["Task"].indexOf("status");
+      
+      var foundRowIdx = -1;
+      for (var i = 1; i < rows.length; i++) {
+        if (rows[i][taskIdColIdx] === taskId) {
+          foundRowIdx = i + 1; // 1-indexed
+          break;
+        }
+      }
+      
+      if (foundRowIdx === -1) throw new Error("Task not found with ID: " + taskId);
+      
+      taskSheet.getRange(foundRowIdx, statusColIdx + 1).setValue(newStatus);
+      return createJsonResponse({ status: "success", message: "อัปเดตสถานะภารกิจสำเร็จ" });
+    }
+
+    // CASE F: เพิ่มนัดหมายลงปฏิทิน (Calendar Module)
+    if (action === "add_event") {
+      var calSheet = ss.getSheetByName("Calendar");
+      if (!calSheet) throw new Error("ไม่พบชีต 'Calendar'");
+      
+      calSheet.appendRow([
+        "EVT_" + new Date().getTime(),
+        requestData.event_title || "Untitled Event",
+        requestData.start_time || "",
+        requestData.end_time || "",
+        requestData.location || "",
+        requestData.notes || ""
+      ]);
+      
+      return createJsonResponse({ status: "success", message: "บันทึกนัดหมายลงปฏิทินสำเร็จ" });
+    }
     
-    // หากส่ง Action แปลกปลอมมา
     throw new Error("Action command '" + action + "' not supported by Backend Engine.");
     
   } catch (error) {
-    // พ่น Error แจ้งหน้าบ้านอย่างละเอียด
     return createJsonResponse({ status: "error", message: error.toString() });
   } finally {
-    lock.releaseLock(); // ปลดล็อกสคริปต์ให้คิวถัดไปทำงาน
+    lock.releaseLock();
   }
 }
 
@@ -100,7 +202,6 @@ function runWorkspaceSetup(spreadsheetId) {
   for (var sheetName in SHEETS_SCHEMA) {
     var sheet = ss.getSheetByName(sheetName);
     
-    // ถ้าไม่มีชีตนี้ ให้กดเปิดชีตใหม่
     if (!sheet) {
       sheet = ss.insertSheet(sheetName);
       logs.push("Created " + sheetName);
@@ -108,11 +209,8 @@ function runWorkspaceSetup(spreadsheetId) {
       logs.push("Verified " + sheetName);
     }
     
-    // ตรวจสอบและบังคับเขียนหัวข้อภาษาอังกฤษ Row 1 ใหม่อัตโนมัติ (Fixed Schema)
     var headerLength = SHEETS_SCHEMA[sheetName].length;
     sheet.getRange(1, 1, 1, headerLength).setValues([SHEETS_SCHEMA[sheetName]]);
-    
-    // ตั้งค่าความสวยงาม: ตรึงแนวแถวแรกไว้เสมอเพื่อความหรูหราเวลาบอสเลื่อนดูข้อมูล
     sheet.setFrozenRows(1);
   }
   
