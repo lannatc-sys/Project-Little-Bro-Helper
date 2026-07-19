@@ -93,6 +93,13 @@ export default function SettingsScreen() {
     }
   };
 
+  const handleDeleteAccount = () => {
+    if (confirm("ต้องการลบบัญชีผู้ใช้รายนี้ออกจากระบบใช่หรือไม่?\n\nการลบนี้จะทำการล้างข้อมูลการจดจำเครื่องทั้งหมดและออกจากระบบทันที")) {
+      localStorage.clear();
+      window.location.href = "/onboarding";
+    }
+  };
+
   return (
     <div className="min-h-screen bg-background p-6 text-text-main font-sans flex flex-col justify-between transition-colors duration-300">
       <div>
@@ -242,6 +249,21 @@ export default function SettingsScreen() {
                 </div>
               </div>
               <span className="text-xs text-text-sub/45">➔</span>
+            </div>
+
+            {/* Delete Account Option */}
+            <div
+              onClick={handleDeleteAccount}
+              className="p-3 bg-[#EF4444]/10 border border-[#EF4444]/20 rounded-xl hover:bg-[#EF4444]/20 transition-all cursor-pointer flex items-center justify-between"
+            >
+              <div className="flex items-center gap-3">
+                <span className="text-lg bg-[#EF4444]/25 p-2 rounded-lg">🗑️</span>
+                <div>
+                  <h4 className="text-xs font-semibold text-[#EF4444]">ลบข้อมูลบัญชีผู้ใช้ (Delete Account)</h4>
+                  <p className="text-[9px] text-[#EF4444]/75">ล้างข้อมูลการจดจำเครื่องทั้งหมดและออกจากระบบ</p>
+                </div>
+              </div>
+              <span className="text-xs text-[#EF4444]/60">➔</span>
             </div>
           </div>
         </section>
