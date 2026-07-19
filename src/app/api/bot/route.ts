@@ -12,6 +12,18 @@ export async function POST(request: Request) {
     return NextResponse.json({ status: "error", message: "TELEGRAM_BOT_TOKEN is not configured" }, { status: 500 });
   }
 
+  if (!appUrl) {
+    return NextResponse.json({ status: "error", message: "NEXT_PUBLIC_APP_URL is not configured" }, { status: 500 });
+  }
+
+  let cleanUrl = appUrl.trim();
+  const mdLinkRegex = /\[.*?\]\((.*?)\)/;
+  const match = cleanUrl.match(mdLinkRegex);
+  if (match) {
+    cleanUrl = match[1];
+  }
+  cleanUrl = cleanUrl.replace(/\/+$/, "");
+
   try {
     const update = await request.json();
     console.log("Telegram update received:", JSON.stringify(update));
@@ -207,7 +219,7 @@ export async function POST(request: Request) {
         [
           {
             text: "🚀 เปิดแอปผู้ช่วยส่วนตัว",
-            web_app: { url: appUrl }
+            web_app: { url: cleanUrl }
           }
         ]
       ];
@@ -217,7 +229,7 @@ export async function POST(request: Request) {
         [
           {
             text: "🏠 หน้าหลักระบบผู้ช่วย",
-            web_app: { url: appUrl }
+            web_app: { url: cleanUrl }
           }
         ]
       ];
@@ -227,7 +239,7 @@ export async function POST(request: Request) {
         [
           {
             text: "💸 บันทึกบัญชีส่วนตัว",
-            web_app: { url: `${appUrl}/add-expense` }
+            web_app: { url: `${cleanUrl}/add-expense` }
           }
         ]
       ];
@@ -237,7 +249,7 @@ export async function POST(request: Request) {
         [
           {
             text: "📂 ดูสิ่งที่ต้องทำทั้งหมด",
-            web_app: { url: `${appUrl}/tasks` }
+            web_app: { url: `${cleanUrl}/tasks` }
           }
         ]
       ];

@@ -13,7 +13,15 @@ export async function GET() {
     return NextResponse.json({ status: "error", message: "NEXT_PUBLIC_APP_URL and VERCEL_URL are not configured" }, { status: 500 });
   }
 
-  const webhookUrl = `${appUrl}/api/bot`;
+  let cleanUrl = appUrl.trim();
+  const mdLinkRegex = /\[.*?\]\((.*?)\)/;
+  const match = cleanUrl.match(mdLinkRegex);
+  if (match) {
+    cleanUrl = match[1];
+  }
+  cleanUrl = cleanUrl.replace(/\/+$/, "");
+
+  const webhookUrl = `${cleanUrl}/api/bot`;
 
   try {
     // 1. ตั้งค่า Webhook URL
