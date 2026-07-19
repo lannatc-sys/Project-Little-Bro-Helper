@@ -78,6 +78,33 @@ export default function FinanceScreen() {
     }
   };
 
+  const handleDeleteTransaction = async (timestamp: string) => {
+    if (!confirm("ต้องการลบรายการธุรกรรมการเงินนี้ออกจากชีตใช่หรือไม่ครับบอส?")) return;
+    
+    setLoading(true);
+    try {
+      const response = await fetch("/api/expense", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          action: "delete_expense",
+          timestamp
+        })
+      });
+      const data = await response.json();
+      if (data.status === "success") {
+        alert("✅ ลบรายการธุรกรรมการเงินเรียบร้อยครับ!");
+        fetchFinanceData();
+      } else {
+        alert("❌ เกิดข้อผิดพลาด: " + data.message);
+        setLoading(false);
+      }
+    } catch (err: any) {
+      alert("❌ ไม่สามารถเชื่อมต่อเพื่อลบได้: " + err.message);
+      setLoading(false);
+    }
+  };
+
   useEffect(() => {
     fetchFinanceData();
   }, []);
@@ -267,19 +294,32 @@ export default function FinanceScreen() {
                           <span className="text-[8px] text-text-sub font-mono">{dateStr}</span>
                         </div>
                       </div>
-                      <div className="text-right">
-                        <span className={`text-xs font-extrabold ${isInc ? "text-[#10B981]" : "text-[#EF4444]"}`}>
-                          {isInc ? "+" : "-"}฿{Number(item.amount || 0).toLocaleString("th-TH", { minimumFractionDigits: 2 })}
-                        </span>
-                        {item.file_attachment_url && (
-                          <a 
-                            href={item.file_attachment_url} 
-                            target="_blank" 
-                            rel="noreferrer"
-                            className="text-[8px] text-[#5B5CEB] hover:underline block mt-0.5"
+                      <div className="flex items-center gap-3">
+                        <div className="text-right">
+                          <span className={`text-xs font-extrabold block ${isInc ? "text-[#10B981]" : "text-[#EF4444]"}`}>
+                            {isInc ? "+" : "-"}฿{Number(item.amount || 0).toLocaleString("th-TH", { minimumFractionDigits: 2 })}
+                          </span>
+                          {item.file_attachment_url && (
+                            <a 
+                              href={item.file_attachment_url} 
+                              target="_blank" 
+                              rel="noreferrer"
+                              className="text-[8px] text-[#5B5CEB] hover:underline block mt-0.5"
+                            >
+                              📎 ดูไฟล์แนบ
+                            </a>
+                          )}
+                        </div>
+                        {item.timestamp && (
+                          <button 
+                            onClick={() => handleDeleteTransaction(item.timestamp)}
+                            className="text-text-sub hover:text-[#EF4444] transition-colors p-1.5 rounded-lg hover:bg-[#EF4444]/10 cursor-pointer"
+                            title="ลบรายการ"
                           >
-                            📎 ดูไฟล์แนบ
-                          </a>
+                            <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                            </svg>
+                          </button>
                         )}
                       </div>
                     </div>

@@ -170,6 +170,38 @@ function doPost(e) {
       return createJsonResponse({ status: "success", message: "บันทึกธุรกรรมการเงินลงแผ่นงานเป๊ะ 100% เรียบร้อย" });
     }
     
+    // CASE C.2: ลบรายการธุรกรรมการเงิน (Delete Finance Transaction)
+    if (action === "delete_expense") {
+      var financeSheet = ss.getSheetByName("Finance");
+      if (!financeSheet) throw new Error("ไม่พบชีต 'Finance'");
+      
+      var targetTimestamp = requestData.timestamp;
+      if (!targetTimestamp) throw new Error("Missing 'timestamp'");
+      
+      var rows = financeSheet.getDataRange().getValues();
+      var deleted = false;
+      
+      // ค้นหาจากล่างขึ้นบน
+      for (var i = rows.length - 1; i >= 1; i--) {
+        var rowTime = rows[i][0];
+        // แปลงทั้งคู่เป็น ISO string หรือจัดฟอร์แมตเทียบกันเพื่อความแม่นยำ
+        var rowTimeStr = (rowTime instanceof Date) ? rowTime.toISOString() : rowTime.toString();
+        var targetTimeStr = (typeof targetTimestamp === "string") ? targetTimestamp : new Date(targetTimestamp).toISOString();
+        
+        if (rowTimeStr === targetTimeStr || new Date(rowTime).getTime() === new Date(targetTimestamp).getTime()) {
+          financeSheet.deleteRow(i + 1);
+          deleted = true;
+          break;
+        }
+      }
+      
+      if (deleted) {
+        return createJsonResponse({ status: "success", message: "ลบธุรกรรมการเงินเรียบร้อยครับบอส" });
+      } else {
+        return createJsonResponse({ status: "error", message: "ไม่พบรายการธุรกรรมที่ต้องการลบในชีต" });
+      }
+    }
+
     // CASE D: เพิ่มงานในตารางจัดการงาน (Task Module)
     if (action === "add_task") {
       var taskSheet = ss.getSheetByName("Task");
