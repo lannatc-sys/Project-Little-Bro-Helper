@@ -1,21 +1,55 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Image from "next/image";
 
 export default function CalendarScreen() {
   const [view, setView] = useState("เดือน");
   const [startDate, setStartDate] = useState<number | null>(20);
   const [endDate, setEndDate] = useState<number | null>(22);
-  
+  const [loading, setLoading] = useState(true);
+  const [events, setEvents] = useState<any[]>([]);
+
+  // Create event modal states
+  const [showCreateModal, setShowCreateModal] = useState(false);
+  const [newEventTitle, setNewEventTitle] = useState("");
+  const [eventDay, setEventDay] = useState(20);
+  const [startTime, setStartTime] = useState("");
+  const [endTime, setEndTime] = useState("");
+  const [location, setLocation] = useState("");
+  const [notes, setNotes] = useState("");
+  const [createLoading, setCreateLoading] = useState(false);
+
   // Dummy calendar days for May 2026
   const daysOfWeek = ["อา", "จ", "อ", "พ", "พฤ", "ศ", "ส"];
   const daysInMonth = Array.from({ length: 31 }, (_, i) => i + 1);
-  const startOffset = 5; // May 2026 starts on Friday (Friday index is 5)
+  const startOffset = 5; // May 2026 starts on Friday
   const calendarGrid = [
     ...Array(startOffset).fill(""),
     ...daysInMonth
   ];
+
+  const fetchCalendarEvents = async () => {
+    try {
+      const res = await fetch("/api/expense", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ action: "get_dashboard_data" })
+      });
+      const result = await res.json();
+      if (result.status === "success" && result.data) {
+        setEvents(result.data.calendar || []);
+      }
+    } catch (err) {
+      console.error("Error fetching calendar events:", err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchCalendarEvents();
+  }, []);
 
   const handleDayClick = (day: number) => {
     if (startDate === null || (startDate !== null && endDate !== null)) {
@@ -33,22 +67,70 @@ export default function CalendarScreen() {
     }
   };
 
-  const getEventsForRange = () => {
-    const allEvents = [
-      { id: 1, title: "เช็คอินลูกค้า Little Bro Hostel", day: 20, time: "10:00 - 11:00", loc: "Lobby" },
-      { id: 2, title: "ประชุมทีม Google Meet", day: 20, time: "14:00 - 15:30", loc: "Google Meet Link" },
-      { id: 3, title: "เตรียมเอกสารรายงานเงิน", day: 21, time: "16:00 - 16:30", loc: "Office Room 1" },
-      { id: 4, title: "เช็คเอาท์ลูกค้า Little Bro Hostel", day: 22, time: "10:00 - 11:30", loc: "Lobby" }
-    ];
+  const handleCreateEvent = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!newEventTitle.trim()) return;
 
-    if (startDate === null) return [];
-    if (endDate === null) {
-      return allEvents.filter(e => e.day === startDate);
+    setCreateLoading(true);
+    try {
+      // For calendar schema simplicity, we'll store dates as text in columns
+      const res = await fetch("/api/expense", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          action: "add_event",
+          event_title: newEventTitle,
+          start_time: `วันที่ ${eventDay} พฤษภาคม (${startTime} - ${endTime})`,
+          end_time: endTime,
+          location,
+          notes
+        })
+      });
+      const result = await res.json();
+      if (result.status === "success") {
+        setNewEventTitle("");
+        setStartTime("");
+        setEndTime("");
+        setLocation("");
+        setNotes("");
+        setShowCreateModal(false);
+        fetchCalendarEvents();
+      }
+    } catch (err) {
+      console.error("Error creating event:", err);
+    } finally {
+      setCreateLoading(false);
     }
-    return allEvents.filter(e => e.day >= startDate && e.day <= endDate);
   };
 
-  const filteredEvents = getEventsForRange();
+  const getFilteredEvents = () => {
+    if (startDate === null) return [];
+    
+    // In our mock/GAS data, we'll try to extract date index if it matches the format
+    return events.filter(e => {
+      // Parse day number from start_time string, e.g., "วันที่ 20 พฤษภาคม..."
+      const match = e.start_time ? e.start_time.match(/วันที่ (\d+)/) : null;
+      const day = match ? Number(match[1]) : 20; // fallback default
+      
+      if (endDate === null) {
+        return day === startDate;
+      }
+      return day >= startDate && day <= endDate;
+    });
+  };
+
+  const filteredEvents = getFilteredEvents();
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-background flex flex-col items-center justify-center text-text-main p-6 font-sans">
+        <div className="w-24 h-24 mb-4 rounded-full overflow-hidden bg-surface border border-[#5B5CEB]/30 animate-bounce flex items-center justify-center">
+          <Image src="/avatar/thinking.png" alt="Thinking" width={80} height={80} className="object-cover" />
+        </div>
+        <p className="text-xs text-text-sub">กำลังซิงก์ตารางปฏิทินนัดหมาย...</p>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-background p-6 text-text-main font-sans flex flex-col justify-between transition-colors duration-300">
@@ -57,7 +139,7 @@ export default function CalendarScreen() {
         <header className="mb-6 flex justify-between items-center">
           <h1 className="text-xl font-bold text-text-main">ปฏิทิน</h1>
           <button
-            onClick={() => alert("ระบบบันทึกปฏิทินลง Google Calendar จะเชื่อมต่อในเฟสถัดไปครับบอส!")}
+            onClick={() => setShowCreateModal(true)}
             className="bg-[#5B5CEB] hover:bg-[#5B5CEB]/80 text-white font-semibold text-xs px-3 py-1.5 rounded-xl transition-all"
           >
             + นัดหมาย
@@ -134,15 +216,20 @@ export default function CalendarScreen() {
           <div className="space-y-3">
             {filteredEvents.length > 0 ? (
               filteredEvents.map((event) => (
-                <div key={event.id} className="p-3 bg-surface/20 border-l-4 border-[#5B5CEB] rounded-r-xl">
+                <div key={event.event_id} className="p-3 bg-surface/20 border-l-4 border-[#5B5CEB] rounded-r-xl">
                   <div className="flex justify-between items-start">
                     <div>
-                      <span className="text-[8px] bg-[#5B5CEB]/20 text-[#5B5CEB] px-1.5 py-0.5 rounded font-mono font-bold mr-2">วันที่ {event.day}</span>
-                      <h4 className="text-xs font-semibold text-text-main inline-block">{event.title}</h4>
+                      <span className="text-[8px] bg-[#5B5CEB]/20 text-[#5B5CEB] px-1.5 py-0.5 rounded font-mono font-bold mr-2">ซิงก์คลาวด์</span>
+                      <h4 className="text-xs font-semibold text-text-main inline-block">{event.event_title}</h4>
                     </div>
-                    <span className="text-[9px] text-text-sub font-mono">{event.time}</span>
+                    <span className="text-[9px] text-text-sub font-mono">{event.start_time}</span>
                   </div>
-                  <p className="text-[9px] text-text-sub mt-1">📍 {event.loc}</p>
+                  {event.location && (
+                    <p className="text-[9px] text-text-sub mt-1">📍 {event.location}</p>
+                  )}
+                  {event.notes && (
+                    <p className="text-[9px] text-text-sub/70 mt-0.5 italic">📝 {event.notes}</p>
+                  )}
                 </div>
               ))
             ) : (
@@ -167,11 +254,108 @@ export default function CalendarScreen() {
           <div>
             <h4 className="text-xs font-bold text-text-main mb-1">ช่วงเวลาของนัดหมาย 🗓️</h4>
             <p className="text-[10px] text-text-sub leading-relaxed">
-              บอสเลือกช่วงเวลาจัดตารางงานแบบเป็นช่วงวันแล้ว! ผมแสดงเฉพาะนัดหมายในช่วงที่บอสกำหนดไว้เท่านั้นครับบอส
+              ตารางนัดหมายทั้งหมดซิงก์เชื่อมโยงกับฐานข้อมูลชีต `Calendar` บอสสามารถสร้างตารางนัดใหม่และกำหนดเวลาได้อย่างอิสระครับ!
             </p>
           </div>
         </div>
       </div>
+
+      {/* Create Event Modal Overlay */}
+      {showCreateModal && (
+        <div className="absolute inset-0 bg-background/90 backdrop-blur-md flex items-center justify-center p-6 z-50">
+          <form 
+            onSubmit={handleCreateEvent}
+            className="bg-surface border border-white/10 w-full max-w-sm rounded-3xl p-5 shadow-2xl flex flex-col relative text-text-main"
+          >
+            <button 
+              type="button"
+              onClick={() => setShowCreateModal(false)}
+              className="absolute top-4 right-4 text-text-sub hover:text-text-main"
+            >
+              ✕
+            </button>
+            <h3 className="text-sm font-bold text-text-main mb-4">📅 สร้างนัดหมายใหม่</h3>
+            
+            <div className="space-y-4 mb-6">
+              <div>
+                <label className="block mb-1 text-[10px] text-text-sub font-semibold">ชื่องานนัดหมาย (Event Title)</label>
+                <input 
+                  type="text" 
+                  value={newEventTitle}
+                  onChange={(e) => setNewEventTitle(e.target.value)}
+                  placeholder="เช่น ประชุมลูกค้า Little Bro..."
+                  required
+                  className="w-full bg-background border border-white/5 p-2.5 rounded-lg text-text-main text-xs focus:border-[#5B5CEB] focus:outline-none placeholder-text-sub/50"
+                />
+              </div>
+              <div className="grid grid-cols-2 gap-2">
+                <div>
+                  <label className="block mb-1 text-[10px] text-text-sub font-semibold">วันที่ในปฏิทิน (Day of May)</label>
+                  <input 
+                    type="number" 
+                    min="1"
+                    max="31"
+                    value={eventDay}
+                    onChange={(e) => setEventDay(Number(e.target.value))}
+                    required
+                    className="w-full bg-background border border-white/5 p-2.5 rounded-lg text-text-main text-xs focus:border-[#5B5CEB] focus:outline-none"
+                  />
+                </div>
+                <div>
+                  <label className="block mb-1 text-[10px] text-text-sub font-semibold">สถานที่ (Location)</label>
+                  <input 
+                    type="text" 
+                    value={location}
+                    onChange={(e) => setLocation(e.target.value)}
+                    placeholder="เช่น Google Meet / Lobby"
+                    className="w-full bg-background border border-white/5 p-2.5 rounded-lg text-text-main text-xs focus:border-[#5B5CEB] focus:outline-none placeholder-text-sub/50"
+                  />
+                </div>
+              </div>
+              <div className="grid grid-cols-2 gap-2">
+                <div>
+                  <label className="block mb-1 text-[10px] text-text-sub font-semibold">เวลาเริ่ม (Start)</label>
+                  <input 
+                    type="text" 
+                    value={startTime}
+                    onChange={(e) => setStartTime(e.target.value)}
+                    placeholder="เช่น 10:00"
+                    className="w-full bg-background border border-white/5 p-2.5 rounded-lg text-text-main text-xs focus:border-[#5B5CEB] focus:outline-none placeholder-text-sub/50"
+                  />
+                </div>
+                <div>
+                  <label className="block mb-1 text-[10px] text-text-sub font-semibold">เวลาสิ้นสุด (End)</label>
+                  <input 
+                    type="text" 
+                    value={endTime}
+                    onChange={(e) => setEndTime(e.target.value)}
+                    placeholder="เช่น 11:30"
+                    className="w-full bg-background border border-white/5 p-2.5 rounded-lg text-text-main text-xs focus:border-[#5B5CEB] focus:outline-none placeholder-text-sub/50"
+                  />
+                </div>
+              </div>
+              <div>
+                <label className="block mb-1 text-[10px] text-text-sub font-semibold">หมายเหตุ/โน้ต (Notes)</label>
+                <input 
+                  type="text" 
+                  value={notes}
+                  onChange={(e) => setNotes(e.target.value)}
+                  placeholder="เช่น เตรียมสเปรดชีตมาด้วย..."
+                  className="w-full bg-background border border-white/5 p-2.5 rounded-lg text-text-main text-xs focus:border-[#5B5CEB] focus:outline-none placeholder-text-sub/50"
+                />
+              </div>
+            </div>
+
+            <button
+              type="submit"
+              disabled={createLoading}
+              className="w-full bg-[#5B5CEB] hover:bg-[#5B5CEB]/90 disabled:bg-[#5B5CEB]/50 text-white font-bold text-xs py-3 rounded-xl shadow-lg transition-all flex items-center justify-center gap-2 cursor-pointer"
+            >
+              {createLoading ? "กำลังสร้างนัดหมาย..." : "สร้างนัดหมายลงแผ่นงาน 🔨"}
+            </button>
+          </form>
+        </div>
+      )}
 
       <footer className="mt-8 text-center text-[10px] text-text-sub/40">
         <p>Little Bro Helper v1.0.0 • Antigravity Product Team</p>

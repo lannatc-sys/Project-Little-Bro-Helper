@@ -9,17 +9,59 @@ export default function HomeScreen() {
   const router = useRouter();
   const [greeting, setGreeting] = useState("สวัสดีครับบอส 👔");
   const [avatar, setAvatar] = useState("/avatar/hello.png");
-  const [tasks, setTasks] = useState([
-    { id: 1, text: "เช็คอินลูกค้า Little Bro Hostel", time: "10:00", done: false },
-    { id: 2, text: "ตอบแชทลูกค้า", time: "11:30", done: true },
-    { id: 3, text: "อัพเดตสต็อกของใช้", time: "14:00", done: false },
-  ]);
+  
+  // Dashboard sync states
+  const [loading, setLoading] = useState(true);
+  const [incomeSum, setIncomeSum] = useState(0);
+  const [expenseSum, setExpenseSum] = useState(0);
+  const [tasks, setTasks] = useState<any[]>([]);
+  const [events, setEvents] = useState<any[]>([]);
+
+  const fetchDashboardData = async () => {
+    try {
+      const res = await fetch("/api/expense", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ action: "get_dashboard_data" })
+      });
+      const result = await res.json();
+      
+      if (result.status === "success" && result.data) {
+        const { finance = [], tasks = [], calendar = [] } = result.data;
+        
+        // Calculate finance sums
+        let inc = 0;
+        let exp = 0;
+        finance.forEach((item: any) => {
+          const amt = Number(item.amount || 0);
+          if (item.transaction_type === "Income") {
+            inc += amt;
+          } else if (item.transaction_type === "Expense") {
+            exp += amt;
+          }
+        });
+        setIncomeSum(inc);
+        setExpenseSum(exp);
+
+        // Set tasks
+        setTasks(tasks);
+
+        // Set calendar events
+        setEvents(calendar);
+      }
+    } catch (err) {
+      console.error("Error fetching dashboard data:", err);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   useEffect(() => {
     // Check onboarding status
     const onboarded = localStorage.getItem("little_bro_onboarded");
     if (!onboarded) {
       router.push("/onboarding");
+      return;
     }
 
     const hour = new Date().getHours();
@@ -36,13 +78,48 @@ export default function HomeScreen() {
       setGreeting("ดึกแล้วครับบอส รักษาสุขภาพด้วย 💤");
       setAvatar("/avatar/ready.png");
     }
+
+    fetchDashboardData();
   }, [router]);
 
-  const toggleTask = (id: number) => {
-    setTasks(
-      tasks.map((t) => (t.id === id ? { ...t, done: !t.done } : t))
-    );
+  const toggleTask = async (task: any) => {
+    const nextStatus = task.status === "Completed" ? "Pending" : "Completed";
+    
+    // Optimistic local state update
+    setTasks(prev => prev.map(t => t.task_id === task.task_id ? { ...t, status: nextStatus } : t));
+
+    try {
+      await fetch("/api/expense", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          action: "update_task_status",
+          task_id: task.task_id,
+          status: nextStatus
+        })
+      });
+      // Refresh to make sure
+      fetchDashboardData();
+    } catch (err) {
+      console.error("Error updating task status:", err);
+    }
   };
+
+  // Filter today's tasks (limit to 3 for preview)
+  const todayTasksPreview = tasks.slice(0, 3);
+  // Filter today's events preview
+  const eventsPreview = events.slice(0, 2);
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-background flex flex-col items-center justify-center text-text-main p-6 font-sans">
+        <div className="w-24 h-24 mb-4 rounded-full overflow-hidden bg-surface border border-[#5B5CEB]/30 animate-bounce flex items-center justify-center">
+          <Image src="/avatar/thinking.png" alt="Thinking" width={80} height={80} className="object-cover" />
+        </div>
+        <p className="text-xs text-text-sub">กำลังซิงก์ข้อมูลกับ Google Sheets...</p>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-background p-6 text-text-main font-sans flex flex-col justify-between transition-colors duration-300">
@@ -56,14 +133,12 @@ export default function HomeScreen() {
             <p className="text-xs text-text-sub">มีอะไรให้ช่วยวันนี้?</p>
           </div>
           <div className="flex items-center gap-3">
-            {/* Notification Icon */}
             <button className="bg-surface border border-white/5 p-2 rounded-full text-text-sub hover:text-text-main transition-colors relative">
               <svg className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
               </svg>
               <span className="absolute top-1 right-1 w-2 h-2 bg-[#EF4444] rounded-full"></span>
             </button>
-            {/* Character Avatar */}
             <div className="w-10 h-10 rounded-full border border-[#5B5CEB]/30 overflow-hidden bg-surface">
               <Image
                 src={avatar}
@@ -105,41 +180,43 @@ export default function HomeScreen() {
             <span className="text-[10px] text-text-sub">เพิ่มรายจ่าย</span>
           </Link>
 
-          <button
-            onClick={() => alert("ระบบสร้างงานใหม่จะเปิดใช้งานในเฟสถัดไปครับบอส!")}
-            className="flex flex-col items-center gap-1.5 p-2 bg-surface/40 hover:bg-surface/60 border border-white/5 rounded-xl transition-all"
+          <Link
+            href="/tasks"
+            className="flex flex-col items-center gap-1.5 p-2 bg-surface/40 hover:bg-surface/60 border border-white/5 rounded-xl transition-all text-center"
           >
             <span className="text-xl bg-[#F59E0B]/20 p-2.5 rounded-xl text-[#F59E0B]">📝</span>
-            <span className="text-[10px] text-text-sub">สร้างงาน</span>
-          </button>
+            <span className="text-[10px] text-text-sub">จัดการงาน</span>
+          </Link>
 
-          <button
-            onClick={() => alert("ระบบบันทึกโน้ตด่วนจะเปิดใช้งานในเฟสถัดไปครับบอส!")}
-            className="flex flex-col items-center gap-1.5 p-2 bg-surface/40 hover:bg-surface/60 border border-white/5 rounded-xl transition-all"
+          <Link
+            href="/files"
+            className="flex flex-col items-center gap-1.5 p-2 bg-surface/40 hover:bg-surface/60 border border-white/5 rounded-xl transition-all text-center"
           >
             <span className="text-xl bg-[#3B82F6]/20 p-2.5 rounded-xl text-[#3B82F6]">📁</span>
-            <span className="text-[10px] text-text-sub">บันทึกโน้ต</span>
-          </button>
+            <span className="text-[10px] text-text-sub">คลังไฟล์</span>
+          </Link>
         </div>
 
         {/* Dashboard "ภาพรวมวันนี้" */}
         <section className="mb-6">
-          <h2 className="text-xs font-semibold text-text-sub uppercase tracking-wider mb-3">ภาพรวมวันนี้</h2>
+          <h2 className="text-xs font-semibold text-text-sub uppercase tracking-wider mb-3">ภาพรวมการเงิน</h2>
           <div className="grid grid-cols-3 gap-2">
             <div className="bg-surface/40 backdrop-blur-lg border border-white/5 p-3 rounded-2xl">
-              <h3 className="text-[9px] text-text-sub mb-1">รายรับ</h3>
-              <p className="text-sm font-bold text-text-main">฿12,450</p>
-              <span className="text-[8px] text-[#10B981] font-semibold">+12%</span>
+              <h3 className="text-[9px] text-text-sub mb-1">รายรับรวม</h3>
+              <p className="text-xs font-bold text-text-main">฿{incomeSum.toLocaleString("th-TH")}</p>
+              <span className="text-[8px] text-[#10B981] font-semibold">ซิงก์จริง</span>
             </div>
             <div className="bg-surface/40 backdrop-blur-lg border border-white/5 p-3 rounded-2xl">
-              <h3 className="text-[9px] text-text-sub mb-1">รายจ่าย</h3>
-              <p className="text-sm font-bold text-text-main">฿8,170</p>
-              <span className="text-[8px] text-[#EF4444] font-semibold">-5%</span>
+              <h3 className="text-[9px] text-text-sub mb-1">รายจ่ายรวม</h3>
+              <p className="text-xs font-bold text-text-main">฿{expenseSum.toLocaleString("th-TH")}</p>
+              <span className="text-[8px] text-[#EF4444] font-semibold">ซิงก์จริง</span>
             </div>
             <div className="bg-surface/40 backdrop-blur-lg border border-[#5B5CEB]/20 p-3 rounded-2xl">
               <h3 className="text-[9px] text-text-sub mb-1">กำไรสุทธิ</h3>
-              <p className="text-sm font-bold text-[#10B981]">฿4,280</p>
-              <span className="text-[8px] text-[#10B981] font-semibold">+18%</span>
+              <p className={`text-xs font-bold ${incomeSum - expenseSum >= 0 ? "text-[#10B981]" : "text-[#EF4444]"}`}>
+                ฿{(incomeSum - expenseSum).toLocaleString("th-TH")}
+              </p>
+              <span className="text-[8px] text-[#5B5CEB] font-semibold">ระบบคำนวณ</span>
             </div>
           </div>
         </section>
@@ -147,57 +224,67 @@ export default function HomeScreen() {
         {/* Tasks Section "งานที่ต้องทำวันนี้" */}
         <section className="mb-6">
           <div className="flex justify-between items-center mb-3">
-            <h2 className="text-xs font-semibold text-text-sub uppercase tracking-wider">งานที่ต้องทำวันนี้</h2>
+            <h2 className="text-xs font-semibold text-text-sub uppercase tracking-wider">งานล่าสุด</h2>
             <Link href="/tasks" className="text-[10px] text-[#5B5CEB] hover:underline">ดูทั้งหมด &gt;</Link>
           </div>
           <div className="space-y-2">
-            {tasks.map((task) => (
-              <div
-                key={task.id}
-                onClick={() => toggleTask(task.id)}
-                className="flex items-center justify-between p-3.5 bg-surface/30 hover:bg-surface/50 border border-white/5 rounded-xl cursor-pointer transition-all duration-200"
-              >
-                <div className="flex items-center gap-3">
-                  <div className={`w-4 h-4 rounded border flex items-center justify-center transition-all ${
-                    task.done ? "bg-[#5B5CEB] border-[#5B5CEB]" : "border-white/20"
-                  }`}>
-                    {task.done && (
-                      <svg className="w-3 h-3 text-white" fill="none" stroke="currentColor" strokeWidth="3" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
-                      </svg>
-                    )}
+            {todayTasksPreview.length > 0 ? (
+              todayTasksPreview.map((task) => {
+                const isCompleted = task.status === "Completed";
+                return (
+                  <div
+                    key={task.task_id}
+                    onClick={() => toggleTask(task)}
+                    className="flex items-center justify-between p-3.5 bg-surface/30 hover:bg-surface/50 border border-white/5 rounded-xl cursor-pointer transition-all duration-200"
+                  >
+                    <div className="flex items-center gap-3">
+                      <div className={`w-4 h-4 rounded border flex items-center justify-center transition-all ${
+                        isCompleted ? "bg-[#5B5CEB] border-[#5B5CEB]" : "border-white/20"
+                      }`}>
+                        {isCompleted && (
+                          <svg className="w-3 h-3 text-white" fill="none" stroke="currentColor" strokeWidth="3" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+                          </svg>
+                        )}
+                      </div>
+                      <span className={`text-xs ${isCompleted ? "text-text-sub line-through" : "text-text-main"}`}>
+                        {task.task_name}
+                      </span>
+                    </div>
+                    <span className="text-[9px] text-text-sub font-mono">{task.due_date || "ด่วน"}</span>
                   </div>
-                  <span className={`text-xs ${task.done ? "text-text-sub line-through" : "text-text-main"}`}>
-                    {task.text}
-                  </span>
-                </div>
-                <span className="text-[10px] text-text-sub font-mono">{task.time}</span>
+                );
+              })
+            ) : (
+              <div className="p-4 bg-surface/20 border border-dashed border-white/5 rounded-xl text-center text-xs text-text-sub">
+                📭 ไม่มีภารกิจค้างในฐานข้อมูลชีตครับบอส
               </div>
-            ))}
+            )}
           </div>
         </section>
 
         {/* Calendar Section "ปฏิทินวันนี้" */}
         <section className="mb-6">
           <div className="flex justify-between items-center mb-3">
-            <h2 className="text-xs font-semibold text-text-sub uppercase tracking-wider">ปฏิทินวันนี้</h2>
+            <h2 className="text-xs font-semibold text-text-sub uppercase tracking-wider">นัดหมายล่าสุด</h2>
             <Link href="/calendar" className="text-[10px] text-[#5B5CEB] hover:underline">ดูทั้งหมด &gt;</Link>
           </div>
           <div className="space-y-2">
-            <div className="p-3 bg-surface/20 border-l-4 border-[#5B5CEB] rounded-r-xl">
-              <div className="flex justify-between items-start">
-                <h4 className="text-xs font-semibold text-text-main">เช็คอินลูกค้า Little Bro Hostel</h4>
-                <span className="text-[9px] text-text-sub">10:00 - 11:00</span>
+            {eventsPreview.length > 0 ? (
+              eventsPreview.map((event) => (
+                <div key={event.event_id} className="p-3 bg-surface/20 border-l-4 border-[#5B5CEB] rounded-r-xl">
+                  <div className="flex justify-between items-start">
+                    <h4 className="text-xs font-semibold text-text-main">{event.event_title}</h4>
+                    <span className="text-[9px] text-text-sub font-mono">{event.start_time || "ทั้งวัน"}</span>
+                  </div>
+                  <p className="text-[10px] text-text-sub mt-1">📍 {event.location || "ไม่ได้ระบุสถานที่"}</p>
+                </div>
+              ))
+            ) : (
+              <div className="p-4 bg-surface/20 border border-dashed border-white/5 rounded-xl text-center text-xs text-text-sub">
+                📅 ไม่มีนัดหมายที่บันทึกไว้ในฐานข้อมูลชีตครับบอส
               </div>
-              <p className="text-[10px] text-text-sub mt-1">Little Bro Hostel Lobby</p>
-            </div>
-            <div className="p-3 bg-surface/20 border-l-4 border-[#10B981] rounded-r-xl">
-              <div className="flex justify-between items-start">
-                <h4 className="text-xs font-semibold text-text-main">ประชุมทีม Google Meet</h4>
-                <span className="text-[9px] text-text-sub">14:00 - 15:30</span>
-              </div>
-              <p className="text-[10px] text-text-sub mt-1">Google Meet Link in Calendar</p>
-            </div>
+            )}
           </div>
         </section>
       </div>
