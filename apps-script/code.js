@@ -461,7 +461,20 @@ function runWorkspaceSetup(spreadsheetId) {
 function checkTaskReminders() {
   var ss = SpreadsheetApp.getActiveSpreadsheet();
   
-  var botToken = "8838172150:AAEYqB68iIygAtTxG1TqChycBXrBulB0BcQ";
+  var botToken = PropertiesService.getScriptProperties().getProperty("TELEGRAM_BOT_TOKEN");
+  if (!botToken) {
+    // ลองดึงจากชีต Settings
+    var settingsSheet = ss.getSheetByName("Settings");
+    if (settingsSheet) {
+      var rows = settingsSheet.getDataRange().getValues();
+      for (var i = 1; i < rows.length; i++) {
+        if (rows[i][0].toString() === "TELEGRAM_BOT_TOKEN") {
+          botToken = rows[i][1].toString();
+          break;
+        }
+      }
+    }
+  }
   var chatId = "";
   
   // ดึงสิทธิ์ผู้ส่งล่าสุดที่บันทึกไว้ในชีต Profiles (ค้นหาผู้ที่มีวันที่ลงทะเบียนล่าสุด)

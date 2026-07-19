@@ -1,7 +1,29 @@
 const fs = require("fs");
 const path = require("path");
 
-const token = "8838172150:AAEYqB68iIygAtTxG1TqChycBXrBulB0BcQ";
+// Load .env.local manually
+try {
+  const envPath = path.join(__dirname, ".env.local");
+  if (fs.existsSync(envPath)) {
+    const envContent = fs.readFileSync(envPath, "utf8");
+    envContent.split("\n").forEach(line => {
+      const match = line.match(/^\s*([\w.\-]+)\s*=\s*(.*)?\s*$/);
+      if (match) {
+        const key = match[1];
+        let value = match[2] || "";
+        value = value.trim();
+        if (value.startsWith('"') && value.endsWith('"')) {
+          value = value.substring(1, value.length - 1);
+        }
+        process.env[key] = value;
+      }
+    });
+  }
+} catch (err) {
+  console.error("Failed to load .env.local:", err);
+}
+
+const token = process.env.TELEGRAM_BOT_TOKEN;
 const chatId = "5581598534"; // active user iGAMER
 const approvalFilePath = path.join(__dirname, "apps-script", "approval.json");
 
