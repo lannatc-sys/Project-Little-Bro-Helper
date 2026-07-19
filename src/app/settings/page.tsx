@@ -11,6 +11,7 @@ export default function SettingsScreen() {
   const [showWorkspaceModal, setShowWorkspaceModal] = useState(false);
   const [isInitializing, setIsInitializing] = useState(false);
   const [initMessage, setInitMessage] = useState("");
+  const [isBackingUp, setIsBackingUp] = useState(false);
 
   useEffect(() => {
     const savedTheme = localStorage.getItem("little_bro_theme") || "dark";
@@ -55,6 +56,33 @@ export default function SettingsScreen() {
       setInitMessage("❌ ไม่สามารถเปิดระบบสร้างได้: " + err.message);
     } finally {
       setIsInitializing(false);
+    }
+  };
+
+  const handleBackupDatabase = async () => {
+    setIsBackingUp(true);
+    try {
+      const response = await fetch("/api/expense", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          action: "backup_workspace",
+          spreadsheet_id: "1jANLkV4IxXa3mybLPTs7L1RoHtfik7lVLtTlB0Ay1X8"
+        })
+      });
+      const data = await response.json();
+      if (data.status === "success") {
+        alert(`✅ สำรองข้อมูล Google Sheets สำเร็จเรียบร้อยครับบอส!\nไฟล์สำรองถูกเก็บไว้ใน Drive โฟลเดอร์ "Little Bro Helper Backups"\n\nบอสสามารถเปิดดูชีตสำรองได้ที่: ${data.backup_url}`);
+        if (data.backup_url) {
+          window.open(data.backup_url, "_blank");
+        }
+      } else {
+        alert("❌ เกิดข้อผิดพลาด: " + data.message);
+      }
+    } catch (err: any) {
+      alert("❌ ไม่สามารถเชื่อมต่อเพื่อสำรองข้อมูลได้: " + err.message);
+    } finally {
+      setIsBackingUp(false);
     }
   };
 
@@ -182,14 +210,20 @@ export default function SettingsScreen() {
             </div>
             
             <div
-              onClick={() => alert("ระบบสำรองตารางจะเปิดใช้งานในเฟสถัดไปครับบอส!")}
-              className="p-3 bg-surface/20 border border-white/5 rounded-xl hover:bg-surface/40 transition-all cursor-pointer flex items-center justify-between"
+              onClick={handleBackupDatabase}
+              className={`p-3 bg-surface/20 border border-white/5 rounded-xl hover:bg-surface/40 transition-all cursor-pointer flex items-center justify-between ${
+                isBackingUp ? "opacity-50 pointer-events-none" : ""
+              }`}
             >
               <div className="flex items-center gap-3">
-                <span className="text-lg bg-surface p-2 rounded-lg">💾</span>
+                <span className="text-lg bg-surface p-2 rounded-lg">
+                  {isBackingUp ? "⏳" : "💾"}
+                </span>
                 <div>
-                  <h4 className="text-xs font-semibold text-text-main">สำรองข้อมูล (Backup Data)</h4>
-                  <p className="text-[9px] text-text-sub">ส่งออกตารางชีตเป็นไฟล์ JSON</p>
+                  <h4 className="text-xs font-semibold text-text-main">
+                    {isBackingUp ? "กำลังสำรองข้อมูล..." : "สำรองข้อมูลชีตหลังบ้าน"}
+                  </h4>
+                  <p className="text-[9px] text-text-sub">คัดลอกและบันทึกฐานข้อมูลเก็บแยกไว้ใน Google Drive</p>
                 </div>
               </div>
               <span className="text-xs text-text-sub/45">➔</span>

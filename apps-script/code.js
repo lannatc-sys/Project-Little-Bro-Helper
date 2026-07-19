@@ -238,6 +238,28 @@ function doPost(e) {
       
       return createJsonResponse({ status: "success", files: fileList });
     }
+
+    // CASE I: สำรองข้อมูลสเปรดชีตไปที่โฟลเดอร์ Google Drive (Backup Database Module)
+    if (action === "backup_workspace") {
+      var backupFolderName = "Little Bro Helper Backups";
+      var backupFolder;
+      var folders = DriveApp.getFoldersByName(backupFolderName);
+      if (folders.hasNext()) {
+        backupFolder = folders.next();
+      } else {
+        backupFolder = DriveApp.createFolder(backupFolderName);
+      }
+      
+      var file = DriveApp.getFileById(ssId);
+      var dateString = Utilities.formatDate(new Date(), Session.getScriptTimeZone() || "GMT+7", "yyyy-MM-dd_HH-mm");
+      var backupCopy = file.makeCopy("Little Bro Helper Backup - " + dateString, backupFolder);
+      
+      return createJsonResponse({ 
+        status: "success", 
+        message: "สำรองข้อมูลสเปรดชีตเรียบร้อยแล้ว", 
+        backup_url: backupCopy.getUrl() 
+      });
+    }
     
     throw new Error("Action command '" + action + "' not supported by Backend Engine.");
     
