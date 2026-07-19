@@ -10,6 +10,15 @@ export default function HomeScreen() {
   const [greeting, setGreeting] = useState("สวัสดีครับบอส 👔");
   const [avatar, setAvatar] = useState("/avatar/hello.png");
   
+  // Notification states
+  const [showNotifications, setShowNotifications] = useState(false);
+  const [hasUnread, setHasUnread] = useState(true);
+  const [notifications, setNotifications] = useState([
+    { id: 1, text: "🎉 เชื่อมโยงบัญชี Google Sheets ของคุณสำเร็จแล้ว", time: "เมื่อสักครู่", unread: true },
+    { id: 2, text: "📅 บันทึกกิจกรรมใหม่: 'พรุ่งนี้ต้องทำกับข้าว'", time: "5 นาทีที่แล้ว", unread: true },
+    { id: 3, text: "💸 ซิงก์รายรับโอนเงินอัตโนมัติจากบอท 100.00 บาท", time: "10 นาทีที่แล้ว", unread: true }
+  ]);
+  
   // Dashboard sync states
   const [loading, setLoading] = useState(true);
   const [incomeSum, setIncomeSum] = useState(0);
@@ -133,11 +142,16 @@ export default function HomeScreen() {
             <p className="text-xs text-text-sub">มีอะไรให้ช่วยวันนี้บ้างครับ?</p>
           </div>
           <div className="flex items-center gap-3">
-            <button className="bg-surface border border-white/5 p-2 rounded-full text-text-sub hover:text-text-main transition-colors relative">
+            <button 
+              onClick={() => setShowNotifications(true)}
+              className="bg-surface border border-white/5 p-2 rounded-full text-text-sub hover:text-text-main transition-colors relative"
+            >
               <svg className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
               </svg>
-              <span className="absolute top-1 right-1 w-2 h-2 bg-[#EF4444] rounded-full"></span>
+              {hasUnread && (
+                <span className="absolute top-1 right-1 w-2 h-2 bg-[#EF4444] rounded-full"></span>
+              )}
             </button>
             <div className="w-10 h-10 rounded-full border border-[#5B5CEB]/30 overflow-hidden bg-surface">
               <Image
@@ -301,6 +315,60 @@ export default function HomeScreen() {
       <footer className="mt-4 text-center text-[10px] text-text-sub/40">
         <p>Little Bro Assistant v1.0.0 • Antigravity Product Team</p>
       </footer>
+      {/* Notifications Modal/Drawer */}
+      {showNotifications && (
+        <div className="absolute inset-0 bg-background/80 backdrop-blur-md z-50 flex items-center justify-center p-6 animate-fade-in">
+          <div className="bg-surface border border-white/10 w-full max-w-xs rounded-3xl p-5 shadow-2xl flex flex-col relative text-text-main">
+            
+            <button 
+              onClick={() => setShowNotifications(false)}
+              className="absolute top-4 right-4 text-text-sub hover:text-text-main text-sm"
+            >
+              ✕
+            </button>
+
+            <h3 className="text-sm font-bold text-text-main mb-4 flex items-center gap-2">
+              🔔 การแจ้งเตือนล่าสุด
+            </h3>
+
+            <div className="space-y-3 mb-6 max-h-60 overflow-y-auto pr-1">
+              {notifications.map((notif) => (
+                <div 
+                  key={notif.id} 
+                  className={`p-3 rounded-xl border text-[10px] leading-relaxed transition-all ${
+                    notif.unread 
+                      ? "bg-[#5B5CEB]/10 border-[#5B5CEB]/30 text-text-main" 
+                      : "bg-background/40 border-white/5 text-text-sub"
+                  }`}
+                >
+                  <p className="mb-1">{notif.text}</p>
+                  <span className="text-[8px] opacity-60 block text-right">{notif.time}</span>
+                </div>
+              ))}
+            </div>
+
+            <div className="flex gap-2">
+              <button
+                onClick={() => {
+                  setNotifications(notifications.map(n => ({ ...n, unread: false })));
+                  setHasUnread(false);
+                }}
+                disabled={!hasUnread}
+                className="flex-1 bg-[#5B5CEB] disabled:bg-[#5B5CEB]/40 disabled:text-text-sub/50 text-white text-xs font-bold py-2.5 rounded-xl transition-all cursor-pointer hover:bg-[#5B5CEB]/85"
+              >
+                อ่านทั้งหมด
+              </button>
+              <button
+                onClick={() => setShowNotifications(false)}
+                className="flex-1 bg-background text-text-sub text-xs font-bold py-2.5 rounded-xl border border-white/5 cursor-pointer hover:text-text-main"
+              >
+                ปิดหน้าต่าง
+              </button>
+            </div>
+
+          </div>
+        </div>
+      )}
     </div>
   );
 }
