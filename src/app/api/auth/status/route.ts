@@ -120,3 +120,28 @@ export async function POST(request: Request) {
     return NextResponse.json({ status: "error", message: error.message }, { status: 500 });
   }
 }
+
+// 3. Delete registration endpoint (Reset/Wipe Cache)
+export async function DELETE(request: Request) {
+  try {
+    const { searchParams } = new URL(request.url);
+    const email = searchParams.get("email");
+
+    if (!email) {
+      return NextResponse.json({ status: "error", message: "Missing email parameter" }, { status: 400 });
+    }
+
+    const data = readRegistrations();
+    if (data[email]) {
+      delete data[email];
+      writeRegistrations(data);
+      return NextResponse.json({ status: "success", message: `Registration for ${email} wiped successfully.` });
+    }
+
+    return NextResponse.json({ status: "none", message: "No registration found to delete." });
+
+  } catch (error: any) {
+    console.error("Error in deleting registration API:", error);
+    return NextResponse.json({ status: "error", message: error.message }, { status: 500 });
+  }
+}
