@@ -163,37 +163,45 @@ export default function HomeScreen() {
         </div>
 
         {/* Quick Action Grid */}
-        <div className="grid grid-cols-4 gap-2 mb-6">
+        <div className="grid grid-cols-5 gap-1.5 mb-6">
           <Link
             href="/add-expense?type=income"
-            className="flex flex-col items-center gap-1.5 p-2 bg-surface/40 hover:bg-surface/60 border border-white/5 rounded-xl transition-all text-center"
+            className="flex flex-col items-center gap-1 p-2 bg-surface/40 hover:bg-surface/60 border border-white/5 rounded-xl transition-all text-center"
           >
-            <span className="text-xl bg-[#10B981]/20 p-2.5 rounded-xl text-[#10B981]">📈</span>
-            <span className="text-[10px] text-text-sub">เพิ่มรายรับ</span>
+            <span className="text-lg bg-[#10B981]/20 p-2 rounded-xl text-[#10B981]">📈</span>
+            <span className="text-[9px] text-text-sub truncate w-full">เพิ่มรายรับ</span>
           </Link>
           
           <Link
             href="/add-expense?type=expense"
-            className="flex flex-col items-center gap-1.5 p-2 bg-surface/40 hover:bg-surface/60 border border-white/5 rounded-xl transition-all text-center"
+            className="flex flex-col items-center gap-1 p-2 bg-surface/40 hover:bg-surface/60 border border-white/5 rounded-xl transition-all text-center"
           >
-            <span className="text-xl bg-[#EF4444]/20 p-2.5 rounded-xl text-[#EF4444]">📉</span>
-            <span className="text-[10px] text-text-sub">เพิ่มรายจ่าย</span>
+            <span className="text-lg bg-[#EF4444]/20 p-2 rounded-xl text-[#EF4444]">📉</span>
+            <span className="text-[9px] text-text-sub truncate w-full">เพิ่มรายจ่าย</span>
           </Link>
 
           <Link
             href="/tasks?create=true"
-            className="flex flex-col items-center gap-1.5 p-2 bg-surface/40 hover:bg-surface/60 border border-white/5 rounded-xl transition-all text-center"
+            className="flex flex-col items-center gap-1 p-2 bg-surface/40 hover:bg-surface/60 border border-white/5 rounded-xl transition-all text-center"
           >
-            <span className="text-xl bg-[#F59E0B]/20 p-2.5 rounded-xl text-[#F59E0B]">📝</span>
-            <span className="text-[10px] text-text-sub">สร้างงาน</span>
+            <span className="text-lg bg-[#F59E0B]/20 p-2 rounded-xl text-[#F59E0B]">📝</span>
+            <span className="text-[9px] text-text-sub truncate w-full">สร้างงาน</span>
           </Link>
 
           <Link
             href="/files"
-            className="flex flex-col items-center gap-1.5 p-2 bg-surface/40 hover:bg-surface/60 border border-white/5 rounded-xl transition-all text-center"
+            className="flex flex-col items-center gap-1 p-2 bg-surface/40 hover:bg-surface/60 border border-white/5 rounded-xl transition-all text-center"
           >
-            <span className="text-xl bg-[#3B82F6]/20 p-2.5 rounded-xl text-[#3B82F6]">📁</span>
-            <span className="text-[10px] text-text-sub">คลังไฟล์</span>
+            <span className="text-lg bg-[#3B82F6]/20 p-2 rounded-xl text-[#3B82F6]">📁</span>
+            <span className="text-[9px] text-text-sub truncate w-full">คลังไฟล์</span>
+          </Link>
+
+          <Link
+            href="/customers"
+            className="flex flex-col items-center gap-1 p-2 bg-surface/40 hover:bg-surface/60 border border-white/5 rounded-xl transition-all text-center"
+          >
+            <span className="text-lg bg-[#A855F7]/20 p-2 rounded-xl text-[#A855F7]">👤</span>
+            <span className="text-[9px] text-text-sub truncate w-full">สมุดลูกค้า</span>
           </Link>
         </div>
 

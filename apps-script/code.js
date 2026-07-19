@@ -312,6 +312,22 @@ function doPost(e) {
       
       return createJsonResponse({ status: "success", message: "สลับพิกัดจัดเก็บ Chat ID ล่าสุดลงชีตสำเร็จ" });
     }
+
+    // CASE K: เพิ่มข้อมูลลูกค้า (Add Customer Module)
+    if (action === "add_customer") {
+      var custSheet = ss.getSheetByName("Customer");
+      if (!custSheet) throw new Error("ไม่พบชีต 'Customer'");
+      
+      custSheet.appendRow([
+        "CUST_" + new Date().getTime(),
+        requestData.full_name || "Untitled Customer",
+        requestData.phone_number || "",
+        requestData.email || "",
+        requestData.contact_info || ""
+      ]);
+      
+      return createJsonResponse({ status: "success", message: "บันทึกข้อมูลลูกค้าใหม่สำเร็จ" });
+    }
     
     throw new Error("Action command '" + action + "' not supported by Backend Engine.");
     
