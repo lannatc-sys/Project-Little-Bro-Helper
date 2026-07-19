@@ -5,6 +5,7 @@ import Image from "next/image";
 
 export default function CalendarScreen() {
   const [view, setView] = useState("เดือน");
+  const [selectedDay, setSelectedDay] = useState<number | "">(20);
   
   // Dummy calendar days for May 2026
   const daysOfWeek = ["อา", "จ", "อ", "พ", "พฤ", "ศ", "ส"];
@@ -14,8 +15,6 @@ export default function CalendarScreen() {
     ...Array(startOffset).fill(""),
     ...daysInMonth
   ];
-
-  const selectedDay = 20;
 
   const events = [
     { id: 1, title: "เช็คอินลูกค้า Little Bro Hostel", time: "10:00 - 11:00", loc: "Lobby" },
@@ -67,12 +66,16 @@ export default function CalendarScreen() {
           <div className="grid grid-cols-7 gap-y-2 text-center text-xs">
             {calendarGrid.map((day, idx) => {
               const isSelected = day === selectedDay;
+              const isEmpty = day === "";
               return (
                 <div
                   key={idx}
+                  onClick={() => !isEmpty && setSelectedDay(day)}
                   className={`py-1.5 flex items-center justify-center rounded-lg transition-all ${
-                    isSelected
-                      ? "bg-[#5B5CEB] text-white font-bold shadow-md shadow-[#5B5CEB]/25"
+                    isEmpty 
+                      ? "opacity-0 pointer-events-none" 
+                      : isSelected
+                      ? "bg-[#5B5CEB] text-white font-bold shadow-md shadow-[#5B5CEB]/25 scale-105 cursor-pointer"
                       : "text-white hover:bg-white/5 cursor-pointer"
                   }`}
                 >
@@ -85,17 +88,25 @@ export default function CalendarScreen() {
 
         {/* Event List Group */}
         <section className="mb-6">
-          <h3 className="text-xs font-semibold text-[#B3B3B3] mb-3">รายการนัดหมาย วันที่ 20 พฤษภาคม</h3>
+          <h3 className="text-xs font-semibold text-[#B3B3B3] mb-3">
+            รายการนัดหมาย วันที่ {selectedDay || "--"} พฤษภาคม
+          </h3>
           <div className="space-y-3">
-            {events.map((event) => (
-              <div key={event.id} className="p-3 bg-[#18181B]/20 border-l-4 border-[#5B5CEB] rounded-r-xl">
-                <div className="flex justify-between items-start">
-                  <h4 className="text-xs font-semibold text-white">{event.title}</h4>
-                  <span className="text-[9px] text-[#B3B3B3] font-mono">{event.time}</span>
+            {selectedDay === 20 ? (
+              events.map((event) => (
+                <div key={event.id} className="p-3 bg-[#18181B]/20 border-l-4 border-[#5B5CEB] rounded-r-xl">
+                  <div className="flex justify-between items-start">
+                    <h4 className="text-xs font-semibold text-white">{event.title}</h4>
+                    <span className="text-[9px] text-[#B3B3B3] font-mono">{event.time}</span>
+                  </div>
+                  <p className="text-[9px] text-[#B3B3B3] mt-1">📍 {event.loc}</p>
                 </div>
-                <p className="text-[9px] text-[#B3B3B3] mt-1">📍 {event.loc}</p>
+              ))
+            ) : (
+              <div className="p-6 bg-[#18181B]/25 border border-dashed border-white/5 rounded-2xl text-center text-xs text-[#B3B3B3]/70">
+                📭 ไม่มีรายการนัดหมายในวันนี้ครับบอส
               </div>
-            ))}
+            )}
           </div>
         </section>
 
