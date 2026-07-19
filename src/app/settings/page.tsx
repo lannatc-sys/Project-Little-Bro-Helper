@@ -6,8 +6,10 @@ import Image from "next/image";
 export default function SettingsScreen() {
   const [theme, setTheme] = useState("dark");
   
-  // Workspace setup Modal States
   const [showWorkspaceModal, setShowWorkspaceModal] = useState(false);
+  const [showAccountModal, setShowAccountModal] = useState(false);
+  const [spreadsheetId, setSpreadsheetId] = useState("1jANLkV4IxXa3mybLPTs7L1RoHtfik7lVLtTlB0Ay1X8");
+  const [folderId, setFolderId] = useState("");
   const [isInitializing, setIsInitializing] = useState(false);
   const [initMessage, setInitMessage] = useState("");
   const [isBackingUp, setIsBackingUp] = useState(false);
@@ -15,6 +17,10 @@ export default function SettingsScreen() {
   useEffect(() => {
     const savedTheme = localStorage.getItem("little_bro_theme") || "dark";
     setTheme(savedTheme);
+    const savedSheetId = localStorage.getItem("google_spreadsheet_id");
+    if (savedSheetId) setSpreadsheetId(savedSheetId);
+    const savedFolderId = localStorage.getItem("google_folder_id");
+    if (savedFolderId) setFolderId(savedFolderId);
   }, []);
 
   const handleThemeChange = (newTheme: string) => {
@@ -33,7 +39,7 @@ export default function SettingsScreen() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           action: "initialize_workspace",
-          spreadsheet_id: "1jANLkV4IxXa3mybLPTs7L1RoHtfik7lVLtTlB0Ay1X8"
+          spreadsheet_id: spreadsheetId
         })
       });
       const data = await response.json();
@@ -57,7 +63,7 @@ export default function SettingsScreen() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           action: "backup_workspace",
-          spreadsheet_id: "1jANLkV4IxXa3mybLPTs7L1RoHtfik7lVLtTlB0Ay1X8"
+          spreadsheet_id: spreadsheetId
         })
       });
       const data = await response.json();
@@ -129,8 +135,8 @@ export default function SettingsScreen() {
             <h3 className="text-sm font-bold text-text-main">Little Bro</h3>
             <p className="text-[9px] text-text-sub mb-1">บัญชีส่วนตัว • lannatc@gmail.com</p>
             <button
-              onClick={() => alert("ระบบเชื่อมต่อ Google OAuth จะพร้อมใช้งานเร็วๆ นี้ครับ!")}
-              className="bg-[#5B5CEB]/25 hover:bg-[#5B5CEB]/40 text-[#5B5CEB] border border-[#5B5CEB]/30 text-[9px] font-semibold px-2.5 py-1 rounded-lg transition-all"
+              onClick={() => setShowAccountModal(true)}
+              className="bg-[#5B5CEB]/25 hover:bg-[#5B5CEB]/40 text-[#5B5CEB] border border-[#5B5CEB]/30 text-[9px] font-semibold px-2.5 py-1 rounded-lg transition-all cursor-pointer"
             >
               จัดการบัญชี Google
             </button>
@@ -291,7 +297,7 @@ export default function SettingsScreen() {
                 <label className="block mb-1 font-semibold uppercase text-[9px]">GOOGLE_SPREADSHEET_ID</label>
                 <input 
                   type="text" 
-                  value="1jANLkV4IxXa3mybLPTs7L1RoHtfik7lVLtTlB0Ay1X8" 
+                  value={spreadsheetId} 
                   disabled
                   className="w-full bg-background border border-white/5 p-2.5 rounded-lg text-text-main font-mono text-[9px] opacity-75"
                 />
@@ -330,6 +336,81 @@ export default function SettingsScreen() {
                 "สร้างและล้างพื้นที่ทำงานใหม่ 🔨"
               )}
             </button>
+          </div>
+        </div>
+      )}
+
+      {/* Google Account Modal Overlay */}
+      {showAccountModal && (
+        <div className="absolute inset-0 bg-background/90 backdrop-blur-md flex items-center justify-center p-6 z-50 animate-fade-in">
+          <div className="bg-surface border border-white/10 w-full max-w-sm rounded-3xl p-5 shadow-2xl flex flex-col relative text-text-main">
+            <button 
+              type="button"
+              onClick={() => setShowAccountModal(false)}
+              className="absolute top-4 right-4 text-text-sub hover:text-text-main text-sm"
+            >
+              ✕
+            </button>
+            <h3 className="text-sm font-bold text-text-main mb-4 flex items-center gap-2">
+              🔑 การจัดการบัญชี Google Workspace
+            </h3>
+            
+            <div className="space-y-4 mb-6 text-xs">
+              <div className="bg-background/50 p-3.5 rounded-xl border border-white/5 space-y-2">
+                <div>
+                  <span className="text-[10px] text-text-sub block">อีเมลผู้ดูแลบัญชี</span>
+                  <span className="font-semibold text-text-main">lannatc@gmail.com</span>
+                </div>
+                <div>
+                  <span className="text-[10px] text-text-sub block">Google Spreadsheet ID</span>
+                  <span className="font-mono text-[9px] text-text-sub break-all">{spreadsheetId}</span>
+                </div>
+              </div>
+
+              <div className="space-y-2.5">
+                <a 
+                  href={`https://docs.google.com/spreadsheets/d/${spreadsheetId}`} 
+                  target="_blank" 
+                  rel="noopener noreferrer"
+                  className="w-full bg-[#10B981] hover:bg-[#10B981]/90 text-white font-bold text-center py-2.5 rounded-xl block transition-all"
+                >
+                  🟢 เปิดดูแผ่นงาน Google Sheets ➔
+                </a>
+                
+                {folderId ? (
+                  <a 
+                    href={`https://drive.google.com/drive/folders/${folderId}`} 
+                    target="_blank" 
+                    rel="noopener noreferrer"
+                    className="w-full bg-[#5B5CEB] hover:bg-[#5B5CEB]/90 text-white font-bold text-center py-2.5 rounded-xl block transition-all"
+                  >
+                    🔵 เปิดดูโฟลเดอร์ Google Drive ➔
+                  </a>
+                ) : (
+                  <a 
+                    href="https://drive.google.com" 
+                    target="_blank" 
+                    rel="noopener noreferrer"
+                    className="w-full bg-[#5B5CEB] hover:bg-[#5B5CEB]/90 text-white font-bold text-center py-2.5 rounded-xl block transition-all"
+                  >
+                    🔵 เปิดดูคลาวด์ Google Drive ➔
+                  </a>
+                )}
+
+                <a 
+                  href="https://myaccount.google.com/permissions" 
+                  target="_blank" 
+                  rel="noopener noreferrer"
+                  className="w-full bg-surface hover:bg-white/5 border border-white/10 text-text-sub hover:text-text-main text-center font-bold py-2.5 rounded-xl block transition-all"
+                >
+                  ⚙️ ตรวจเช็คสิทธิ์อนุญาตความปลอดภัย ➔
+                </a>
+              </div>
+            </div>
+
+            <div className="text-[9px] text-text-sub/70 leading-relaxed text-center">
+              ข้อมูลทั้งหมดเก็บไว้บนบัญชีผู้ใช้ระบบกูเกิลคลาวด์ส่วนตัวอย่างปลอดภัย 100%
+            </div>
           </div>
         </div>
       )}
