@@ -37,7 +37,7 @@ export async function POST(request: Request) {
 
         // 2. Parse money items or checklist from LINE text
         const numberMatches = userText.match(/\b\d+(?:\.\d+)?\b/);
-        if (numberMatches && gasUrl && ssId) {
+        if (numberMatches) {
           const amount = parseFloat(numberMatches[0]);
           let isIncome = false;
           let action = "add_expense";
@@ -58,26 +58,68 @@ export async function POST(request: Request) {
             category = "ค่าสาธารณูปโภค";
           }
 
+          // Write directly to Supabase first for sub-100ms speed!
+          let supaSuccess = false;
           try {
-            const gasRes = await fetch(gasUrl, {
-              method: "POST",
-              headers: { "Content-Type": "application/json" },
-              body: JSON.stringify({
-                action,
-                spreadsheet_id: ssId,
-                amount,
-                category,
-                description: desc
-              })
+            const { supabase } = await import("@/lib/supabase");
+            const { error } = await supabase.from("finance").insert({
+              transaction_type: isIncome ? "Income" : "Expense",
+              category,
+              amount,
+              description: desc,
+              timestamp: new Date().toISOString()
             });
-            const gasResult = await gasRes.json();
-            if (gasResult.status === "success") {
-              replyMessage = `✅ บันทึกรายการลงบัญชีสำเร็จ!\n\n• ประเภท: ${isIncome ? "📈 รายรับ" : "📉 รายจ่าย"}\n• จำนวน: ฿${amount.toLocaleString("th-TH", { minimumFractionDigits: 2 })}\n• หมวดหมู่: ${category}\n• รายละเอียด: ${desc}`;
-            } else {
-              replyMessage = `❌ เกิดข้อผิดพลาดในระบบชีต: ${gasResult.message}`;
+            if (!error) {
+              supaSuccess = true;
             }
-          } catch (err: any) {
-            replyMessage = `⚠️ ระบบขัดข้องขณะซิงก์ข้อมูล: ${err.message}`;
+          } catch (supaErr) {
+            console.error("Supabase insert from LINE failed:", supaErr);
+          }
+
+          if (supaSuccess) {
+            replyMessage = `✅ บันทึกรายการลงบัญชีสำเร็จ!\n\n• ประเภท: ${isIncome ? "📈 รายรับ" : "📉 รายจ่าย"}\n• จำนวน: ฿${amount.toLocaleString("th-TH", { minimumFractionDigits: 2 })}\n• หมวดหมู่: ${category}\n• รายละเอียด: ${desc}\n\nข้อมูลซิงก์เรียบร้อยแล้วครับ!`;
+
+            // Fire-and-forget sync to Google Sheets in background
+            if (gasUrl && ssId) {
+              fetch(gasUrl, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                  action,
+                  spreadsheet_id: ssId,
+                  amount,
+                  category,
+                  description: desc
+                })
+              }).catch(e => console.error("GAS sync background error from LINE:", e));
+            }
+          } else {
+            // Fallback to legacy wait for GAS
+            if (gasUrl && ssId) {
+              try {
+                const gasRes = await fetch(gasUrl, {
+                  method: "POST",
+                  headers: { "Content-Type": "application/json" },
+                  body: JSON.stringify({
+                    action,
+                    spreadsheet_id: ssId,
+                    amount,
+                    category,
+                    description: desc
+                  })
+                });
+                const gasResult = await gasRes.json();
+                if (gasResult.status === "success") {
+                  replyMessage = `✅ บันทึกรายการลงบัญชีสำเร็จ!\n\n• ประเภท: ${isIncome ? "📈 รายรับ" : "📉 รายจ่าย"}\n• จำนวน: ฿${amount.toLocaleString("th-TH", { minimumFractionDigits: 2 })}\n• หมวดหมู่: ${category}\n• รายละเอียด: ${desc}`;
+                } else {
+                  replyMessage = `❌ เกิดข้อผิดพลาดในระบบชีต: ${gasResult.message}`;
+                }
+              } catch (err: any) {
+                replyMessage = `⚠️ ระบบขัดข้องขณะซิงก์ข้อมูล: ${err.message}`;
+              }
+            } else {
+              replyMessage = `⚠️ ระบบหลังบ้านยังไม่ได้เปิดตาราง Google Sheets สำหรับรับรายการจากแชทบอทครับ`;
+            }
           }
         } else {
           // Default response / Help commands
@@ -108,7 +150,7 @@ export async function POST(request: Request) {
 
     return NextResponse.json({ status: "ok" });
   } catch (error: any) {
-    console.error("Error in LINE OA Webhook API:", error);
+    console.error("Error in /api/line:", error);
     return NextResponse.json({ status: "error", message: error.message }, { status: 500 });
   }
 }
