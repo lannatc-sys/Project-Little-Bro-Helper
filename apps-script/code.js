@@ -9,7 +9,7 @@
 const SHEETS_SCHEMA = {
   "Profiles": ["user_id", "telegram_username", "google_email", "registered_at"],
   "Finance": ["timestamp", "transaction_type", "category", "amount", "description", "file_attachment_url"],
-  "Task": ["task_id", "task_name", "details", "status", "due_date", "reminder_time"],
+  "Task": ["task_id", "task_name", "details", "status", "due_date", "reminder_time", "google_task_id"],
   "Calendar": ["event_id", "event_title", "start_time", "end_time", "location", "notes"],
   "Contacts": ["customer_id", "full_name", "phone_number", "email", "contact_info"],
   "Settings": ["setting_key", "setting_value"]
@@ -207,16 +207,41 @@ function doPost(e) {
       var taskSheet = ss.getSheetByName("Task");
       if (!taskSheet) throw new Error("ไม่พบชีต 'Task'");
       
+      var googleTaskId = "";
+      var errorMsg = "";
+      if (typeof Tasks !== "undefined") {
+        try {
+          var listId = getOrCreateGoogleTaskList();
+          var statusVal = (requestData.status === "Completed") ? "completed" : "needsAction";
+          var taskObj = {
+            title: requestData.task_name || "Untitled Task",
+            notes: requestData.details || "",
+            status: statusVal
+          };
+          if (requestData.due_date) {
+            var parsedDate = new Date(requestData.due_date);
+            if (!isNaN(parsedDate.getTime())) {
+              taskObj.due = parsedDate.toISOString();
+            }
+          }
+          var createdTask = Tasks.Tasks.insert(taskObj, listId);
+          googleTaskId = createdTask.id;
+        } catch (tErr) {
+          errorMsg = " (แต่การซิงก์ Google Tasks ขัดข้อง: " + tErr.toString() + ")";
+        }
+      }
+      
       taskSheet.appendRow([
         "TASK_" + new Date().getTime(),          // task_id
         requestData.task_name || "Untitled Task",
         requestData.details || "",
         requestData.status || "Pending",
         requestData.due_date || "",
-        requestData.reminder_time || ""
+        requestData.reminder_time || "",
+        googleTaskId                             // google_task_id
       ]);
       
-      return createJsonResponse({ status: "success", message: "เพิ่มภารกิจใหม่ลงฐานข้อมูลสำเร็จ" });
+      return createJsonResponse({ status: "success", message: "เพิ่มภารกิจใหม่ลงฐานข้อมูลสำเร็จ" + errorMsg });
     }
 
     // CASE E: อัปเดตสถานะงาน (Update Task Status)
@@ -231,19 +256,45 @@ function doPost(e) {
       var rows = taskSheet.getDataRange().getValues();
       var taskIdColIdx = SHEETS_SCHEMA["Task"].indexOf("task_id");
       var statusColIdx = SHEETS_SCHEMA["Task"].indexOf("status");
+      var googleTaskIdColIdx = SHEETS_SCHEMA["Task"].indexOf("google_task_id");
       
       var foundRowIdx = -1;
+      var googleTaskId = "";
       for (var i = 1; i < rows.length; i++) {
         if (rows[i][taskIdColIdx] === taskId) {
           foundRowIdx = i + 1; // 1-indexed
+          if (googleTaskIdColIdx !== -1) {
+            googleTaskId = rows[i][googleTaskIdColIdx];
+          }
           break;
         }
       }
       
       if (foundRowIdx === -1) throw new Error("Task not found with ID: " + taskId);
       
+      // อัปเดตสถานะใน Google Sheets
       taskSheet.getRange(foundRowIdx, statusColIdx + 1).setValue(newStatus);
-      return createJsonResponse({ status: "success", message: "อัปเดตสถานะภารกิจสำเร็จ" });
+      
+      // อัปเดตสถานะใน Google Tasks (ถ้ามี)
+      var errorMsg = "";
+      if (typeof Tasks !== "undefined" && googleTaskId) {
+        try {
+          var listId = getOrCreateGoogleTaskList();
+          var statusVal = (newStatus === "Completed") ? "completed" : "needsAction";
+          var tTask = Tasks.Tasks.get(listId, googleTaskId);
+          tTask.status = statusVal;
+          if (statusVal === "completed") {
+            tTask.completed = new Date().toISOString();
+          } else {
+            tTask.completed = null;
+          }
+          Tasks.Tasks.update(tTask, listId, googleTaskId);
+        } catch (tErr) {
+          errorMsg = " (การซิงก์ Google Tasks ขัดข้อง: " + tErr.toString() + ")";
+        }
+      }
+      
+      return createJsonResponse({ status: "success", message: "อัปเดตสถานะภารกิจสำเร็จ" + errorMsg });
     }
 
     // CASE F: เพิ่มนัดหมายลงปฏิทิน (Calendar Module & Google Calendar Integration)
@@ -638,4 +689,92 @@ function setupTimeTrigger() {
 function createJsonResponse(outputObject) {
   return ContentService.createTextOutput(JSON.stringify(outputObject))
                         .setMimeType(ContentService.MimeType.JSON);
+}
+
+/**
+ * 7. ฟังก์ชันค้นหาหรือสร้างรายการที่ต้องทำใน Google Tasks (Google Tasks API Integration)
+ */
+function getOrCreateGoogleTaskList() {
+  if (typeof Tasks === "undefined") {
+    throw new Error("กรุณาเปิดบริการ 'Tasks API' ในเมนู Services ด้านซ้ายของ Google Apps Script ก่อนครับบอส");
+  }
+  var listTitle = "Little Bro Assistant Tasks";
+  try {
+    var taskListsRes = Tasks.TaskLists.list();
+    var taskLists = taskListsRes.items;
+    if (taskLists) {
+      for (var i = 0; i < taskLists.length; i++) {
+        if (taskLists[i].title === listTitle) {
+          return taskLists[i].id;
+        }
+      }
+    }
+  } catch (e) {
+    // กรณีพึ่งใช้งานครั้งแรกและไม่มีรายการใดเลย หรือ API บล็อก
+  }
+  
+  // สร้างรายการหลักใหม่
+  var newList = Tasks.TaskLists.insert({ title: listTitle });
+  return newList.id;
+}
+
+/**
+ * 8. ฟังก์ชันสำหรับกดทดสอบระบบ Google Workspace จากหน้าต่าง Apps Script Editor
+ * ช่วยตรวจเช็คสิทธิ์การใช้งาน (Permissions) ของ Calendar, Tasks และ Sheets
+ */
+function testGoogleWorkspaceIntegration() {
+  Logger.log("=== เริ่มต้นการทดสอบระบบ Little Bro Assistant ===");
+  
+  // 1. ทดสอบการเข้าถึง Spreadsheet
+  try {
+    var ss = SpreadsheetApp.getActiveSpreadsheet();
+    Logger.log("🟢 1. การเชื่อมต่อ Spreadsheet สำเร็จ! ชื่อไฟล์: " + ss.getName());
+  } catch (err) {
+    Logger.log("❌ 1. การเชื่อมต่อ Spreadsheet ล้มเหลว: " + err.toString());
+  }
+  
+  // 2. ทดสอบระบบ Google Calendar
+  try {
+    var calendarName = "Little Bro Assistant";
+    var cals = CalendarApp.getCalendarsByName(calendarName);
+    var cal;
+    if (cals.length === 0) {
+      cal = CalendarApp.createCalendar(calendarName);
+      Logger.log("🟢 2. ทดสอบระบบปฏิทิน: สร้างปฏิทินรองชื่อ '" + calendarName + "' ใหม่สำเร็จ!");
+    } else {
+      cal = cals[0];
+      Logger.log("🟢 2. ทดสอบระบบปฏิทิน: ค้นพบและเชื่อมต่อปฏิทิน '" + calendarName + "' แล้ว!");
+    }
+  } catch (err) {
+    Logger.log("❌ 2. การเชื่อมต่อ Google Calendar ล้มเหลว: " + err.toString());
+  }
+  
+  // 3. ทดสอบระบบ Google Tasks
+  try {
+    if (typeof Tasks === "undefined") {
+      Logger.log("⚠️ 3. ระบบ Google Tasks: ยังไม่เปิดบริการ 'Tasks API' ในส่วน Services (ไม่ผ่าน)");
+    } else {
+      var listTitle = "Little Bro Assistant Tasks";
+      var taskLists = Tasks.TaskLists.list().items;
+      var foundListId = null;
+      if (taskLists) {
+        for (var i = 0; i < taskLists.length; i++) {
+          if (taskLists[i].title === listTitle) {
+            foundListId = taskLists[i].id;
+            break;
+          }
+        }
+      }
+      if (!foundListId) {
+        var newList = Tasks.TaskLists.insert({ title: listTitle });
+        Logger.log("🟢 3. ระบบ Google Tasks: สร้างรายการงาน '" + listTitle + "' ใหม่สำเร็จ!");
+      } else {
+        Logger.log("🟢 3. ระบบ Google Tasks: ตรวจพบรายการงาน '" + listTitle + "' เรียบร้อยแล้ว!");
+      }
+    }
+  } catch (err) {
+    Logger.log("❌ 3. การเชื่อมต่อ Google Tasks ล้มเหลว: " + err.toString());
+  }
+  
+  Logger.log("=== สิ้นสุดการทดสอบระบบ ===");
 }
