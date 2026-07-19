@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
 
@@ -14,6 +14,13 @@ export default function OnboardingScreen() {
   const [showAuthModal, setShowAuthModal] = useState(false);
   const [authSubStep, setAuthSubStep] = useState(1);
 
+  // User details
+  const [email, setEmail] = useState("lannatc@gmail.com");
+  const [username, setUsername] = useState("Little Bro");
+  const [pdpaConsent, setPdpaConsent] = useState(false);
+  const [approvalStatus, setApprovalStatus] = useState("none");
+  const [errorMessage, setErrorMessage] = useState("");
+
   // States for permissions checklist
   const [permissions, setPermissions] = useState({
     drive: false,
@@ -21,29 +28,42 @@ export default function OnboardingScreen() {
     calendar: false,
   });
 
-  const handleInitialize = async () => {
-    setIsInitializing(true);
-    try {
-      const response = await fetch("/api/expense", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          action: "initialize_workspace",
-          spreadsheet_id: "1jANLkV4IxXa3mybLPTs7L1RoHtfik7lVLtTlB0Ay1X8"
-        })
-      });
-      
-      const data = await response.json();
-      console.log("Initialization result:", data);
-      setInitSuccess(true);
-    } catch (err) {
-      console.error("Initialization error:", err);
-      setInitSuccess(true);
-    } finally {
-      setIsInitializing(false);
-      setStep(5);
-    }
+  const pollIntervalRef = useRef<NodeJS.Timeout | null>(null);
+
+  const startPolling = (userEmail: string) => {
+    if (pollIntervalRef.current) clearInterval(pollIntervalRef.current);
+    
+    pollIntervalRef.current = setInterval(async () => {
+      try {
+        const res = await fetch(`/api/auth/status?email=${encodeURIComponent(userEmail)}`);
+        const data = await res.json();
+        if (data.status === "approved") {
+          clearInterval(pollIntervalRef.current!);
+          setApprovalStatus("approved");
+          
+          // Save generated IDs to localStorage
+          localStorage.setItem("google_spreadsheet_id", data.spreadsheet_id || "1jANLkV4IxXa3mybLPTs7L1RoHtfik7lVLtTlB0Ay1X8");
+          localStorage.setItem("google_folder_id", data.folder_id || "");
+          
+          setInitSuccess(true);
+          setStep(5);
+        } else if (data.status === "rejected") {
+          clearInterval(pollIntervalRef.current!);
+          setApprovalStatus("rejected");
+          setErrorMessage("❌ คำขอใช้งานบัญชีของคุณได้รับการปฏิเสธโดยผู้ดูแลระบบ สิทธิ์เชื่อมโยงทั้งหมดถูกยกเลิกแล้ว");
+          setStep(1);
+        }
+      } catch (err) {
+        console.error("Polling status error:", err);
+      }
+    }, 3000);
   };
+
+  useEffect(() => {
+    return () => {
+      if (pollIntervalRef.current) clearInterval(pollIntervalRef.current);
+    };
+  }, []);
 
   const handleLogin = () => {
     localStorage.setItem("little_bro_onboarded", "true");
@@ -51,18 +71,53 @@ export default function OnboardingScreen() {
   };
 
   const triggerGoogleAuth = () => {
+    if (!pdpaConsent) return;
     setAuthSubStep(1);
     setShowAuthModal(true);
   };
 
-  const approvePermissions = () => {
+  const selectMockAccount = () => {
+    setAuthSubStep(2);
+  };
+
+  const approvePermissions = async () => {
     setPermissions({
       drive: true,
       sheets: true,
       calendar: true
     });
     setShowAuthModal(false);
+    
+    // Submit registration request
+    setApprovalStatus("pending");
     setStep(4);
+    setErrorMessage("");
+
+    try {
+      const res = await fetch("/api/auth/status", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          email,
+          username,
+          telegram_chat_id: "5581598534" // Mock matching current active user
+        })
+      });
+      const data = await res.json();
+      if (data.status === "approved") {
+        localStorage.setItem("google_spreadsheet_id", data.spreadsheet_id || "1jANLkV4IxXa3mybLPTs7L1RoHtfik7lVLtTlB0Ay1X8");
+        localStorage.setItem("google_folder_id", data.folder_id || "");
+        setApprovalStatus("approved");
+        setStep(5);
+      } else {
+        // Start polling for approval status
+        startPolling(email);
+      }
+    } catch (err: any) {
+      console.error("Registration request failed:", err);
+      // Fallback: start polling anyway
+      startPolling(email);
+    }
   };
 
   return (
@@ -79,7 +134,7 @@ export default function OnboardingScreen() {
               Little Bro Helper
             </span>
             <h1 className="text-2xl font-black tracking-tight leading-tight">
-              ผู้ช่วยตัวน้อยของคุณ<br />ในทุกเรื่องธุรกิจ ✨
+              ผู้ช่วยส่วนตัวของคุณ<br />ในทุกกิจกรรมประจำวัน ✨
             </h1>
           </div>
 
@@ -92,12 +147,18 @@ export default function OnboardingScreen() {
               className="object-contain drop-shadow-2xl animate-pulse"
             />
             <div className="absolute -top-2 -right-4 bg-white text-[#18181B] font-bold text-[10px] px-3 py-1.5 rounded-2xl rounded-bl-none shadow-lg border border-white/20">
-              สวัสดีครับ! ผมพร้อมช่วยคุณแล้ว 💜
+              สวัสดีครับ! ยินดีต้อนรับครับ 💜
             </div>
           </div>
 
+          {errorMessage && (
+            <div className="mb-6 p-3 bg-red-500/10 border border-red-500/25 rounded-2xl text-[10px] text-red-500 leading-relaxed max-w-xs text-center">
+              {errorMessage}
+            </div>
+          )}
+
           <p className="text-xs text-text-sub leading-relaxed max-w-xs mb-8">
-            รวบรวมบัญชีรายรับ-รายจ่าย คิวงาน ปฏิทินนัดหมาย และไฟล์ใน Google Drive ของคุณไว้ในที่เดียวแบบเป็นส่วนตัว 100%
+            รวบรวมบัญชีรายรับ-รายจ่าย คิวงาน ปฏิทินกิจกรรม และไฟล์บันทึกส่วนตัวใน Google Drive ของคุณไว้ในที่เดียวแบบเป็นส่วนตัว 100%
           </p>
 
           <button
@@ -114,7 +175,7 @@ export default function OnboardingScreen() {
         <div className="flex-1 flex flex-col justify-center items-center text-center w-full z-10">
           <h2 className="text-xl font-bold mb-2">เชื่อมต่อ Google Account</h2>
           <p className="text-xs text-text-sub max-w-xs mb-8">
-            เราจะทำการจัดเก็บและซิงก์ข้อมูลทางธุรกิจลงบน Google Drive และ Sheets ของคุณโดยตรง
+            เราจะทำการจัดเก็บและซิงก์ข้อมูลทางบัญชีลงบน Google Drive และ Sheets ของคุณโดยตรง
           </p>
 
           <div className="w-40 h-40 bg-surface/40 border border-white/5 rounded-full flex items-center justify-center mb-8 relative shadow-inner">
@@ -124,17 +185,34 @@ export default function OnboardingScreen() {
             </div>
           </div>
 
-          <div className="w-full space-y-3">
+          <div className="w-full space-y-4">
+            {/* PDPA Privacy Checkbox Consent */}
+            <div className="bg-surface/20 border border-white/5 rounded-2xl p-4 text-left">
+              <label className="flex items-start gap-3 cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={pdpaConsent}
+                  onChange={(e) => setPdpaConsent(e.target.checked)}
+                  className="w-4.5 h-4.5 mt-0.5 rounded text-[#5B5CEB] border-white/10 bg-transparent focus:ring-0 focus:ring-offset-0 cursor-pointer"
+                />
+                <span className="text-[10px] text-text-sub leading-relaxed">
+                  ฉันยอมรับ <span className="text-[#5B5CEB] underline hover:text-white">นโยบายความเป็นส่วนตัว (Privacy Policy)</span> และข้อตกลงการใช้งานของระบบผู้ช่วยส่วนตัวเรียบร้อยแล้ว
+                </span>
+              </label>
+            </div>
+
             <button
               onClick={triggerGoogleAuth}
-              className="w-full bg-white hover:bg-white/90 text-[#18181B] font-bold text-xs py-3.5 rounded-2xl flex items-center justify-center gap-3 transition-all shadow-md shadow-white/5 cursor-pointer active:scale-95"
+              disabled={!pdpaConsent}
+              className="w-full bg-white hover:bg-white/90 disabled:bg-white/10 disabled:text-text-sub/50 text-[#18181B] font-bold text-xs py-3.5 rounded-2xl flex items-center justify-center gap-3 transition-all shadow-md cursor-pointer active:scale-95"
             >
               <span>🔑</span> ดึงสิทธิ์อนุมัติเข้าถึง Google
             </button>
             
             <button
               onClick={() => setStep(3)}
-              className="w-full bg-surface hover:bg-white/5 text-text-sub hover:text-text-main border border-white/10 font-bold text-sm py-3.5 rounded-2xl transition-all"
+              disabled={!pdpaConsent}
+              className="w-full bg-surface hover:bg-white/5 disabled:opacity-40 text-text-sub hover:text-text-main border border-white/10 font-bold text-sm py-3.5 rounded-2xl transition-all"
             >
               ดำเนินการต่อ ➔
             </button>
@@ -160,7 +238,7 @@ export default function OnboardingScreen() {
               />
               <div>
                 <h4 className="text-xs font-bold">Google Drive (จัดการไฟล์)</h4>
-                <p className="text-[9px] text-text-sub">ใช้เพื่ออัปโหลดใบเสร็จ รูปภาพห้องพัก และเอกสาร</p>
+                <p className="text-[9px] text-text-sub">ใช้เพื่ออัปโหลดใบเสร็จ รูปภาพ และเอกสารส่วนตัว</p>
               </div>
             </label>
 
@@ -173,7 +251,7 @@ export default function OnboardingScreen() {
               />
               <div>
                 <h4 className="text-xs font-bold">Google Sheets (ตารางข้อมูล)</h4>
-                <p className="text-[9px] text-text-sub">ใช้เป็นฐานข้อมูลบัญชีและจัดเก็บรายการคิวงาน</p>
+                <p className="text-[9px] text-text-sub">ใช้เป็นฐานข้อมูลส่วนตัวและรายการเช็คลิสต์งาน</p>
               </div>
             </label>
 
@@ -186,7 +264,7 @@ export default function OnboardingScreen() {
               />
               <div>
                 <h4 className="text-xs font-bold">Google Calendar (ปฏิทินนัดหมาย)</h4>
-                <p className="text-[9px] text-text-sub">ใช้เพื่อซิงก์คิวนัดหมายของลูกค้าลงแอปบอสโดยตรง</p>
+                <p className="text-[9px] text-text-sub">ใช้เพื่อซิงก์นัดหมายกิจกรรมลงบนปฏิทินกูเกิลหลัก</p>
               </div>
             </label>
           </div>
@@ -199,7 +277,7 @@ export default function OnboardingScreen() {
               <span>🔑</span> ดึงข้อมูลดึงขออนุมัติ Google OAuth
             </button>
             <button
-              onClick={() => setStep(4)}
+              onClick={approvePermissions}
               className="w-full bg-[#5B5CEB] hover:bg-[#5B5CEB]/90 text-white font-bold text-sm py-3.5 rounded-2xl shadow-lg transition-all duration-300"
             >
               บันทึกและดำเนินการต่อ ➔
@@ -208,47 +286,34 @@ export default function OnboardingScreen() {
         </div>
       )}
 
-      {/* Screen 4: Workspace Setup */}
+      {/* Screen 4: Waiting for approval */}
       {step === 4 && (
         <div className="flex-1 flex flex-col justify-center items-center text-center w-full z-10">
-          <h2 className="text-xl font-bold mb-2">ตั้งค่าพื้นที่ทำงาน</h2>
+          <h2 className="text-xl font-bold mb-2">ส่งคำขอใช้งานสำเร็จ</h2>
           <p className="text-xs text-text-sub max-w-xs mb-8">
-            ระบบจะสร้างตารางฐานข้อมูลและโฟลเดอร์สำหรับแยกประเภทงานของบอสใน Google Drive อัตโนมัติ
+            คำขอลงทะเบียนเชื่อมต่อของคุณถูกบันทึกส่งไปยังผู้ดูแลระบบเรียบร้อยแล้วครับ
           </p>
 
-          <div className="w-56 bg-surface/40 border border-white/5 rounded-2xl p-4 text-left space-y-2 mb-8 text-[10px] text-text-sub">
-            <div className="flex items-center gap-2">📂 Database (Google Sheets)</div>
-            <div className="flex items-center gap-2">📂 Files (เก็บรูปภาพและหลักฐานเงิน)</div>
-            <div className="flex items-center gap-2">📂 Reports (ประมวลผลรายเดือน)</div>
-            <div className="flex items-center gap-2">📂 Templates (เอกสารสำเร็จรูป)</div>
+          <div className="w-24 h-24 mb-6 rounded-full overflow-hidden bg-surface border border-[#5B5CEB]/30 flex items-center justify-center">
+            <div className="animate-spin w-10 h-10 border-4 border-[#5B5CEB] border-t-transparent rounded-full" />
           </div>
 
-          <button
-            onClick={handleInitialize}
-            disabled={isInitializing}
-            className="w-full bg-[#5B5CEB] hover:bg-[#5B5CEB]/90 disabled:bg-[#5B5CEB]/50 text-white font-bold text-sm py-3.5 rounded-2xl shadow-lg transition-all duration-300 flex items-center justify-center gap-2.5"
-          >
-            {isInitializing ? (
-              <>
-                <svg className="animate-spin -ml-1 mr-3 h-4.5 w-4.5 text-white" fill="none" viewBox="0 0 24 24">
-                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                </svg>
-                กำลังสร้างพื้นที่ทำงาน...
-              </>
-            ) : (
-              "สร้างพื้นที่ทำงาน 🔨"
-            )}
-          </button>
+          <span className="text-[10px] text-[#F59E0B] bg-[#F59E0B]/15 px-3.5 py-1.5 rounded-full font-bold mb-4 border border-[#F59E0B]/30 animate-pulse">
+            ⏳ กำลังรอการตรวจสอบและอนุมัติสิทธิ์เข้าใช้งาน...
+          </span>
+
+          <p className="text-[10px] text-text-sub leading-relaxed max-w-xs">
+            เมื่อผู้ดูแลระบบกดยืนยันการอนุมัติผ่าน Telegram บัญชีผู้ช่วยส่วนตัวจะเริ่มสร้างพื้นที่จัดเก็บฐานข้อมูล Google Drive และ Sheets ของคุณในทันที
+          </p>
         </div>
       )}
 
       {/* Screen 5: Ready / Success */}
       {step === 5 && (
         <div className="flex-1 flex flex-col justify-center items-center text-center w-full z-10">
-          <h2 className="text-xl font-bold mb-1">พร้อมใช้งานแล้ว! 🚀</h2>
+          <h2 className="text-xl font-bold mb-1">ยินดีด้วยครับ! 🎉</h2>
           <span className="text-[10px] text-[#10B981] bg-[#10B981]/15 px-3 py-1 rounded-full font-bold mb-6 border border-[#10B981]/30">
-            สร้างโครงสร้างตารางสำเร็จแล้ว
+            ระบบอนุมัติและสร้างฐานข้อมูลสำเร็จเรียบร้อย
           </span>
 
           <div className="w-56 h-56 relative mb-8 flex justify-center items-center">
@@ -262,14 +327,14 @@ export default function OnboardingScreen() {
           </div>
 
           <p className="text-xs text-text-sub leading-relaxed max-w-xs mb-8">
-            ตั้งค่าระบบฐานข้อมูลชีต Little Bro Helper พร้อมอำนวยความสะดวกให้บอสใช้งานแล้วครับ!
+            พื้นที่เก็บไฟล์และแผ่นงานบันทึกข้อมูลส่วนตัว Little Bro Helper พร้อมอำนวยความสะดวกให้คุณใช้งานแล้วครับ!
           </p>
 
           <button
             onClick={handleLogin}
             className="w-full bg-[#10B981] hover:bg-[#10B981]/90 text-white font-bold text-sm py-3.5 rounded-2xl shadow-lg shadow-[#10B981]/25 transition-all duration-300"
           >
-            เข้าสู่ระบบหน้าต่างหลัก ➔
+            เข้าสู่หน้าจอหลักระบบผู้ช่วย ➔
           </button>
         </div>
       )}
@@ -296,7 +361,7 @@ export default function OnboardingScreen() {
                 <p className="text-[10px] text-text-sub mb-4">เพื่อทำรายการเชื่อมต่อกับ Little Bro Helper</p>
                 
                 <button
-                  onClick={() => setAuthSubStep(2)}
+                  onClick={selectMockAccount}
                   className="w-full p-3 bg-background/60 hover:bg-background border border-white/5 rounded-xl flex items-center gap-3 text-left transition-all mb-3 cursor-pointer"
                 >
                   <div className="w-7 h-7 rounded-full overflow-hidden bg-[#5B5CEB]/20 text-[#5B5CEB] flex items-center justify-center font-bold text-xs">
@@ -309,7 +374,7 @@ export default function OnboardingScreen() {
                 </button>
 
                 <button
-                  onClick={() => alert("ระบบรองรับเฉพาะบัญชีหลักในเครื่องขณะนี้ครับบอส!")}
+                  onClick={() => alert("ระบบทดสอบรองรับเฉพาะบัญชีหลักในเครื่องขณะนี้ครับ!")}
                   className="text-[9px] text-[#5B5CEB] hover:underline"
                 >
                   ใช้บัญชีอื่น
@@ -318,7 +383,7 @@ export default function OnboardingScreen() {
             ) : (
               <div className="w-full text-text-main">
                 <h3 className="text-xs font-bold text-text-main text-center mb-1">ยินยอมและอนุญาตสิทธิ์</h3>
-                <p className="text-[9px] text-text-sub text-center mb-4">Little Bro Helper ขอสิทธิ์เข้าถึงบัญชีของบอสดังนี้:</p>
+                <p className="text-[9px] text-text-sub text-center mb-4">Little Bro Helper ขอสิทธิ์เข้าถึงบัญชีส่วนตัวดังนี้:</p>
                 
                 <div className="space-y-2 mb-5 text-[10px] text-text-sub bg-background/40 p-3 rounded-xl">
                   <div className="flex items-start gap-2">
@@ -331,7 +396,7 @@ export default function OnboardingScreen() {
                   </div>
                   <div className="flex items-start gap-2">
                     <span className="text-[#10B981]">✔</span>
-                    <span>จัดการข้อมูลนัดหมายบน Google Calendar</span>
+                    <span>จัดการข้อมูลกิจกรรมบน Google Calendar</span>
                   </div>
                 </div>
 

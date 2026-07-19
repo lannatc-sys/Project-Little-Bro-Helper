@@ -31,6 +31,86 @@ export async function POST(request: Request) {
       } else if (callbackData === "ai_reject") {
         fs.writeFileSync(approvalFilePath, JSON.stringify({ status: "awaiting_reason", timestamp: Date.now() }, null, 2));
         responseText = "❌ *ระงับการทำงานชั่วคราวครับ!*\n\nกรุณาพิมพ์ข้อแนะนำสิ่งที่ต้องการให้แก้ไขส่งเข้ามาได้เลยครับ ระบบจะบันทึกข้อคิดเห็นเพื่อตรวจสอบแก้ไขต่อไปครับ";
+      } else if (callbackData.startsWith("reg_approve:") || callbackData.startsWith("reg_reject:")) {
+        const isApprove = callbackData.startsWith("reg_approve:");
+        const email = callbackData.split(":")[1];
+        const regFilePath = path.join(process.cwd(), "apps-script", "registration.json");
+        
+        let regData: any = {};
+        if (fs.existsSync(regFilePath)) {
+          try {
+            regData = JSON.parse(fs.readFileSync(regFilePath, "utf8"));
+          } catch(e) {
+            console.error(e);
+          }
+        }
+
+        const reg = regData[email];
+        if (reg) {
+          if (isApprove) {
+            // Call GAS to create database
+            const gasUrl = process.env.GOOGLE_APPS_SCRIPT_URL;
+            const ssId = process.env.GOOGLE_SPREADSHEET_ID; // active setup template ID
+            if (gasUrl && ssId) {
+              try {
+                const gasRes = await fetch(gasUrl, {
+                  method: "POST",
+                  headers: { "Content-Type": "application/json" },
+                  body: JSON.stringify({
+                    action: "create_user_database",
+                    spreadsheet_id: ssId, // needed for check but create doesn't need it
+                    user_name: reg.username
+                  })
+                });
+                const gasResult = await gasRes.json();
+                if (gasResult.status === "success") {
+                  reg.spreadsheet_id = gasResult.spreadsheet_id;
+                  reg.folder_id = gasResult.folder_id;
+                  reg.status = "approved";
+                  responseText = `🟢 *อนุมัติคำขอเรียบร้อยแล้ว!*\nระบบจัดตั้งฐานข้อมูลและเชื่อม Workspace ให้ผู้ใช้แล้วครับ 💻\n\n*ID ชีต*: \`${gasResult.spreadsheet_id}\``;
+                  
+                  // Notify user if Telegram ID exists
+                  if (reg.telegram_chat_id) {
+                    await fetch(`https://api.telegram.org/bot${token}/sendMessage`, {
+                      method: "POST",
+                      headers: { "Content-Type": "application/json" },
+                      body: JSON.stringify({
+                        chat_id: reg.telegram_chat_id,
+                        text: `🎉 *ยินดีด้วยครับ! บัญชีผู้ช่วยส่วนตัวได้รับการอนุมัติเรียบร้อยแล้ว*\n\nระบบผู้ช่วยได้จัดเตรียมโฟลเดอร์ Google Drive และ Spreadsheet บัญชีส่วนตัวให้เรียบร้อยแล้วครับ 💾\n\nสามารถเปิดหน้าต่างแอปเพื่อเข้าใช้งานได้ทันที!`,
+                        parse_mode: "Markdown"
+                      })
+                    });
+                  }
+                } else {
+                  responseText = `❌ เกิดข้อผิดพลาดในระบบหลังบ้าน Google Apps Script: ${gasResult.message}`;
+                }
+              } catch (gasErr: any) {
+                responseText = `❌ การติดต่อ Apps Script ขัดข้อง: ${gasErr.message}`;
+              }
+            } else {
+              responseText = `❌ ล้มเหลว: ไม่พบตัวแปรสภาพแวดล้อมระบบหลังบ้าน`;
+            }
+          } else {
+            reg.status = "rejected";
+            responseText = `❌ *ปฏิเสธคำขอการเข้าใช้งานของผู้ใช้นี้เรียบร้อยครับ*`;
+            
+            // Notify user
+            if (reg.telegram_chat_id) {
+              await fetch(`https://api.telegram.org/bot${token}/sendMessage`, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                  chat_id: reg.telegram_chat_id,
+                  text: `⚠️ *คำขอเปิดใช้งานบัญชีของคุณได้รับการปฏิเสธ*\n\nหากคิดว่านี่คือข้อผิดพลาด กรุณาติดต่อผู้ดูแลระบบเพื่อขอสิทธิ์เชื่อมต่ออีกครั้งครับ`,
+                  parse_mode: "Markdown"
+                })
+              });
+            }
+          }
+          fs.writeFileSync(regFilePath, JSON.stringify(regData, null, 2));
+        } else {
+          responseText = `⚠️ ไม่พบข้อมูลคำขอของอีเมล: ${email}`;
+        }
       }
 
       // 1. ตอบกลับ callback query ของ Telegram เพื่อให้ปุ่มหยุดหมุนโหลด

@@ -27,6 +27,34 @@ function doPost(e) {
     var action = requestData.action;
     var ssId = requestData.spreadsheet_id;
     
+    // CASE: สร้างฐานข้อมูลบัญชีใหม่ตั้งแต่ต้น (Create New Spreadsheet & Folder Database)
+    if (action === "create_user_database") {
+      var userName = requestData.user_name || "New User";
+      
+      // 1. สร้างโฟลเดอร์ใน Google Drive
+      var folderName = "Little Bro Helper - " + userName;
+      var folder = DriveApp.createFolder(folderName);
+      
+      // 2. สร้าง Spreadsheet ใหม่
+      var newSS = SpreadsheetApp.create("Little Bro Helper Database");
+      var newSSId = newSS.getId();
+      
+      // 3. ย้าย Spreadsheet ไปไว้ในโฟลเดอร์ที่สร้าง
+      var file = DriveApp.getFileById(newSSId);
+      file.moveTo(folder);
+      
+      // 4. รันระบบเซ็ตอัพตาราง (Header & Frozen)
+      var initResult = runWorkspaceSetup(newSSId);
+      
+      return createJsonResponse({ 
+        status: "success", 
+        message: "สร้างฐานข้อมูลใหม่สำเร็จเรียบร้อย", 
+        spreadsheet_id: newSSId,
+        folder_id: folder.getId(),
+        sheets_processed: initResult
+      });
+    }
+
     if (!ssId) {
       throw new Error("Missing required 'spreadsheet_id' parameter");
     }
