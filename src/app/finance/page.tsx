@@ -79,7 +79,7 @@ export default function FinanceScreen() {
   };
 
   const handleDeleteTransaction = async (item: any) => {
-    if (!confirm("ต้องการลบรายการธุรกรรมการเงินนี้ออกจากชีตใช่หรือไม่ครับบอส?")) return;
+    if (!confirm("🚨 เฮ้ยบอส!!! แน่ใจนะว่าจะลบรายการเงินนี้จริง ๆ?! ลบแล้วกู้คืนไม่ได้นะบอส!!! 😱")) return;
     
     setLoading(true);
     try {
