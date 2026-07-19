@@ -34,43 +34,69 @@ function writeRegistrations(data: any) {
 export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);
   const email = searchParams.get("email");
+  const platformId = searchParams.get("platform_id");
 
-  if (!email) {
-    return NextResponse.json({ status: "error", message: "Missing email parameter" }, { status: 400 });
+  if (!email && !platformId) {
+    return NextResponse.json({ status: "error", message: "Missing email or platform_id parameter" }, { status: 400 });
   }
 
-  // Check Supabase first for absolute persistence
-  try {
-    const { data: profile, error } = await supabase
-      .from("profiles")
-      .select("*")
-      .eq("google_email", email)
-      .maybeSingle();
+  // 1. Check by platform_id (e.g. Telegram chat ID or LINE user ID)
+  if (platformId) {
+    try {
+      const { data: profile } = await supabase
+        .from("profiles")
+        .select("*")
+        .eq("user_id", platformId)
+        .maybeSingle();
 
-    if (profile) {
+      if (profile) {
+        return NextResponse.json({
+          status: "approved",
+          spreadsheet_id: profile.user_id || "",
+          google_email: profile.google_email || "",
+          folder_id: ""
+        });
+      }
+    } catch (err) {
+      console.error("Supabase profile check by platformId error:", err);
+    }
+  }
+
+  // 2. Check by email (e.g. during onboarding polling)
+  if (email) {
+    try {
+      const { data: profile } = await supabase
+        .from("profiles")
+        .select("*")
+        .eq("google_email", email)
+        .maybeSingle();
+
+      if (profile) {
+        return NextResponse.json({
+          status: "approved",
+          spreadsheet_id: profile.user_id || "",
+          google_email: profile.google_email || "",
+          folder_id: ""
+        });
+      }
+    } catch (err) {
+      console.error("Supabase profile check by email error:", err);
+    }
+
+    // Fallback to local registrations cache for email polling
+    const data = readRegistrations();
+    const reg = data[email];
+
+    if (reg) {
       return NextResponse.json({
-        status: "approved",
-        spreadsheet_id: profile.user_id || "",
-        folder_id: ""
+        status: reg.status,
+        spreadsheet_id: reg.spreadsheet_id || "",
+        folder_id: reg.folder_id || ""
       });
     }
-  } catch (err) {
-    console.error("Supabase profile check error:", err);
   }
 
-  // Fallback to local registrations cache
-  const data = readRegistrations();
-  const reg = data[email];
-
-  if (!reg) {
-    return NextResponse.json({ status: "none", message: "No registration found" });
-  }
-
-  return NextResponse.json({
-    status: reg.status,
-    spreadsheet_id: reg.spreadsheet_id || "",
-    folder_id: reg.folder_id || ""
-  });
+  return NextResponse.json({ status: "none", message: "No registration found" });
 }
 
 // 2. Submit access request endpoint

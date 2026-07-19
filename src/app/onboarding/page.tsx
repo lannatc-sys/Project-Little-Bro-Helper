@@ -67,6 +67,7 @@ export default function OnboardingScreen() {
 
   const handleLogin = () => {
     localStorage.setItem("little_bro_onboarded", "true");
+    localStorage.setItem("little_bro_email", email);
     router.push("/");
   };
 

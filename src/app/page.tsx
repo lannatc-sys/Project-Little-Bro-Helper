@@ -73,6 +73,55 @@ export default function HomeScreen() {
       return;
     }
 
+    const verifyUserSession = async () => {
+      let platformId = "";
+      let platformName = "";
+
+      if (typeof window !== "undefined") {
+        const tgUser = (window as any).Telegram?.WebApp?.initDataUnsafe?.user;
+        if (tgUser && tgUser.id) {
+          platformId = String(tgUser.id);
+          platformName = "Telegram";
+        } else if ((window as any).liff) {
+          try {
+            if ((window as any).liff.isLoggedIn?.()) {
+              const context = (window as any).liff.getContext();
+              if (context && context.userId) {
+                platformId = String(context.userId);
+                platformName = "LINE";
+              }
+            }
+          } catch (e) {
+            console.error("LIFF context error:", e);
+          }
+        }
+      }
+
+      if (!platformId) {
+        platformId = "5581598534";
+        platformName = "Telegram";
+      }
+
+      try {
+        const res = await fetch(`/api/auth/status?platform_id=${platformId}`);
+        const data = await res.json();
+        
+        if (data.status === "approved" && data.google_email) {
+          const localEmail = localStorage.getItem("little_bro_email");
+          
+          if (localEmail && localEmail !== data.google_email) {
+            alert(`⚠️ ตรวจพบการลงทะเบียนด้วยบัญชีอีเมลอื่น (${data.google_email}) บนช่องทาง ${platformName} ของบอสครับ!\n\nระบบจะล้างข้อมูลและให้เริ่มตั้งค่า Onboarding ใหม่ทั้งหมดเพื่อความปลอดภัยครับ`);
+            localStorage.clear();
+            window.location.href = "/onboarding";
+          }
+        }
+      } catch (err) {
+        console.error("Session verification failed:", err);
+      }
+    };
+
+    verifyUserSession();
+
     // Load read notifications
     const readIds = JSON.parse(localStorage.getItem("little_bro_read_notifications") || "[]");
     if (readIds.length > 0) {
