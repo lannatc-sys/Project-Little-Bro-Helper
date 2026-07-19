@@ -71,6 +71,8 @@ export async function POST(request: Request) {
             });
             if (!error) {
               supaSuccess = true;
+            } else {
+              console.error("Supabase insert error returned:", error);
             }
           } catch (supaErr) {
             console.error("Supabase insert from LINE failed:", supaErr);
