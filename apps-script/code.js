@@ -100,6 +100,25 @@ function doPost(e) {
       } else {
         data.calendar = [];
       }
+
+      // 4. Customer data
+      var custSheet = ss.getSheetByName("Customer");
+      if (custSheet) {
+        var custRows = custSheet.getDataRange().getValues();
+        var headers = custRows[0];
+        var customers = [];
+        for (var i = 1; i < custRows.length; i++) {
+          var row = custRows[i];
+          var c = {};
+          for (var j = 0; j < headers.length; j++) {
+            c[headers[j]] = row[j];
+          }
+          customers.push(c);
+        }
+        data.customers = customers;
+      } else {
+        data.customers = [];
+      }
       
       return createJsonResponse({ status: "success", data: data });
     }
