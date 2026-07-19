@@ -109,6 +109,31 @@ export default function FinanceScreen() {
     }
   };
 
+  const [isReporting, setIsReporting] = useState(false);
+
+  const handleRunFinancialReport = async () => {
+    setIsReporting(true);
+    try {
+      const response = await fetch("/api/expense", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          action: "run_financial_health_report"
+        })
+      });
+      const data = await response.json();
+      if (data.status === "success") {
+        alert("📊 ประเมินสุขภาพการเงินสำเร็จ!\n\nระบบวิเคราะห์ตามเกณฑ์ SET Happy Money และส่งการ์ดรายงานผลประเมิน (Grade A-F) ส่งตรงเข้าสู่ Telegram ของบอสแล้วครับบอส! 🩺✨");
+      } else {
+        alert("❌ ประเมินขัดข้อง: " + data.message);
+      }
+    } catch (err: any) {
+      alert("❌ เกิดข้อผิดพลาดทางเทคนิค: " + err.message);
+    } finally {
+      setIsReporting(false);
+    }
+  };
+
   useEffect(() => {
     fetchFinanceData();
   }, []);
@@ -277,6 +302,35 @@ export default function FinanceScreen() {
                 )}
               </div>
             </section>
+
+            {/* SET Happy Money Financial Health Check Card */}
+            <div className="bg-surface/20 border border-[#10B981]/25 p-4 rounded-2xl mb-6 flex flex-col gap-3 relative overflow-hidden">
+              <div className="absolute top-0 right-0 w-24 h-24 bg-[#10B981]/5 rounded-full blur-xl pointer-events-none" />
+              <div className="flex items-center gap-3">
+                <span className="text-xl">🩺</span>
+                <div>
+                  <h4 className="text-xs font-bold text-text-main">ตรวจสุขภาพการเงิน (SET Happy Money)</h4>
+                  <p className="text-[9px] text-text-sub">วิเคราะห์อัตราการออมและภาระหนี้สิน เพื่อประเมินเกรดผลลัพธ์ A-F</p>
+                </div>
+              </div>
+              
+              <button
+                onClick={handleRunFinancialReport}
+                disabled={isReporting}
+                className="w-full bg-[#10B981] hover:bg-[#10B981]/90 disabled:bg-[#10B981]/40 text-white font-bold text-xs py-2 rounded-xl transition-all cursor-pointer flex items-center justify-center gap-1.5 shadow-md shadow-[#10B981]/20"
+              >
+                {isReporting ? (
+                  <>
+                    <span className="animate-spin inline-block w-3 h-3 border-2 border-white border-t-transparent rounded-full" />
+                    กำลังคำนวณเกรดผลลัพธ์...
+                  </>
+                ) : (
+                  <>
+                    <span>ประเมินสุขภาพการเงินและส่งผลทาง Telegram ➔</span>
+                  </>
+                )}
+              </button>
+            </div>
 
             {/* Stance Avatar Card */}
             <div className="bg-surface/40 border border-[#5B5CEB]/25 p-4 rounded-2xl flex items-center gap-4">

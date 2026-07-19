@@ -339,6 +339,39 @@ function doPost(e) {
       return createJsonResponse({ status: "success", message: "บันทึกนัดหมายลงชีตและ Google Calendar สำเร็จเรียบร้อยครับ" });
     }
 
+    // CASE H: สั่งรันวิเคราะห์ตรวจสุขภาพการเงินรายเดือน (SET Happy Money Report)
+    if (action === "run_financial_health_report") {
+      var reportText = checkMonthlyFinancialHealth(ssId);
+      
+      var profilesSheet = ss.getSheetByName("Profiles");
+      var botToken = PropertiesService.getScriptProperties().getProperty("TELEGRAM_BOT_TOKEN");
+      if (!botToken) {
+        var settingsSheet = ss.getSheetByName("Settings");
+        if (settingsSheet) {
+          var sRows = settingsSheet.getDataRange().getValues();
+          for (var i = 1; i < sRows.length; i++) {
+            if (sRows[i][0] === "TELEGRAM_BOT_TOKEN") {
+              botToken = sRows[i][1].toString();
+              break;
+            }
+          }
+        }
+      }
+      
+      if (profilesSheet && botToken) {
+        var pRows = profilesSheet.getDataRange().getValues();
+        var userIdColIdx = SHEETS_SCHEMA["Profiles"].indexOf("user_id");
+        if (userIdColIdx !== -1 && pRows.length > 1) {
+          var chatId = pRows[1][userIdColIdx].toString();
+          if (chatId) {
+            sendTelegramNotification(botToken, chatId, "🧪 *ส่งข้อความแจ้งเตือนทดสอบระบบตรวจสอบสุขภาพการเงิน:*\n\n" + reportText);
+          }
+        }
+      }
+      
+      return createJsonResponse({ status: "success", message: "วิเคราะห์ตรวจสอบสุขภาพการเงินสำเร็จและส่งแจ้งเตือนแล้วครับ", report: reportText });
+    }
+
     // CASE G: อัปเดตอัปโหลดไฟล์ไป Google Drive (File Upload Module)
     if (action === "upload_file") {
       var folderName = "Little Bro Assistant Files";
@@ -681,6 +714,13 @@ function setupTimeTrigger() {
            .timeBased()
            .everyMinutes(5)
            .create();
+           
+  // ติดตั้งปฏิทินตรวจเงินรายเดือนด้วย
+  try {
+    setupMonthlyTrigger();
+  } catch (e) {
+    Logger.log("Failed to setup monthly trigger: " + e.toString());
+  }
 }
 
 /**
@@ -777,4 +817,156 @@ function testGoogleWorkspaceIntegration() {
   }
   
   Logger.log("=== สิ้นสุดการทดสอบระบบ ===");
+}
+
+/**
+ * 9. ฟังก์ชันตรวจสอบวิเคราะห์สุขภาพการเงินสิ้นเดือน (SET Happy Money Report)
+ */
+function checkMonthlyFinancialHealth(ssId) {
+  var ss = SpreadsheetApp.openById(ssId);
+  var financeSheet = ss.getSheetByName("Finance");
+  if (!financeSheet) return "ไม่พบชีต 'Finance'";
+  
+  var rows = financeSheet.getDataRange().getValues();
+  var now = new Date();
+  var currentMonth = now.getMonth(); // 0-11
+  var currentYear = now.getFullYear();
+  
+  var totalIncome = 0;
+  var totalSaving = 0;
+  var totalDebt = 0;
+  
+  for (var i = 1; i < rows.length; i++) {
+    var rowTime = rows[i][0];
+    if (!rowTime) continue;
+    var date = new Date(rowTime);
+    if (isNaN(date.getTime())) continue;
+    
+    if (date.getMonth() === currentMonth && date.getFullYear() === currentYear) {
+      var txType = rows[i][1];
+      var category = rows[i][2].toString();
+      var amount = Number(rows[i][3]) || 0;
+      var desc = rows[i][4].toString();
+      
+      if (txType === "Income") {
+        totalIncome += amount;
+      } else if (txType === "Expense") {
+        var isSaving = category.indexOf("ออม") !== -1 || category.indexOf("ลงทุน") !== -1 || desc.indexOf("ออม") !== -1 || desc.indexOf("ลงทุน") !== -1;
+        var isDebt = category.indexOf("หนี้") !== -1 || category.indexOf("ผ่อน") !== -1 || category.indexOf("กู้") !== -1 || desc.indexOf("หนี้") !== -1 || desc.indexOf("ผ่อน") !== -1;
+        
+        if (isSaving) {
+          totalSaving += amount;
+        } else if (isDebt) {
+          totalDebt += amount;
+        }
+      }
+    }
+  }
+  
+  var savingRatio = totalIncome > 0 ? (totalSaving / totalIncome) * 100 : 0;
+  var debtRatio = totalIncome > 0 ? (totalDebt / totalIncome) * 100 : 0;
+  
+  var grade = "C";
+  var advice = "";
+  var icon = "📊";
+  
+  if (totalIncome === 0) {
+    grade = "F";
+    icon = "🚨";
+    advice = "เตือนภัยระดับสีแดงครับบอส! ในเดือนนี้ยังไม่มีการบันทึกรายรับเข้ามาเลยครับ กรุณาบันทึกรายรับเพื่อวิเคราะห์สภาพคล่องที่แท้จริงครับ";
+  } else if (savingRatio >= 20 && debtRatio <= 30) {
+    grade = "A";
+    icon = "🏆";
+    advice = "ยอดเยี่ยมที่สุดครับบอส! การเงินแข็งแกร่งมาก ออมเยอะหนี้น้อย สุขภาพการเงินฟิตปั๋งระดับมหาเศรษฐี รักษาวินัยนี้ไว้ครับ!";
+  } else if (savingRatio >= 10 && debtRatio <= 40) {
+    grade = "B";
+    icon = "🌟";
+    advice = "ดีมากครับบอส! การเงินอยู่ในระดับแข็งแรง บรรลุเกณฑ์มาตรฐานทั่วไปได้อย่างสบาย มีเงินออมสม่ำเสมอและหนี้สินไม่เกินขอบเขตปลอดภัยครับ";
+  } else if (savingRatio >= 5 && debtRatio <= 50) {
+    grade = "C";
+    icon = "⚖️";
+    advice = "พอใช้ได้ครับบอส! สภาพคล่องยังหมุนเวียนได้ แต่แนะนำให้พยายามเพิ่มเปอร์เซ็นต์เงินออมขึ้น หรือหาทางลดการจ่ายหนี้ลงเพื่อความปลอดภัยครับ";
+  } else if (savingRatio < 5 && debtRatio <= 55) {
+    grade = "D";
+    icon = "⚠️";
+    advice = "มีความเสี่ยงทางการเงินครับบอส! ยอดเงินออมน้อยเกินเกณฑ์มาตรฐานสะสม (ควรมีอย่างน้อย 10%) แนะนำให้พยายามตัดรายจ่ายฟุ่มเฟือยเพื่อเพิ่มสัดส่วนเงินออมด่วนครับ";
+  } else {
+    grade = "F";
+    icon = "🚨";
+    advice = "สภาพคล่องมีปัญหารุนแรงครับบอส! หนี้สินเกิน 50% ของรายได้ และเงินออมต่ำมาก แนะนำให้รีบปรับพอร์ตลดรายจ่าย และหลีกเลี่ยงการก่อหนี้ก้อนใหม่ด่วนที่สุดครับ!";
+  }
+  
+  var monthsThai = ["มกราคม", "กุมภาพันธ์", "มีนาคม", "เมษายน", "พฤษภาคม", "มิถุนายน", "กรกฎาคม", "สิงหาคม", "กันยายน", "ตุลาคม", "พฤศจิกายน", "ธันวาคม"];
+  var monthName = monthsThai[currentMonth];
+  var thaiYear = currentYear + 543;
+  
+  var reportText = "🩺 *รายงานตรวจสุขภาพการเงินสิ้นเดือน (SET Happy Money)*\n" +
+                   "📅 ประจำเดือน: *" + monthName + " " + thaiYear + "*\n" +
+                   "──────────────────\n" +
+                   "📈 *สรุปข้อมูลประจำเดือน*:\n" +
+                   "• รายได้รวม: `฿" + totalIncome.toLocaleString("th-TH", { minimumFractionDigits: 2 }) + "`\n" +
+                   "• เงินออมสะสม: `฿" + totalSaving.toLocaleString("th-TH", { minimumFractionDigits: 2 }) + "`\n" +
+                   "• จ่ายหนี้สิน: `฿" + totalDebt.toLocaleString("th-TH", { minimumFractionDigits: 2 }) + "`\n\n" +
+                   "📊 *ดัชนีสุขภาพการเงิน*:\n" +
+                   "💰 *Saving Ratio*: `" + savingRatio.toFixed(1) + "%` (เกณฑ์มาตรฐาน >= 10%)\n" +
+                   "💳 *Debt Ratio*: `" + debtRatio.toFixed(1) + "%` (เกณฑ์ควบคุม <= 36-45%)\n" +
+                   "──────────────────\n" +
+                   "👑 *ผลเกรดสุขภาพการเงิน*: " + icon + " *Grade " + grade + "*\n\n" +
+                   "📝 *คำแนะนำจากผู้ช่วย*: \n_" + advice + "_";
+                   
+  return reportText;
+}
+
+/**
+ * 10. ติดตั้ง Trigger สำหรับรันรายงานอัตโนมัติทุกวันที่ 30 ของเดือน
+ */
+function setupMonthlyTrigger() {
+  var triggers = ScriptApp.getProjectTriggers();
+  for (var i = 0; i < triggers.length; i++) {
+    if (triggers[i].getHandlerFunction() === "runMonthlyFinancialHealthJob") {
+      ScriptApp.deleteTrigger(triggers[i]);
+    }
+  }
+  ScriptApp.newTrigger("runMonthlyFinancialHealthJob")
+           .timeBased()
+           .onMonthDay(30)
+           .atHour(9)
+           .create();
+}
+
+/**
+ * 11. ฟังก์ชันรันบอทวิเคราะห์พ่นรายงานออกหา Telegram
+ */
+function runMonthlyFinancialHealthJob() {
+  var ss = SpreadsheetApp.getActiveSpreadsheet();
+  var settingsSheet = ss.getSheetByName("Settings");
+  
+  var botToken = PropertiesService.getScriptProperties().getProperty("TELEGRAM_BOT_TOKEN");
+  if (!botToken && settingsSheet) {
+    var rows = settingsSheet.getDataRange().getValues();
+    for (var i = 1; i < rows.length; i++) {
+      if (rows[i][0] === "TELEGRAM_BOT_TOKEN") {
+        botToken = rows[i][1].toString();
+        break;
+      }
+    }
+  }
+  
+  if (!botToken) return;
+  
+  var profilesSheet = ss.getSheetByName("Profiles");
+  if (!profilesSheet) return;
+  
+  var rows = profilesSheet.getDataRange().getValues();
+  var userIdColIdx = SHEETS_SCHEMA["Profiles"].indexOf("user_id");
+  if (userIdColIdx === -1) return;
+  
+  var reportText = checkMonthlyFinancialHealth(ss.getId());
+  
+  for (var i = 1; i < rows.length; i++) {
+    var chatId = rows[i][userIdColIdx].toString();
+    if (chatId) {
+      sendTelegramNotification(botToken, chatId, reportText);
+    }
+  }
 }
