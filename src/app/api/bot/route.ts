@@ -14,6 +14,8 @@ export async function POST(request: Request) {
     const update = await request.json();
     console.log("Telegram update received:", JSON.stringify(update));
 
+    const approvalFilePath = path.join(process.cwd(), "apps-script", "approval.json");
+
     // A. Handle Inline Button Callback Queries (AI Agent Approvals)
     if (update.callback_query) {
       const callbackId = update.callback_query.id;
@@ -22,14 +24,13 @@ export async function POST(request: Request) {
       const messageId = update.callback_query.message.message_id;
 
       let responseText = "";
-      const approvalFilePath = path.join(process.cwd(), "apps-script", "approval.json");
 
       if (callbackData === "ai_approve") {
         fs.writeFileSync(approvalFilePath, JSON.stringify({ status: "approved", timestamp: Date.now() }, null, 2));
         responseText = "🟢 *บอสอนุมัติเรียบร้อยครับ!*\nเอเจนต์รับสิทธิ์และกำลังดำเนินงานต่อในเครื่องคอมพิวเตอร์ทันทีครับบอส 👔💻";
       } else if (callbackData === "ai_reject") {
-        fs.writeFileSync(approvalFilePath, JSON.stringify({ status: "rejected", timestamp: Date.now() }, null, 2));
-        responseText = "❌ *บอสปฏิเสธการรันคำสั่งครับ!*\nเอเจนต์ระงับการทำงานชั่วคราวและแสตนด์บายรอคำสั่งแก้ไขจากบอสครับ 👔";
+        fs.writeFileSync(approvalFilePath, JSON.stringify({ status: "awaiting_reason", timestamp: Date.now() }, null, 2));
+        responseText = "❌ *บอสปฏิเสธการรันคำสั่งครับ!*\n\nกรุณาพิมพ์เหตุผล หรือระบุสิ่งที่ต้องการให้ปรับปรุงแก้ไข ส่งกลับเข้าในแชทนี้ได้เลยครับบอส เอเจนต์หลังบ้านในคอมพิวเตอร์รอรับข้อความแก้ไขของบอสอยู่ครับ 👔";
       }
 
       // 1. ตอบกลับ callback query ของ Telegram เพื่อให้ปุ่มหยุดหมุนโหลด
@@ -62,6 +63,36 @@ export async function POST(request: Request) {
     const chatId = update.message.chat.id;
     const text = (update.message.text || "").trim();
     const username = update.message.from?.username || "Boss";
+
+    // B.1 Check if we are currently awaiting a rejection reason from the boss
+    if (fs.existsSync(approvalFilePath)) {
+      try {
+        const approvalData = JSON.parse(fs.readFileSync(approvalFilePath, "utf8"));
+        if (approvalData.status === "awaiting_reason") {
+          // บันทึกคำสั่งเหตุผลในการปฏิเสธลงไฟล์
+          fs.writeFileSync(
+            approvalFilePath,
+            JSON.stringify({ status: "rejected", reason: text, timestamp: Date.now() }, null, 2)
+          );
+
+          // ตอบแชทกลับเพื่อรับทราบเหตุผลในการแก้ไข
+          const telegramApiUrl = `https://api.telegram.org/bot${token}/sendMessage`;
+          await fetch(telegramApiUrl, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              chat_id: chatId,
+              text: `✅ *รับทราบข้อแนะนำการแก้ไขครับบอส!*\n\n*สิ่งที่ต้องการให้ปรับปรุง*: "${text}"\n\nระบบบันทึกความต้องการลงไฟล์คอมพิวเตอร์เรียบร้อยแล้ว เอเจนต์จะเปิดอ่านข้อความเพื่อนำไปพัฒนาตรวจสอบแก้ไขระบบทันทีครับบอส! 👔💻`,
+              parse_mode: "Markdown"
+            })
+          });
+
+          return NextResponse.json({ status: "ok" });
+        }
+      } catch (err) {
+        console.error("Error reading approval file:", err);
+      }
+    }
 
     let replyText = "";
     let inlineKeyboard: any[] = [];
