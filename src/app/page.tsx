@@ -1,65 +1,118 @@
-import Image from "next/image";
+"use client";
 
-export default function Home() {
+import Link from "next/link";
+import { useEffect, useState } from "react";
+
+export default function HomeScreen() {
+  const [greeting, setGreeting] = useState("สวัสดีครับบอส 👔");
+  const [time, setTime] = useState("");
+
+  useEffect(() => {
+    // Dynamic greeting based on current local time
+    const hour = new Date().getHours();
+    if (hour >= 5 && hour < 12) {
+      setGreeting("สวัสดีตอนเช้าบอส ☀️");
+    } else if (hour >= 12 && hour < 17) {
+      setGreeting("สวัสดีตอนบ่ายบอส 🌤️");
+    } else if (hour >= 17 && hour < 22) {
+      setGreeting("สวัสดีตอนเย็นบอส 🌙");
+    } else {
+      setGreeting("ดึกแล้วครับบอส รักษาสุขภาพด้วย 💤");
+    }
+
+    // Simple live time clock
+    const updateClock = () => {
+      const now = new Date();
+      setTime(
+        now.toLocaleTimeString("th-TH", {
+          hour: "2-digit",
+          minute: "2-digit"
+        }) + " น."
+      );
+    };
+    updateClock();
+    const interval = setInterval(updateClock, 60000);
+    return () => clearInterval(interval);
+  }, []);
+
   return (
-    <div className="flex flex-col flex-1 items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-      <main className="flex flex-1 w-full max-w-3xl flex-col items-center justify-between py-32 px-16 bg-white dark:bg-black sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
-        />
-        <div className="flex flex-col items-center gap-6 text-center sm:items-start sm:text-left">
-          <h1 className="max-w-xs text-3xl font-semibold leading-10 tracking-tight text-black dark:text-zinc-50">
-            To get started, edit the page.tsx file.
-          </h1>
-          <p className="max-w-md text-lg leading-8 text-zinc-600 dark:text-zinc-400">
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Learning
-            </a>{" "}
-            center.
-          </p>
+    <div className="min-h-screen bg-[#09090B] p-6 text-white font-sans flex flex-col justify-between">
+      <div>
+        {/* Header Section */}
+        <header className="mb-8 flex justify-between items-start">
+          <div>
+            <h1 className="text-2xl font-bold mb-1 transition-all duration-300">
+              {greeting}
+            </h1>
+            <p className="text-sm text-[#B3B3B3]">วันนี้มีอะไรให้ช่วยจัดการไหมครับ?</p>
+          </div>
+          <div className="text-right">
+            <span className="text-xs bg-[#5B5CEB]/20 text-[#5B5CEB] border border-[#5B5CEB]/30 px-3 py-1 rounded-full font-mono text-sm">
+              {time || "Little Bro"}
+            </span>
+          </div>
+        </header>
+
+        {/* Universal Search Bar */}
+        <div className="bg-[#18181B]/60 backdrop-blur-md border border-white/10 rounded-2xl p-3 mb-6 flex items-center shadow-lg transition-all duration-300 focus-within:border-[#5B5CEB]/50">
+          <span className="text-[#B3B3B3] mr-2">🔍</span>
+          <input
+            type="text"
+            placeholder="ค้นหาภารกิจ รายการเงิน หรือไฟล์..."
+            className="bg-transparent w-full focus:outline-none text-sm placeholder-[#B3B3B3] text-white"
+          />
         </div>
-        <div className="flex flex-col gap-4 text-base font-medium sm:flex-row">
-          <a
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-foreground px-5 text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc] md:w-[158px]"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={16}
-            />
-            Deploy Now
-          </a>
-          <a
-            className="flex h-12 w-full items-center justify-center rounded-full border border-solid border-black/[.08] px-5 transition-colors hover:border-transparent hover:bg-black/[.04] dark:border-white/[.145] dark:hover:bg-[#1a1a1a] md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Documentation
-          </a>
+
+        {/* Grid Dashboard Modules */}
+        <div className="grid grid-cols-2 gap-4 mb-8">
+          <Link href="/add-expense" className="group">
+            <div className="bg-[#18181B]/40 backdrop-blur-lg border border-white/5 hover:border-[#10B981]/30 p-4 rounded-2xl transition-all duration-300 hover:bg-[#18181B]/60 transform hover:-translate-y-1">
+              <h3 className="text-xs text-[#B3B3B3] mb-1 group-hover:text-[#10B981] transition-colors">
+                การเงินประจำเดือน
+              </h3>
+              <p className="text-lg font-bold text-[#10B981]">฿ 0.00</p>
+              <span className="text-[10px] text-[#B3B3B3]/60 block mt-2">แตะเพื่อบันทึกเพิ่ม →</span>
+            </div>
+          </Link>
+          <div className="bg-[#18181B]/40 backdrop-blur-lg border border-white/5 p-4 rounded-2xl transition-all duration-300 transform hover:-translate-y-1">
+            <h3 className="text-xs text-[#B3B3B3] mb-1">งานวันนี้</h3>
+            <p className="text-lg font-bold text-[#5B5CEB]">0 รายการ</p>
+            <span className="text-[10px] text-[#B3B3B3]/60 block mt-2">เชื่อมต่อคลังงานแล้ว</span>
+          </div>
         </div>
-      </main>
+
+        {/* Quick Menu / Command Shortcuts */}
+        <div className="space-y-3">
+          <h2 className="text-xs font-semibold text-[#B3B3B3] uppercase tracking-wider mb-2">ทางลัดคำสั่งด่วน</h2>
+          
+          <Link href="/add-expense" className="flex items-center justify-between p-4 bg-[#18181B]/30 hover:bg-[#18181B]/50 border border-white/5 rounded-xl transition-all duration-200">
+            <div className="flex items-center gap-3">
+              <span className="text-lg bg-[#EF4444]/20 p-2 rounded-lg text-[#EF4444]">💸</span>
+              <div>
+                <h4 className="text-sm font-semibold">บันทึกรายจ่าย</h4>
+                <p className="text-xs text-[#B3B3B3]">เพิ่มธุรกรรมทางการเงินลงชีต Finance</p>
+              </div>
+            </div>
+            <span className="text-[#B3B3B3] text-sm">➔</span>
+          </Link>
+
+          <button onClick={() => alert("ระบบกิโลงาน / Task จะเปิดให้บริการในเฟสถัดไปครับบอส!")} className="w-full flex items-center justify-between p-4 bg-[#18181B]/30 hover:bg-[#18181B]/50 border border-white/5 rounded-xl text-left transition-all duration-200">
+            <div className="flex items-center gap-3">
+              <span className="text-lg bg-[#5B5CEB]/20 p-2 rounded-lg text-[#5B5CEB]">📋</span>
+              <div>
+                <h4 className="text-sm font-semibold">เช็กงานด่วน</h4>
+                <p className="text-xs text-[#B3B3B3]">ดึงภารกิจ 5 รายการล่าสุดจากปฏิทินชีต</p>
+              </div>
+            </div>
+            <span className="text-[#B3B3B3] text-sm">➔</span>
+          </button>
+        </div>
+      </div>
+
+      {/* Footer Branding */}
+      <footer className="mt-8 text-center text-[11px] text-[#B3B3B3]/40">
+        <p>Little Bro Helper v1.0.0 • Antigravity Product Team</p>
+      </footer>
     </div>
   );
 }
