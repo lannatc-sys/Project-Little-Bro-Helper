@@ -8,10 +8,15 @@ export default function AddExpenseScreen() {
   const [category, setCategory] = useState("ค่าอาหาร");
   const [desc, setDesc] = useState("");
   const [loading, setLoading] = useState(false);
+  const [errorMessage, setErrorMessage] = useState("");
+  const [successMessage, setSuccessMessage] = useState("");
 
   const submitExpense = async () => {
+    setErrorMessage("");
+    setSuccessMessage("");
+
     if (!amount || Number(amount) <= 0) {
-      alert("กรุณากรอกจำนวนเงินให้ถูกต้อง");
+      setErrorMessage("กรุณากรอกจำนวนเงินให้ถูกต้อง (มากกว่า 0 บาท)");
       return;
     }
 
@@ -33,15 +38,15 @@ export default function AddExpenseScreen() {
 
       const data = await res.json();
       if (data.status === "success") {
-        alert(data.message + (data.mocked ? " (โหมดทดสอบ)" : ""));
+        setSuccessMessage(data.message + (data.mocked ? " (โหมดทดสอบ UI)" : ""));
         setAmount("");
         setDesc("");
       } else {
-        alert("เกิดข้อผิดพลาด: " + data.message);
+        setErrorMessage("เกิดข้อผิดพลาด: " + data.message);
       }
     } catch (err: any) {
       console.error(err);
-      alert("ไม่สามารถบันทึกได้: " + err.message);
+      setErrorMessage("ไม่สามารถเชื่อมต่อระบบหลังบ้านได้: " + err.message);
     } finally {
       setLoading(false);
     }
@@ -70,7 +75,10 @@ export default function AddExpenseScreen() {
           <input
             type="number"
             value={amount}
-            onChange={(e) => setAmount(e.target.value)}
+            onChange={(e) => {
+              setAmount(e.target.value);
+              setErrorMessage("");
+            }}
             placeholder="0.00"
             className="bg-[#18181B] border border-white/10 text-center text-xl rounded-xl p-3 w-full focus:border-[#EF4444] focus:outline-none transition-all duration-300 placeholder-[#B3B3B3]"
           />
@@ -109,25 +117,39 @@ export default function AddExpenseScreen() {
         </div>
       </div>
 
-      <button
-        onClick={submitExpense}
-        disabled={loading}
-        className={`bg-[#EF4444] hover:bg-[#EF4444]/80 text-white font-bold p-4 rounded-2xl w-full transition-all transform active:scale-95 flex justify-center items-center gap-2 ${
-          loading ? "opacity-50 cursor-not-allowed" : ""
-        }`}
-      >
-        {loading ? (
-          <>
-            <svg className="animate-spin h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-              <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-              <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-            </svg>
-            กำลังบันทึกรายการ...
-          </>
-        ) : (
-          "บันทึกรายจ่ายลงแผ่นงาน"
+      <div>
+        {/* On-Screen Status Messages */}
+        {errorMessage && (
+          <div className="mb-4 p-3 bg-[#EF4444]/10 border border-[#EF4444]/30 text-[#EF4444] text-xs rounded-xl text-center">
+            ⚠️ {errorMessage}
+          </div>
         )}
-      </button>
+        {successMessage && (
+          <div className="mb-4 p-3 bg-[#10B981]/10 border border-[#10B981]/30 text-[#10B981] text-xs rounded-xl text-center">
+            ✅ {successMessage}
+          </div>
+        )}
+
+        <button
+          onClick={submitExpense}
+          disabled={loading}
+          className={`bg-[#EF4444] hover:bg-[#EF4444]/80 text-white font-bold p-4 rounded-2xl w-full transition-all transform active:scale-95 flex justify-center items-center gap-2 ${
+            loading ? "opacity-50 cursor-not-allowed" : ""
+          }`}
+        >
+          {loading ? (
+            <>
+              <svg className="animate-spin h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+              </svg>
+              กำลังบันทึกรายการ...
+            </>
+          ) : (
+            "บันทึกรายจ่ายลงแผ่นงาน"
+          )}
+        </button>
+      </div>
     </div>
   );
 }
