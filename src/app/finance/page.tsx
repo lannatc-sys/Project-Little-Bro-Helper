@@ -141,7 +141,7 @@ export default function FinanceScreen() {
 
         {/* Net Profit SVG Chart */}
         <div className="bg-surface/20 border border-white/5 p-4 rounded-2xl mb-6">
-          <h3 className="text-xs text-text-sub mb-3">กราฟสรุปกำไรสุทธิ</h3>
+          <h3 className="text-xs text-text-sub mb-3">กราฟสรุปยอดคงเหลือ</h3>
           <div className="h-28 w-full flex items-end justify-center relative">
             <svg className="w-full h-24" viewBox="0 0 100 30" preserveAspectRatio="none">
               <line x1="0" y1="10" x2="100" y2="10" stroke="currentColor" strokeWidth="0.05" strokeDasharray="1" className="text-text-sub/20" />
@@ -190,11 +190,11 @@ export default function FinanceScreen() {
                 </div>
               ))
             ) : (
-              <p className="text-xs text-text-sub text-center p-4">ไม่มีรายการรายจ่ายสำหรับแจกแจงครับบอส</p>
+              <p className="text-xs text-text-sub text-center p-4">ไม่มีรายการรายจ่ายสำหรับแจกแจงครับ</p>
             )}
           </div>
         </section>
-
+ 
         {/* Stance Avatar Card */}
         <div className="bg-surface/40 border border-[#5B5CEB]/25 p-4 rounded-2xl flex items-center gap-4">
           <div className="w-14 h-14 rounded-full overflow-hidden bg-surface flex-shrink-0 border border-white/10">
@@ -209,7 +209,7 @@ export default function FinanceScreen() {
           <div>
             <h4 className="text-xs font-bold text-text-main mb-1">วิเคราะห์ทางการเงิน 🧠</h4>
             <p className="text-[10px] text-text-sub leading-relaxed">
-              วิเคราะห์รายจ่ายจากฐานข้อมูล Google Sheets เรียบร้อยครับ รายจ่ายหลักคือ {categories[0]?.name || "ทั่วไป"} บอสสามารถคุมส่วนนี้ได้ทันทีครับ!
+              วิเคราะห์รายจ่ายจากฐานข้อมูล Google Sheets เรียบร้อยครับ รายจ่ายหลักคือ {categories[0]?.name || "ทั่วไป"} คุณสามารถคุมส่วนนี้ได้ทันทีครับ!
             </p>
           </div>
         </div>
