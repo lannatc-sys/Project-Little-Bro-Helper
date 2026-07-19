@@ -34,6 +34,7 @@ function doPost(e) {
     // CASE A: สั่งจัดระเบียบและขึ้นตารางฐานข้อมูลใหม่ (Workspace Initializer)
     if (action === "initialize_workspace") {
       var initResult = runWorkspaceSetup(ssId);
+      setupTimeTrigger(); // ตั้งค่าตารางคิวเวลาแจ้งเตือนสะสมอัตโนมัติ
       return createJsonResponse({ status: "success", message: "Workspace Initialized Successfully", sheets_processed: initResult });
     }
     
@@ -296,7 +297,92 @@ function runWorkspaceSetup(spreadsheetId) {
 }
 
 /**
- * 3. ฟังก์ชันแปลงค่าและพ่นรูปแบบกลับเป็น JSON MimeType มาตรฐาน (Helper)
+ * 3. ฟังก์ชันแจ้งเตือนงานเช็คลิสต์ด่วนอัตโนมัติ (Time-driven Scheduler Trigger)
+ * ค้นหาภารกิจที่ยังไม่เสร็จ และตรงเวลากำหนดแจ้งเตือน ส่งหากลุ่มบอทสนทนา Telegram
+ */
+function checkTaskReminders() {
+  var ss = SpreadsheetApp.getActiveSpreadsheet();
+  
+  var botToken = "8838172150:AAEYqB68iIygAtTxG1TqChycBXrBulB0BcQ";
+  var chatId = "";
+  
+  // พยายามค้นหา Telegram Chat ID จากสเปรดชีต Users แถวแรก
+  var usersSheet = ss.getSheetByName("Users");
+  if (usersSheet && usersSheet.getLastRow() > 1) {
+    chatId = usersSheet.getRange(2, 1).getValue().toString();
+  }
+  
+  if (!chatId) return;
+  
+  var taskSheet = ss.getSheetByName("Task");
+  if (!taskSheet) return;
+  
+  var taskRows = taskSheet.getDataRange().getValues();
+  var headers = taskRows[0];
+  var taskNameIdx = headers.indexOf("task_name");
+  var statusIdx = headers.indexOf("status");
+  var dueDateIdx = headers.indexOf("due_date");
+  var reminderTimeIdx = headers.indexOf("reminder_time");
+  
+  var now = new Date();
+  var currentTimeString = Utilities.formatDate(now, Session.getScriptTimeZone() || "GMT+7", "HH:mm");
+  
+  for (var i = 1; i < taskRows.length; i++) {
+    var row = taskRows[i];
+    var status = row[statusIdx];
+    var reminderTime = row[reminderTimeIdx] ? row[reminderTimeIdx].toString().trim() : "";
+    
+    if (status !== "Completed" && reminderTime) {
+      // ตรวจสอบถ้าเวลาปัจจุบันของบอสตรงกับช่องตั้งเวลาเตือนภัย
+      if (reminderTime.includes(currentTimeString)) {
+        var taskName = row[taskNameIdx];
+        var dueDate = row[dueDateIdx] || "ด่วนที่สุด";
+        
+        var msg = "🔔 *แจ้งเตือนงานด่วนสะสมครับบอส!*\n\n*งาน*: " + taskName + "\n*กำหนดส่ง*: " + dueDate + "\n\nอย่าลืมเคลียร์งานนี้นะครับบอส! 👔";
+        
+        sendTelegramNotification(botToken, chatId, msg);
+      }
+    }
+  }
+}
+
+/**
+ * 4. ส่งข้อความแจ้งเตือนหา API บอท Telegram
+ */
+function sendTelegramNotification(token, chatId, text) {
+  var url = "https://api.telegram.org/bot" + token + "/sendMessage";
+  var payload = {
+    "chat_id": chatId,
+    "text": text,
+    "parse_mode": "Markdown"
+  };
+  var options = {
+    "method": "post",
+    "contentType": "application/json",
+    "payload": JSON.stringify(payload),
+    "muteHttpExceptions": true
+  };
+  UrlFetchApp.fetch(url, options);
+}
+
+/**
+ * 5. ฟังก์ชันติดตั้งคิวเวลาทำงานเบื้องหลัง (Cron Job Trigger 5 mins)
+ */
+function setupTimeTrigger() {
+  var triggers = ScriptApp.getProjectTriggers();
+  for (var i = 0; i < triggers.length; i++) {
+    if (triggers[i].getHandlerFunction() === "checkTaskReminders") {
+      ScriptApp.deleteTrigger(triggers[i]);
+    }
+  }
+  ScriptApp.newTrigger("checkTaskReminders")
+           .timeBased()
+           .everyMinutes(5)
+           .create();
+}
+
+/**
+ * 6. ฟังก์ชันแปลงค่าและพ่นรูปแบบกลับเป็น JSON MimeType มาตรฐาน (Helper)
  */
 function createJsonResponse(outputObject) {
   return ContentService.createTextOutput(JSON.stringify(outputObject))

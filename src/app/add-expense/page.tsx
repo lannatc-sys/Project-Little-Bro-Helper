@@ -1,11 +1,13 @@
 "use client";
 
 import Link from "next/link";
-import { useState, useEffect, Suspense } from "react";
+import { useState, useEffect, useRef, Suspense } from "react";
 import { useSearchParams } from "next/navigation";
 
 function AddExpenseForm() {
   const searchParams = useSearchParams();
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
   const [isIncome, setIsIncome] = useState(false);
   const [amount, setAmount] = useState("");
   const [category, setCategory] = useState("ค่าอาหาร");
@@ -13,6 +15,10 @@ function AddExpenseForm() {
   const [loading, setLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
   const [successMessage, setSuccessMessage] = useState("");
+
+  // Receipt attachment states
+  const [fileUrl, setFileUrl] = useState("");
+  const [fileUploading, setFileUploading] = useState(false);
 
   // Load transaction type from query params
   useEffect(() => {
@@ -32,11 +38,51 @@ function AddExpenseForm() {
     setCategory(toIncome ? "ค่าเช่าห้องพัก" : "ค่าอาหาร");
     setErrorMessage("");
     setSuccessMessage("");
+    setFileUrl("");
   };
 
   const categories = isIncome
     ? ["ค่าเช่าห้องพัก", "ค่าบริการ", "ขายสินค้า", "รายได้อื่นๆ"]
     : ["ค่าน้ำมันรถ", "ค่าอาหาร", "ค่าสิ่งของ", "ค่าสาธารณูปโภค"];
+
+  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const selectedFile = e.target.files?.[0];
+    if (!selectedFile) return;
+
+    setFileUploading(true);
+    setErrorMessage("");
+    setSuccessMessage("");
+    const reader = new FileReader();
+
+    reader.onload = async () => {
+      const base64String = (reader.result as string).split(",")[1];
+      try {
+        const res = await fetch("/api/expense", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            action: "upload_file",
+            file_data: base64String,
+            file_name: selectedFile.name,
+            mime_type: selectedFile.type
+          })
+        });
+        const result = await res.json();
+        if (result.status === "success" && result.file_url) {
+          setFileUrl(result.file_url);
+        } else {
+          setErrorMessage("อัปโหลดสลิปไม่สำเร็จ: " + result.message);
+        }
+      } catch (err: any) {
+        console.error(err);
+        setErrorMessage("การเชื่อมต่อล้มเหลวขณะอัปโหลดสลิป");
+      } finally {
+        setFileUploading(false);
+      }
+    };
+
+    reader.readAsDataURL(selectedFile);
+  };
 
   const submitTransaction = async () => {
     setErrorMessage("");
@@ -58,6 +104,7 @@ function AddExpenseForm() {
           amount: Number(amount),
           category,
           description: desc,
+          file_attachment_url: fileUrl, // Real Google Drive link!
           transaction_type: isIncome ? "Income" : "Expense",
           action: isIncome ? "add_income" : "add_expense"
         })
@@ -65,9 +112,10 @@ function AddExpenseForm() {
 
       const data = await res.json();
       if (data.status === "success") {
-        setSuccessMessage(data.message + (data.mocked ? " (โหมดทดสอบ UI)" : ""));
+        setSuccessMessage(data.message);
         setAmount("");
         setDesc("");
+        setFileUrl("");
       } else {
         setErrorMessage("เกิดข้อผิดพลาด: " + data.message);
       }
@@ -162,7 +210,7 @@ function AddExpenseForm() {
         </div>
 
         {/* Notes Input */}
-        <div className="mb-6">
+        <div className="mb-4">
           <label className="text-xs text-text-sub font-semibold uppercase tracking-wider block mb-2">คำอธิบายเพิ่มเติม</label>
           <input
             type="text"
@@ -173,6 +221,54 @@ function AddExpenseForm() {
               isIncome ? "focus:border-[#10B981]/50" : "focus:border-[#EF4444]/50"
             }`}
           />
+        </div>
+
+        {/* File Receipt Attachment Input */}
+        <div className="mb-6">
+          <label className="text-[10px] text-text-sub font-semibold uppercase tracking-wider block mb-2">
+            📄 แนบหลักฐานเอกสาร (สลิป/ใบเสร็จ)
+          </label>
+          <div className="flex items-center gap-3">
+            <input 
+              type="file" 
+              accept="image/*,application/pdf"
+              ref={fileInputRef}
+              onChange={handleFileChange}
+              className="hidden" 
+            />
+            
+            <button
+              type="button"
+              onClick={() => fileInputRef.current?.click()}
+              disabled={fileUploading}
+              className="bg-surface border border-white/10 hover:border-white/20 text-text-main text-xs font-bold px-4 py-2.5 rounded-xl transition-all flex items-center gap-2 cursor-pointer"
+            >
+              {fileUploading ? (
+                <>
+                  <svg className="animate-spin h-3.5 w-3.5 text-text-main" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                  </svg>
+                  กำลังบันทึกสลิป...
+                </>
+              ) : fileUrl ? (
+                "เปลี่ยนภาพหลักฐาน 🔄"
+              ) : (
+                "เลือกสลิป/สแกน 📸"
+              )}
+            </button>
+
+            {fileUrl && (
+              <a 
+                href={fileUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-[10px] text-[#5B5CEB] underline hover:text-[#5B5CEB]/80 truncate max-w-[170px]"
+              >
+                เปิดไฟล์หลักฐาน Google Drive ➔
+              </a>
+            )}
+          </div>
         </div>
       </div>
 
@@ -193,9 +289,9 @@ function AddExpenseForm() {
 
         <button
           onClick={submitTransaction}
-          disabled={loading}
+          disabled={loading || fileUploading}
           className={`${themeBgClass} ${themeHoverBgClass} text-white font-bold p-4 rounded-2xl w-full transition-all transform active:scale-95 flex justify-center items-center gap-2 ${
-            loading ? "opacity-50 cursor-not-allowed" : ""
+            loading || fileUploading ? "opacity-50 cursor-not-allowed" : ""
           }`}
         >
           {loading ? (
