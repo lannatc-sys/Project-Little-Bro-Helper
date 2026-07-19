@@ -142,7 +142,8 @@ export async function POST(request: Request) {
 
     const chatId = update.message.chat.id;
     const text = (update.message.text || "").trim();
-    const username = update.message.from?.username || "User";
+    const rawUsername = update.message.from?.username || "User";
+    const username = rawUsername.replace(/[_*`[\]()]/g, "\\$&");
 
     // B.1 Check if we are currently awaiting a rejection reason
     if (fs.existsSync(approvalFilePath)) {

@@ -90,7 +90,9 @@ export async function POST(request: Request) {
     const adminChatId = "5581598534"; // active user iGAMER
 
     if (token) {
-      const message = `👤 *คำขอเปิดใช้งานระบบผู้ช่วยส่วนตัว*\n\n*ชื่อผู้ใช้*: ${username}\n*อีเมล*: ${email}\n*Chat ID*: ${telegram_chat_id || "ไม่ได้ระบุ"}\n\nกรุณาพิจารณาอนุมัติหรือปฏิเสธคำขอเข้าใช้งานนี้ด้วยครับ`;
+      const escapedUsername = (username || "User").replace(/[_*`[\]()]/g, "\\$&");
+      const escapedEmail = (email || "").replace(/[_*`[\]()]/g, "\\$&");
+      const message = `👤 *คำขอเปิดใช้งานระบบผู้ช่วยส่วนตัว*\n\n*ชื่อผู้ใช้*: ${escapedUsername}\n*อีเมล*: ${escapedEmail}\n*Chat ID*: ${telegram_chat_id || "ไม่ได้ระบุ"}\n\nกรุณาพิจารณาอนุมัติหรือปฏิเสธคำขอเข้าใช้งานนี้ด้วยครับ`;
       
       const inlineKeyboard = [
         [
