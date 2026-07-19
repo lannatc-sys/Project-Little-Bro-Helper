@@ -180,7 +180,7 @@ export default function OnboardingScreen() {
 
           <div className="w-40 h-40 bg-surface/40 border border-white/5 rounded-full flex items-center justify-center mb-8 relative shadow-inner">
             <div className="text-5xl font-black text-text-main">G</div>
-            <div className="absolute -bottom-1 -right-1 w-12 h-12 rounded-full overflow-hidden bg-surface border border-white/10 flex items-center justify-center">
+            <div className="absolute -bottom-1 -right-1 w-12 h-12 rounded-full overflow-hidden bg-white border border-white/10 flex items-center justify-center">
               <Image src="/avatar/hello.png" alt="Little Bro Connect" width={44} height={44} />
             </div>
           </div>

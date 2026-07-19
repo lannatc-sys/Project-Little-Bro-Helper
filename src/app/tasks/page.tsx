@@ -108,7 +108,7 @@ function TasksForm() {
   if (loading) {
     return (
       <div className="min-h-screen bg-background flex flex-col items-center justify-center text-text-main p-6 font-sans">
-        <div className="w-24 h-24 mb-4 rounded-full overflow-hidden bg-surface border border-[#5B5CEB]/30 animate-bounce flex items-center justify-center">
+        <div className="w-24 h-24 mb-4 rounded-full overflow-hidden bg-white border border-[#5B5CEB]/30 animate-bounce flex items-center justify-center">
           <Image src="/avatar/thinking.png" alt="Thinking" width={80} height={80} className="object-cover" />
         </div>
         <p className="text-xs text-text-sub">กำลังซิงก์รายการงาน...</p>
@@ -190,7 +190,7 @@ function TasksForm() {
 
         {/* Stance Avatar Card */}
         <div className="bg-surface/40 border border-[#5B5CEB]/25 p-4 rounded-2xl flex items-center gap-4 mt-6">
-          <div className="w-14 h-14 rounded-full overflow-hidden bg-surface flex-shrink-0 border border-white/10">
+          <div className="w-14 h-14 rounded-full overflow-hidden bg-white flex-shrink-0 border border-white/10">
             <Image
               src="/avatar/plan.png"
               alt="Plan Stance"

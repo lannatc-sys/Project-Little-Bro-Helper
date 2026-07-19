@@ -95,7 +95,7 @@ export async function POST(request: Request) {
       const inlineKeyboard = [
         [
           { text: "🟢 อนุมัติการสร้างระบบ", callback_data: `reg_approve:${email}` },
-          { text: "❌ ปฏิเสธคำขอ", callback_data: `reg_reject:${email}` }
+          { text: "❌ ไม่อนุมัติ", callback_data: `reg_reject:${email}` }
         ]
       ];
 

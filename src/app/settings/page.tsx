@@ -110,7 +110,7 @@ export default function SettingsScreen() {
 
         {/* Profile Card */}
         <div className="bg-surface/40 border border-white/5 p-4 rounded-2xl mb-6 flex items-center gap-4">
-          <div className="w-12 h-12 rounded-full overflow-hidden border border-[#5B5CEB]/30 bg-surface">
+          <div className="w-12 h-12 rounded-full overflow-hidden border border-[#5B5CEB]/30 bg-white">
             <Image
               src="/avatar/hello.png"
               alt="Owner Avatar"
@@ -270,7 +270,7 @@ export default function SettingsScreen() {
 
         {/* Stance Avatar Card */}
         <div className="bg-surface/40 border border-[#5B5CEB]/25 p-4 rounded-2xl flex items-center gap-4">
-          <div className="w-14 h-14 rounded-full overflow-hidden bg-surface flex-shrink-0 border border-white/10">
+          <div className="w-14 h-14 rounded-full overflow-hidden bg-white flex-shrink-0 border border-white/10">
             <Image
               src="/avatar/manageable.png"
               alt="Manage Stance"

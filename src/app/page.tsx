@@ -113,7 +113,7 @@ export default function HomeScreen() {
   if (loading) {
     return (
       <div className="min-h-screen bg-background flex flex-col items-center justify-center text-text-main p-6 font-sans">
-        <div className="w-24 h-24 mb-4 rounded-full overflow-hidden bg-surface border border-[#5B5CEB]/30 animate-bounce flex items-center justify-center">
+        <div className="w-24 h-24 mb-4 rounded-full overflow-hidden bg-white border border-[#5B5CEB]/30 animate-bounce flex items-center justify-center">
           <Image src="/avatar/thinking.png" alt="Thinking" width={80} height={80} className="object-cover" />
         </div>
         <p className="text-xs text-text-sub">กำลังซิงก์ข้อมูลบัญชีส่วนตัว...</p>
@@ -139,7 +139,7 @@ export default function HomeScreen() {
               </svg>
               <span className="absolute top-1 right-1 w-2 h-2 bg-[#EF4444] rounded-full"></span>
             </button>
-            <div className="w-10 h-10 rounded-full border border-[#5B5CEB]/30 overflow-hidden bg-surface">
+            <div className="w-10 h-10 rounded-full border border-[#5B5CEB]/30 overflow-hidden bg-white">
               <Image
                 src={avatar}
                 alt="Little Bro Avatar"

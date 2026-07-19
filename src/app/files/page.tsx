@@ -104,7 +104,7 @@ export default function FilesScreen() {
   if (loading) {
     return (
       <div className="min-h-screen bg-background flex flex-col items-center justify-center text-text-main p-6 font-sans">
-        <div className="w-24 h-24 mb-4 rounded-full overflow-hidden bg-surface border border-[#5B5CEB]/30 animate-bounce flex items-center justify-center">
+        <div className="w-24 h-24 mb-4 rounded-full overflow-hidden bg-white border border-[#5B5CEB]/30 animate-bounce flex items-center justify-center">
           <Image src="/avatar/thinking.png" alt="Thinking" width={80} height={80} className="object-cover" />
         </div>
         <p className="text-xs text-text-sub">กำลังซิงก์คลังไฟล์จาก Google Drive...</p>
@@ -224,7 +224,7 @@ export default function FilesScreen() {
 
         {/* Stance Avatar Card */}
         <div className="bg-surface/40 border border-[#5B5CEB]/25 p-4 rounded-2xl flex items-center gap-4">
-          <div className="w-14 h-14 rounded-full overflow-hidden bg-surface flex-shrink-0 border border-white/10">
+          <div className="w-14 h-14 rounded-full overflow-hidden bg-white flex-shrink-0 border border-white/10">
             <Image
               src="/avatar/store.png"
               alt="Store Stance"
@@ -236,7 +236,7 @@ export default function FilesScreen() {
           <div>
             <h4 className="text-xs font-bold text-text-main mb-1">คลังจัดเก็บไฟล์ปลอดภัย 📁</h4>
             <p className="text-[10px] text-text-sub leading-relaxed">
-              ไฟล์ที่บอสอัปโหลดทั้งหมดจะถูกส่งตรงไปจัดเก็บใน Google Drive ส่วนตัว ภายใต้โฟลเดอร์หลัก "Little Bro Helper Files" แบบอัตโนมัติ 100% ครับ!
+              ไฟล์ที่อัปโหลดทั้งหมดจะถูกส่งตรงไปจัดเก็บใน Google Drive ส่วนตัว ภายใต้โฟลเดอร์หลัก "Little Bro Helper Files" แบบอัตโนมัติ 100% ครับ!
             </p>
           </div>
         </div>

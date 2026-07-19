@@ -92,7 +92,7 @@ export async function POST(request: Request) {
             }
           } else {
             reg.status = "rejected";
-            responseText = `❌ *ปฏิเสธคำขอการเข้าใช้งานของผู้ใช้นี้เรียบร้อยครับ*`;
+            responseText = `❌ *ไม่อนุมัติคำขอการเข้าใช้งานเรียบร้อยครับ*`;
             
             // Notify user
             if (reg.telegram_chat_id) {
@@ -101,7 +101,7 @@ export async function POST(request: Request) {
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({
                   chat_id: reg.telegram_chat_id,
-                  text: `⚠️ *คำขอเปิดใช้งานบัญชีของคุณได้รับการปฏิเสธ*\n\nหากคิดว่านี่คือข้อผิดพลาด กรุณาติดต่อผู้ดูแลระบบเพื่อขอสิทธิ์เชื่อมต่ออีกครั้งครับ`,
+                  text: `⚠️ *คำขอเปิดใช้งานบัญชีของคุณไม่ได้รับการอนุมัติ*\n\nหากคิดว่านี่คือข้อผิดพลาด กรุณาติดต่อผู้ดูแลระบบเพื่อขอสิทธิ์เชื่อมต่ออีกครั้งครับ`,
                   parse_mode: "Markdown"
                 })
               });
