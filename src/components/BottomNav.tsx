@@ -6,6 +6,8 @@ import { usePathname } from "next/navigation";
 export default function BottomNav() {
   const pathname = usePathname();
 
+  if (pathname === "/onboarding") return null;
+
   const tabs = [
     {
       name: "หน้าหลัก",

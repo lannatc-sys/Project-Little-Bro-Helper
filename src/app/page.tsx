@@ -3,8 +3,10 @@
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import Image from "next/image";
+import { useRouter } from "next/navigation";
 
 export default function HomeScreen() {
+  const router = useRouter();
   const [greeting, setGreeting] = useState("สวัสดีครับบอส 👔");
   const [avatar, setAvatar] = useState("/avatar/hello.png");
   const [tasks, setTasks] = useState([
@@ -14,6 +16,12 @@ export default function HomeScreen() {
   ]);
 
   useEffect(() => {
+    // Check onboarding status
+    const onboarded = localStorage.getItem("little_bro_onboarded");
+    if (!onboarded) {
+      router.push("/onboarding");
+    }
+
     const hour = new Date().getHours();
     if (hour >= 5 && hour < 12) {
       setGreeting("สวัสดีตอนเช้าบอส! ☀️");
@@ -28,7 +36,7 @@ export default function HomeScreen() {
       setGreeting("ดึกแล้วครับบอส รักษาสุขภาพด้วย 💤");
       setAvatar("/avatar/ready.png");
     }
-  }, []);
+  }, [router]);
 
   const toggleTask = (id: number) => {
     setTasks(
