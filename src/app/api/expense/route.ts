@@ -5,7 +5,7 @@ export async function POST(request: Request) {
     const body = await request.json();
     
     const spreadsheetId = process.env.GOOGLE_SPREADSHEET_ID;
-    const appsScriptUrl = process.env.GOOGLE_APPS_SCRIPT_URL;
+    const appsScriptUrl = process.env.GOOGLE_APPS_SCRIPT_URL || process.env.NEXT_PUBLIC_BACKEND_GAS_URL;
 
     // หากยังไม่มีการตั้งค่า Apps Script URL จริง ให้ตอบกลับเป็น Mock Response เพื่อการทดสอบ UI
     if (!appsScriptUrl || appsScriptUrl.includes("placeholder")) {
