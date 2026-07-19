@@ -5,7 +5,6 @@ import Image from "next/image";
 
 export default function SettingsScreen() {
   const [theme, setTheme] = useState("dark");
-  const [layout, setLayout] = useState("mobile");
   
   // Workspace setup Modal States
   const [showWorkspaceModal, setShowWorkspaceModal] = useState(false);
@@ -15,22 +14,13 @@ export default function SettingsScreen() {
 
   useEffect(() => {
     const savedTheme = localStorage.getItem("little_bro_theme") || "dark";
-    const savedLayout = localStorage.getItem("little_bro_layout") || "mobile";
     setTheme(savedTheme);
-    setLayout(savedLayout);
   }, []);
 
   const handleThemeChange = (newTheme: string) => {
     setTheme(newTheme);
     if ((window as any).toggleLittleBroTheme) {
       (window as any).toggleLittleBroTheme(newTheme);
-    }
-  };
-
-  const handleLayoutChange = (newLayout: string) => {
-    setLayout(newLayout);
-    if ((window as any).toggleLittleBroLayout) {
-      (window as any).toggleLittleBroLayout(newLayout);
     }
   };
 
@@ -149,7 +139,7 @@ export default function SettingsScreen() {
 
         {/* Theme & Display Options */}
         <section className="mb-6 bg-surface/20 border border-white/5 p-4 rounded-2xl space-y-4">
-          <h3 className="text-xs font-bold text-text-sub uppercase tracking-wider">ตัวเลือกการแสดงผล (Device & Theme)</h3>
+          <h3 className="text-xs font-bold text-text-sub uppercase tracking-wider">ตัวเลือกการแสดงผล (Display Settings)</h3>
           
           {/* Theme Selector */}
           <div className="flex justify-between items-center text-xs">
@@ -170,29 +160,6 @@ export default function SettingsScreen() {
                 }`}
               >
                 ☀️ Light
-              </button>
-            </div>
-          </div>
-
-          {/* Layout Selector */}
-          <div className="flex justify-between items-center text-xs">
-            <span>รูปแบบการรันแอป (Device Mode)</span>
-            <div className="flex bg-surface p-1 rounded-xl border border-white/5">
-              <button
-                onClick={() => handleLayoutChange("mobile")}
-                className={`px-3 py-1 rounded-lg font-bold transition-all text-xs ${
-                  layout === "mobile" ? "bg-[#5B5CEB] text-white" : "text-text-sub hover:text-text-main"
-                }`}
-              >
-                📱 Mobile Frame
-              </button>
-              <button
-                onClick={() => handleLayoutChange("desktop")}
-                className={`px-3 py-1 rounded-lg font-bold transition-all text-xs ${
-                  layout === "desktop" ? "bg-[#5B5CEB] text-white" : "text-text-sub hover:text-text-main"
-                }`}
-              >
-                🖥️ Full Screen
               </button>
             </div>
           </div>

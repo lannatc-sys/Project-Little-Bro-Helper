@@ -482,6 +482,40 @@ function runWorkspaceSetup(spreadsheetId) {
     sheet.getRange(1, 1, 1, headerLength).setValues([SHEETS_SCHEMA[sheetName]]);
     sheet.setFrozenRows(1);
   }
+
+  // 2. ค้นหาหรือสร้าง ปฏิทิน Little Bro Assistant อัตโนมัติ
+  try {
+    var calendarName = "Little Bro Assistant";
+    var cals = CalendarApp.getCalendarsByName(calendarName);
+    var cal;
+    if (cals.length === 0) {
+      cal = CalendarApp.createCalendar(calendarName);
+      logs.push("Created secondary calendar: " + calendarName);
+    } else {
+      cal = cals[0];
+      logs.push("Verified secondary calendar: " + calendarName);
+    }
+    
+    // บันทึก ID ปฏิทินลงในชีต Settings
+    var settingsSheet = ss.getSheetByName("Settings");
+    if (settingsSheet) {
+      var rows = settingsSheet.getDataRange().getValues();
+      var foundRowIdx = -1;
+      for (var i = 1; i < rows.length; i++) {
+        if (rows[i][0].toString() === "GOOGLE_CALENDAR_ID") {
+          foundRowIdx = i + 1;
+          break;
+        }
+      }
+      if (foundRowIdx !== -1) {
+        settingsSheet.getRange(foundRowIdx, 2).setValue(cal.getId());
+      } else {
+        settingsSheet.appendRow(["GOOGLE_CALENDAR_ID", cal.getId()]);
+      }
+    }
+  } catch (err) {
+    logs.push("Calendar setup error: " + err.toString());
+  }
   
   return logs;
 }

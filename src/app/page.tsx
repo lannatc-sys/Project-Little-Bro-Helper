@@ -73,6 +73,19 @@ export default function HomeScreen() {
       return;
     }
 
+    // Load read notifications
+    const readIds = JSON.parse(localStorage.getItem("little_bro_read_notifications") || "[]");
+    if (readIds.length > 0) {
+      setNotifications(prev => {
+        const updated = prev.map(n => ({
+          ...n,
+          unread: !readIds.includes(n.id)
+        }));
+        setHasUnread(updated.some(n => n.unread));
+        return updated;
+      });
+    }
+
     const hour = new Date().getHours();
     if (hour >= 5 && hour < 12) {
       setGreeting("สวัสดีตอนเช้าครับ! ☀️");
@@ -350,6 +363,8 @@ export default function HomeScreen() {
             <div className="flex gap-2">
               <button
                 onClick={() => {
+                  const allIds = notifications.map(n => n.id);
+                  localStorage.setItem("little_bro_read_notifications", JSON.stringify(allIds));
                   setNotifications(notifications.map(n => ({ ...n, unread: false })));
                   setHasUnread(false);
                 }}

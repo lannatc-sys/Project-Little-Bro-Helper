@@ -78,7 +78,7 @@ export default function FinanceScreen() {
     }
   };
 
-  const handleDeleteTransaction = async (timestamp: string) => {
+  const handleDeleteTransaction = async (item: any) => {
     if (!confirm("ต้องการลบรายการธุรกรรมการเงินนี้ออกจากชีตใช่หรือไม่ครับบอส?")) return;
     
     setLoading(true);
@@ -88,7 +88,11 @@ export default function FinanceScreen() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           action: "delete_expense",
-          timestamp
+          timestamp: item.timestamp,
+          category: item.category,
+          amount: Number(item.amount),
+          description: item.description || "",
+          transaction_type: item.transaction_type
         })
       });
       const data = await response.json();
@@ -121,6 +125,9 @@ export default function FinanceScreen() {
   }
 
   const netProfit = incomeSum - expenseSum;
+  const total = incomeSum + expenseSum;
+  const incomePercent = total > 0 ? Math.round((incomeSum / total) * 100) : 50;
+  const expensePercent = total > 0 ? Math.round((expenseSum / total) * 100) : 50;
 
   const filteredTxList = transactions.filter(item => {
     if (activeTab === "รายรับ") return item.transaction_type === "Income";
@@ -178,22 +185,59 @@ export default function FinanceScreen() {
               <span className="text-[10px] text-[#10B981] font-semibold bg-[#10B981]/15 px-2.5 py-0.5 rounded-full">ซิงก์จริงจาก Google Sheets</span>
             </div>
 
-            {/* Chart SVG */}
-            <div className="bg-surface/20 border border-white/5 p-4 rounded-2xl mb-6">
-              <h3 className="text-xs text-text-sub mb-3">กราฟสรุปยอดคงเหลือ</h3>
-              <div className="h-28 w-full flex items-end justify-center relative">
-                <svg className="w-full h-24" viewBox="0 0 100 30" preserveAspectRatio="none">
-                  <line x1="0" y1="10" x2="100" y2="10" stroke="currentColor" strokeWidth="0.05" strokeDasharray="1" className="text-text-sub/20" />
-                  <line x1="0" y1="20" x2="100" y2="20" stroke="currentColor" strokeWidth="0.05" strokeDasharray="1" className="text-text-sub/20" />
-                  <path
-                    d={`M 0 25 Q 25 15 50 18 T 100 ${netProfit >= 0 ? 5 : 25}`}
-                    fill="none"
-                    stroke="#5B5CEB"
-                    strokeWidth="1"
-                    strokeLinecap="round"
+            {/* Doughnut Chart (กราฟวงกลม) */}
+            <div className="bg-surface/20 border border-white/5 p-4 rounded-2xl mb-6 flex flex-col items-center">
+              <h3 className="text-xs text-text-sub w-full mb-3 text-left">สัดส่วนรายรับ - รายจ่าย 📊</h3>
+              <div className="relative w-36 h-36 flex items-center justify-center">
+                <svg className="w-full h-full transform -rotate-90" viewBox="0 0 42 42">
+                  {/* Background Track */}
+                  <circle cx="21" cy="21" r="15.91549430918954" fill="transparent" stroke="rgba(255,255,255,0.03)" strokeWidth="4.5" />
+                  
+                  {/* Income Segment (Green) */}
+                  <circle 
+                    cx="21" 
+                    cy="21" 
+                    r="15.91549430918954" 
+                    fill="transparent" 
+                    stroke="#10B981" 
+                    strokeWidth="4.5" 
+                    strokeDasharray={`${incomePercent} ${100 - incomePercent}`} 
+                    strokeDashoffset="0" 
+                    className="transition-all duration-1000"
                   />
-                  <circle cx="100" cy={netProfit >= 0 ? 5 : 25} r="2" fill="#10B981" />
+                  
+                  {/* Expense Segment (Red) */}
+                  <circle 
+                    cx="21" 
+                    cy="21" 
+                    r="15.91549430918954" 
+                    fill="transparent" 
+                    stroke="#EF4444" 
+                    strokeWidth="4.5" 
+                    strokeDasharray={`${expensePercent} ${100 - expensePercent}`} 
+                    strokeDashoffset={`${-incomePercent}`} 
+                    className="transition-all duration-1000"
+                  />
                 </svg>
+                {/* Center text */}
+                <div className="absolute text-center">
+                  <span className="text-[8px] text-text-sub block uppercase tracking-wider">คงเหลือ</span>
+                  <span className={`text-xs font-extrabold ${netProfit >= 0 ? "text-[#10B981]" : "text-[#EF4444]"}`}>
+                    {netProfit >= 0 ? "+" : ""}฿{netProfit.toLocaleString("th-TH")}
+                  </span>
+                </div>
+              </div>
+              
+              {/* Legend indicators */}
+              <div className="flex gap-6 mt-4 justify-center w-full text-[10px]">
+                <div className="flex items-center gap-1.5">
+                  <span className="w-2.5 h-2.5 rounded-full bg-[#10B981] inline-block" />
+                  <span className="text-text-sub font-medium">รายรับ ({incomePercent}%)</span>
+                </div>
+                <div className="flex items-center gap-1.5">
+                  <span className="w-2.5 h-2.5 rounded-full bg-[#EF4444] inline-block" />
+                  <span className="text-text-sub font-medium">รายจ่าย ({expensePercent}%)</span>
+                </div>
               </div>
             </div>
 
@@ -310,9 +354,9 @@ export default function FinanceScreen() {
                             </a>
                           )}
                         </div>
-                        {item.timestamp && (
+                        {item && (
                           <button 
-                            onClick={() => handleDeleteTransaction(item.timestamp)}
+                            onClick={() => handleDeleteTransaction(item)}
                             className="text-text-sub hover:text-[#EF4444] transition-colors p-1.5 rounded-lg hover:bg-[#EF4444]/10 cursor-pointer"
                             title="ลบรายการ"
                           >

@@ -160,7 +160,19 @@ export default function CalendarScreen() {
         </div>
 
         {/* Month Title */}
-        <h2 className="text-sm font-bold text-center mb-4">พฤษภาคม 2567</h2>
+        <div className="flex justify-between items-center mb-4 px-2">
+          <span className="text-sm font-bold">พฤษภาคม 2567</span>
+          <button
+            onClick={() => {
+              const todayDay = new Date().getDate();
+              setStartDate(todayDay);
+              setEndDate(null);
+            }}
+            className="text-[10px] text-[#5B5CEB] bg-[#5B5CEB]/10 hover:bg-[#5B5CEB]/25 border border-[#5B5CEB]/30 px-2.5 py-1 rounded-lg font-semibold transition-all cursor-pointer"
+          >
+            กลับมาวันนี้
+          </button>
+        </div>
 
         {/* Calendar Grid representation */}
         <div className="bg-surface/40 border border-white/5 p-4 rounded-2xl mb-6">
