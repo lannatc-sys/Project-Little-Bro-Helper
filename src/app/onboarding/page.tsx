@@ -128,42 +128,60 @@ export default function OnboardingScreen() {
 
       {/* Screen 1: Welcome/Intro */}
       {step === 1 && (
-        <div className="flex-1 flex flex-col justify-center items-center text-center w-full z-10">
-          <div className="mb-6 flex flex-col items-center">
-            <span className="text-[10px] bg-[#5B5CEB]/15 text-[#5B5CEB] border border-[#5B5CEB]/30 px-3 py-1 rounded-full font-bold mb-3 tracking-wider uppercase">
+        <div className="flex-1 flex flex-col justify-center items-center text-center w-full z-10 space-y-4 py-4">
+          <div className="flex flex-col items-center">
+            <span className="text-[10px] bg-[#5B5CEB]/15 text-[#5B5CEB] border border-[#5B5CEB]/30 px-3 py-1 rounded-full font-bold mb-2 tracking-wider uppercase">
               Little Bro Assistant
             </span>
-            <h1 className="text-2xl font-black tracking-tight leading-tight">
-              ผู้ช่วยส่วนตัวของคุณ<br />ในทุกกิจกรรมประจำวัน ✨
+            <h1 className="text-xl font-black tracking-tight leading-tight">
+              ผู้ช่วยส่วนตัวและการเงินอัจฉริยะ 🧠
             </h1>
           </div>
 
-          <div className="w-56 h-56 relative mb-8 flex justify-center items-center">
+          <div className="w-24 h-24 relative flex justify-center items-center">
             <Image
               src="/avatar/main.png"
               alt="Little Bro Welcome"
-              width={200}
-              height={200}
+              width={96}
+              height={96}
               className="object-contain drop-shadow-2xl animate-pulse"
             />
-            <div className="absolute -top-2 -right-4 bg-white text-[#18181B] font-bold text-[10px] px-3 py-1.5 rounded-2xl rounded-bl-none shadow-lg border border-white/20">
-              สวัสดีครับ! ยินดีต้อนรับครับ 💜
-            </div>
           </div>
 
           {errorMessage && (
-            <div className="mb-6 p-3 bg-red-500/10 border border-red-500/25 rounded-2xl text-[10px] text-red-500 leading-relaxed max-w-xs text-center">
+            <div className="p-3 bg-red-500/10 border border-red-500/25 rounded-2xl text-[10px] text-red-500 leading-relaxed max-w-xs text-center">
               {errorMessage}
             </div>
           )}
 
-          <p className="text-xs text-text-sub leading-relaxed max-w-xs mb-8">
-            รวบรวมบัญชีรายรับ-รายจ่าย คิวงาน ปฏิทินกิจกรรม และไฟล์บันทึกส่วนตัวใน Google Drive ของคุณไว้ในที่เดียวแบบเป็นส่วนตัว 100%
-          </p>
+          {/* Core features list */}
+          <div className="w-full bg-surface/20 border border-white/5 rounded-2xl p-4 space-y-4 text-left z-10">
+            <div className="flex gap-3">
+              <span className="text-lg bg-surface p-1.5 rounded-lg flex-shrink-0">💬</span>
+              <div>
+                <h4 className="text-xs font-bold text-text-main">จดง่ายเหมือนพิมพ์แชท</h4>
+                <p className="text-[9px] text-text-sub leading-relaxed">ไม่ต้องคอยกดเลือกหมวดหมู่หรือหยอดตัวเลขลงช่องให้ปวดหัว แค่พิมพ์คุยเหมือนบอกเพื่อนรัก เช่น "ข้าวเพราไก่ไข่ดาว 60" หรือ "ค่าน้ำมัน 800" ระบบแยกแยะจำนวนเงินและหมวดหมู่ให้เสร็จสรรพ</p>
+              </div>
+            </div>
+            <div className="flex gap-3">
+              <span className="text-lg bg-surface p-1.5 rounded-lg flex-shrink-0">📋</span>
+              <div>
+                <h4 className="text-xs font-bold text-text-main">สายก๊อปวางต้องเลิฟ</h4>
+                <p className="text-[9px] text-text-sub leading-relaxed">มีระบบอ่านข้อความ (Smart Parsing) แค่ก๊อปปี้ข้อความแจ้งเตือนเงินเข้า-ออกจาก SMS หรือแอปธนาคารมาวาง แอปก็สามารถดึงยอดเงินมาบันทึกให้ได้ทันที</p>
+              </div>
+            </div>
+            <div className="flex gap-3">
+              <span className="text-lg bg-surface p-1.5 rounded-lg flex-shrink-0">📊</span>
+              <div>
+                <h4 className="text-xs font-bold text-text-main">สรุปผลเข้าใจง่าย</h4>
+                <p className="text-[9px] text-text-sub leading-relaxed">มีกราฟวงกลม (Pie Chart) แยกหมวดหมู่ชัดเจน ทำให้เห็นภาพรวมได้ทันทีว่าเดือนนี้เงินเราไหลไปกับค่ากิน ค่าเดินทาง หรือกิเลสชิ้นไหนมากที่สุด</p>
+              </div>
+            </div>
+          </div>
 
           <button
             onClick={() => setStep(2)}
-            className="w-full bg-[#5B5CEB] hover:bg-[#5B5CEB]/90 text-white font-bold text-sm py-3.5 rounded-2xl shadow-lg shadow-[#5B5CEB]/25 transition-all duration-300 hover:scale-[1.02] flex justify-center items-center gap-2"
+            className="w-full bg-[#5B5CEB] hover:bg-[#5B5CEB]/90 text-white font-bold text-sm py-3.5 rounded-2xl shadow-lg shadow-[#5B5CEB]/25 transition-all duration-300 hover:scale-[1.02] flex justify-center items-center gap-2 cursor-pointer"
           >
             เริ่มต้นใช้งาน ➔
           </button>
