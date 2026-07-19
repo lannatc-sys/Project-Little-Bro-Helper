@@ -114,9 +114,9 @@ export default function SettingsScreen() {
           </div>
           <div className="flex-1">
             <h3 className="text-sm font-bold text-text-main">Little Bro</h3>
-            <p className="text-[9px] text-text-sub mb-1">เจ้าของธุรกิจ • lannatc@gmail.com</p>
+            <p className="text-[9px] text-text-sub mb-1">บัญชีส่วนตัว • lannatc@gmail.com</p>
             <button
-              onClick={() => alert("ระบบเชื่อมต่อ Google OAuth จะเปิดในเฟสถัดไปครับบอส!")}
+              onClick={() => alert("ระบบเชื่อมต่อ Google OAuth จะพร้อมใช้งานเร็วๆ นี้ครับ!")}
               className="bg-[#5B5CEB]/25 hover:bg-[#5B5CEB]/40 text-[#5B5CEB] border border-[#5B5CEB]/30 text-[9px] font-semibold px-2.5 py-1 rounded-lg transition-all"
             >
               จัดการบัญชี Google
@@ -187,7 +187,7 @@ export default function SettingsScreen() {
               <div className="flex items-center gap-3">
                 <span className="text-lg bg-surface p-2 rounded-lg">📁</span>
                 <div>
-                  <h4 className="text-xs font-semibold text-text-main">ข้อมูลพื้นที่ทำงาน (Workspace Data)</h4>
+                  <h4 className="text-xs font-semibold text-text-main">ข้อมูลพื้นที่ทำงานส่วนตัว (Personal Assistant Data)</h4>
                   <p className="text-[9px] text-text-sub">ตั้งค่าไอดีโฟลเดอร์ Google Drive และไอดีชีต</p>
                 </div>
               </div>
@@ -202,8 +202,8 @@ export default function SettingsScreen() {
               <div className="flex items-center gap-3">
                 <span className="text-lg bg-surface p-2 rounded-lg">⚙️</span>
                 <div>
-                  <h4 className="text-xs font-semibold text-text-main">ระบบรันสูตรทำงานอัตโนมัติ (Workflows)</h4>
-                  <p className="text-[9px] text-text-sub">เปิด-ปิด สูตรคำสั่ง Trigger ข้อมูลลงคลาวด์</p>
+                  <h4 className="text-xs font-semibold text-text-main">ตั้งค่าระบบอัตโนมัติ (Personal Settings)</h4>
+                  <p className="text-[9px] text-text-sub">เปิด-ปิด สูตรระบบอัตโนมัติและส่งการแจ้งเตือน</p>
                 </div>
               </div>
               <span className="text-xs text-text-sub/45">➔</span>
@@ -236,9 +236,9 @@ export default function SettingsScreen() {
                 </span>
                 <div>
                   <h4 className="text-xs font-semibold text-text-main">
-                    {isBackingUp ? "กำลังสำรองข้อมูล..." : "สำรองข้อมูลชีตหลังบ้าน"}
+                    {isBackingUp ? "กำลังสำรองข้อมูล..." : "สำรองข้อมูลบัญชีส่วนตัว"}
                   </h4>
-                  <p className="text-[9px] text-text-sub">คัดลอกและบันทึกฐานข้อมูลเก็บแยกไว้ใน Google Drive</p>
+                  <p className="text-[9px] text-text-sub">คัดลอกและบันทึกข้อมูลส่วนตัวเก็บแยกไว้ใน Google Drive</p>
                 </div>
               </div>
               <span className="text-xs text-text-sub/45">➔</span>
@@ -258,9 +258,9 @@ export default function SettingsScreen() {
             />
           </div>
           <div>
-            <h4 className="text-xs font-bold text-text-main mb-1">ความลับทางธุรกิจเป็นสิ่งสำคัญ! 🔒</h4>
+            <h4 className="text-xs font-bold text-text-main mb-1">ความปลอดภัยของข้อมูลเป็นสิ่งสำคัญ! 🔒</h4>
             <p className="text-[10px] text-text-sub leading-relaxed">
-              ข้อมูลทุกอย่างของบอสจะถูกส่งตรงไปที่คลังข้อมูลส่วนตัวโดยไม่ผ่านเซิร์ฟเวอร์คนกลาง ปลอดภัยและเป็นส่วนตัว 100% ครับ!
+              ข้อมูลทุกอย่างจะถูกส่งตรงไปที่คลังข้อมูลส่วนตัวโดยไม่ผ่านเซิร์ฟเวอร์คนกลาง ปลอดภัยและเป็นส่วนตัว 100% ครับ!
             </p>
           </div>
         </div>

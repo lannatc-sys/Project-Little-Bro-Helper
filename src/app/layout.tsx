@@ -10,8 +10,8 @@ const notoSansThai = Noto_Sans_Thai({
 });
 
 export const metadata: Metadata = {
-  title: "Little Bro Helper",
-  description: "ระบบผู้ช่วยจัดการข้อมูลและบันทึกการเงิน",
+  title: "Little Bro Helper - Personal Assistant",
+  description: "ระบบผู้ช่วยส่วนตัวและบันทึกการเงิน",
 };
 
 export default function RootLayout({

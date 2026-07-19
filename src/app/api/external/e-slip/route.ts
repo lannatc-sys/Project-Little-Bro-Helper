@@ -68,29 +68,12 @@ export async function POST(request: Request) {
       throw new Error(gasResult.message || "Failed to write transaction to spreadsheet");
     }
 
-    // 3. Send Telegram Push Notification to the boss (retrieve latest chat ID from sheet)
+    // 3. Send Telegram Push Notification
     if (token) {
       try {
-        // Query user info from backend
-        const dbRes = await fetch(gasUrl, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            action: "get_dashboard_data",
-            spreadsheet_id: ssId
-          })
-        });
-        const dbData = await dbRes.json();
+        let targetChatId = "5581598534"; // Active chat ID
         
-        // Find the latest registered user's chat_id
-        let targetChatId = "5581598534"; // Default fallback
-        
-        // Let's call Apps Script to find the user list if possible
-        // (Actually, get_dashboard_data returns finance, tasks, calendar, customers.
-        // If we want to fetch the users list, let's fall back to our active chat ID or query the Users sheet directly)
-        // Since we are pushing to active chat ID 5581598534 anyway, we can use it.
-        
-        const message = `🔔 *ตรวจพบยอดเงินโอนเข้าบัญชีอัตโนมัติ!* 📈\n\n*จำนวน*: ฿${Number(amount).toLocaleString("th-TH", { minimumFractionDigits: 2 })}\n*ผู้โอน*: ${sender_name}\n*เลขอ้างอิง*: ${reference_id || "ไม่ระบุ"}\n\nระบบสแกน E-slip ได้บันทึกรายการรายรับลง Google Sheets ของบอสเรียบร้อยแล้วครับ! 👔💾`;
+        const message = `🔔 *แจ้งเตือน: ตรวจพบยอดเงินโอนเข้าบัญชีสำเร็จ!* 📈\n\n*จำนวน*: ฿${Number(amount).toLocaleString("th-TH", { minimumFractionDigits: 2 })}\n*ผู้โอน*: ${sender_name}\n*เลขอ้างอิง*: ${reference_id || "ไม่ระบุ"}\n\nระบบได้บันทึกรายการรายรับนี้ลงบัญชีส่วนตัวเรียบร้อยแล้วครับ! 💾`;
         
         await fetch(`https://api.telegram.org/bot${token}/sendMessage`, {
           method: "POST",

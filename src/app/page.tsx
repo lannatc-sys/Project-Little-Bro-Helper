@@ -66,16 +66,16 @@ export default function HomeScreen() {
 
     const hour = new Date().getHours();
     if (hour >= 5 && hour < 12) {
-      setGreeting("สวัสดีตอนเช้าบอส! ☀️");
+      setGreeting("สวัสดีตอนเช้าครับ! ☀️");
       setAvatar("/avatar/hello.png");
     } else if (hour >= 12 && hour < 17) {
-      setGreeting("สวัสดีตอนบ่ายบอส! 🌤️");
+      setGreeting("สวัสดีตอนบ่ายครับ! 🌤️");
       setAvatar("/avatar/working.png");
     } else if (hour >= 17 && hour < 22) {
-      setGreeting("สวัสดีตอนเย็นบอส! 🌙");
+      setGreeting("สวัสดีตอนเย็นครับ! 🌙");
       setAvatar("/avatar/great.png");
     } else {
-      setGreeting("ดึกแล้วครับบอส รักษาสุขภาพด้วย 💤");
+      setGreeting("ดึกแล้วครับ รักษาสุขภาพด้วยนะครับ 💤");
       setAvatar("/avatar/ready.png");
     }
 
@@ -116,7 +116,7 @@ export default function HomeScreen() {
         <div className="w-24 h-24 mb-4 rounded-full overflow-hidden bg-surface border border-[#5B5CEB]/30 animate-bounce flex items-center justify-center">
           <Image src="/avatar/thinking.png" alt="Thinking" width={80} height={80} className="object-cover" />
         </div>
-        <p className="text-xs text-text-sub">กำลังซิงก์ข้อมูลกับ Google Sheets...</p>
+        <p className="text-xs text-text-sub">กำลังซิงก์ข้อมูลบัญชีส่วนตัว...</p>
       </div>
     );
   }
@@ -130,7 +130,7 @@ export default function HomeScreen() {
             <h1 className="text-xl font-bold text-text-main mb-1 transition-all duration-300">
               {greeting}
             </h1>
-            <p className="text-xs text-text-sub">มีอะไรให้ช่วยวันนี้?</p>
+            <p className="text-xs text-text-sub">มีอะไรให้ช่วยวันนี้บ้างครับ?</p>
           </div>
           <div className="flex items-center gap-3">
             <button className="bg-surface border border-white/5 p-2 rounded-full text-text-sub hover:text-text-main transition-colors relative">
@@ -156,7 +156,7 @@ export default function HomeScreen() {
           <span className="text-text-sub mr-2">🔍</span>
           <input
             type="text"
-            placeholder="ค้นหาภารกิจ รายการเงิน หรือไฟล์..."
+            placeholder="ค้นหาบันทึก รายการเงิน หรือไฟล์..."
             className="bg-transparent w-full focus:outline-none text-xs placeholder-text-sub text-text-main"
           />
           <button className="text-text-sub hover:text-text-main px-1">🎙️</button>
@@ -201,7 +201,7 @@ export default function HomeScreen() {
             className="flex flex-col items-center gap-1 p-2 bg-surface/40 hover:bg-surface/60 border border-white/5 rounded-xl transition-all text-center"
           >
             <span className="text-lg bg-[#A855F7]/20 p-2 rounded-xl text-[#A855F7]">👤</span>
-            <span className="text-[9px] text-text-sub truncate w-full">สมุดลูกค้า</span>
+            <span className="text-[9px] text-text-sub truncate w-full">สมุดรายชื่อ</span>
           </Link>
         </div>
 
@@ -220,11 +220,11 @@ export default function HomeScreen() {
               <span className="text-[8px] text-[#EF4444] font-semibold">ซิงก์จริง</span>
             </div>
             <div className="bg-surface/40 backdrop-blur-lg border border-[#5B5CEB]/20 p-3 rounded-2xl">
-              <h3 className="text-[9px] text-text-sub mb-1">กำไรสุทธิ</h3>
+              <h3 className="text-[9px] text-text-sub mb-1">ยอดคงเหลือ</h3>
               <p className={`text-xs font-bold ${incomeSum - expenseSum >= 0 ? "text-[#10B981]" : "text-[#EF4444]"}`}>
                 ฿{(incomeSum - expenseSum).toLocaleString("th-TH")}
               </p>
-              <span className="text-[8px] text-[#5B5CEB] font-semibold">ระบบคำนวณ</span>
+              <span className="text-[8px] text-[#5B5CEB] font-semibold">ยอดสุทธิ</span>
             </div>
           </div>
         </section>
@@ -232,7 +232,7 @@ export default function HomeScreen() {
         {/* Tasks Section "งานที่ต้องทำวันนี้" */}
         <section className="mb-6">
           <div className="flex justify-between items-center mb-3">
-            <h2 className="text-xs font-semibold text-text-sub uppercase tracking-wider">งานล่าสุด</h2>
+            <h2 className="text-xs font-semibold text-text-sub uppercase tracking-wider">รายการค้างทำ</h2>
             <Link href="/tasks" className="text-[10px] text-[#5B5CEB] hover:underline">ดูทั้งหมด &gt;</Link>
           </div>
           <div className="space-y-2">
@@ -265,7 +265,7 @@ export default function HomeScreen() {
               })
             ) : (
               <div className="p-4 bg-surface/20 border border-dashed border-white/5 rounded-xl text-center text-xs text-text-sub">
-                📭 ไม่มีภารกิจค้างในฐานข้อมูลชีตครับบอส
+                📭 ไม่มีรายการงานค้างสะสมครับ
               </div>
             )}
           </div>
@@ -274,7 +274,7 @@ export default function HomeScreen() {
         {/* Calendar Section "ปฏิทินวันนี้" */}
         <section className="mb-6">
           <div className="flex justify-between items-center mb-3">
-            <h2 className="text-xs font-semibold text-text-sub uppercase tracking-wider">นัดหมายล่าสุด</h2>
+            <h2 className="text-xs font-semibold text-text-sub uppercase tracking-wider">กิจกรรมส่วนตัวล่าสุด</h2>
             <Link href="/calendar" className="text-[10px] text-[#5B5CEB] hover:underline">ดูทั้งหมด &gt;</Link>
           </div>
           <div className="space-y-2">
@@ -290,7 +290,7 @@ export default function HomeScreen() {
               ))
             ) : (
               <div className="p-4 bg-surface/20 border border-dashed border-white/5 rounded-xl text-center text-xs text-text-sub">
-                📅 ไม่มีนัดหมายที่บันทึกไว้ในฐานข้อมูลชีตครับบอส
+                📅 ไม่มีกิจกรรมส่วนตัวบันทึกไว้ในระบบครับ
               </div>
             )}
           </div>

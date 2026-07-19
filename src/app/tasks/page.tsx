@@ -121,12 +121,12 @@ function TasksForm() {
       <div>
         {/* Header Section */}
         <header className="mb-6 flex justify-between items-center">
-          <h1 className="text-xl font-bold text-text-main">งานของฉัน</h1>
+          <h1 className="text-xl font-bold text-text-main">สิ่งที่ต้องทำ</h1>
           <button
             onClick={() => setShowCreateModal(true)}
             className="bg-[#5B5CEB] hover:bg-[#5B5CEB]/80 text-white font-semibold text-xs px-3 py-1.5 rounded-xl transition-all"
           >
-            + สร้างงาน
+            + สร้างรายการ
           </button>
         </header>
 
@@ -183,7 +183,7 @@ function TasksForm() {
             })
           ) : (
             <div className="p-8 bg-surface/20 border border-dashed border-white/5 rounded-2xl text-center text-xs text-text-sub">
-              📭 ไม่มีงานที่ตรงตามเงื่อนไขค้นหาครับบอส
+              📭 ไม่มีรายการงานค้างสะสมครับ
             </div>
           )}
         </section>
@@ -200,9 +200,9 @@ function TasksForm() {
             />
           </div>
           <div>
-            <h4 className="text-xs font-bold text-text-main mb-1">จัดการคิวงานระบบ 📋</h4>
+            <h4 className="text-xs font-bold text-text-main mb-1">รายการสิ่งที่ต้องทำ 📋</h4>
             <p className="text-[10px] text-text-sub leading-relaxed">
-              งานเช็คลิสต์ทั้งหมดจะซิงก์ลงชีต `Task` ของบอสโดยตรง บอสสามารถกดติ๊กถูกเพื่ออัปเดตสถานะเสร็จสิ้นได้ทันทีครับ!
+              รายการสิ่งที่ต้องทำจะถูกซิงก์ลงชีต Task โดยตรง สามารถกดติ๊กถูกเพื่ออัปเดตสถานะเสร็จสิ้นได้ทันทีครับ!
             </p>
           </div>
         </div>
@@ -222,16 +222,16 @@ function TasksForm() {
             >
               ✕
             </button>
-            <h3 className="text-sm font-bold text-text-main mb-4">📝 สร้างภารกิจใหม่</h3>
+            <h3 className="text-sm font-bold text-text-main mb-4">📝 สร้างรายการใหม่</h3>
             
             <div className="space-y-4 mb-6">
               <div>
-                <label className="block mb-1 text-[10px] text-text-sub font-semibold">ชื่อภารกิจ (Task Name)</label>
+                <label className="block mb-1 text-[10px] text-text-sub font-semibold">ชื่อรายการ (Task Name)</label>
                 <input 
                   type="text" 
                   value={newTaskName}
                   onChange={(e) => setNewTaskName(e.target.value)}
-                  placeholder="เช่น เช็คเอาท์ลูกค้าห้อง 204..."
+                  placeholder="เช่น วางแผนการเงินประจำสัปดาห์..."
                   required
                   className="w-full bg-background border border-white/5 p-2.5 rounded-lg text-text-main text-xs focus:border-[#5B5CEB] focus:outline-none placeholder-text-sub/50"
                 />
@@ -241,12 +241,12 @@ function TasksForm() {
                 <textarea 
                   value={newDetails}
                   onChange={(e) => setNewDetails(e.target.value)}
-                  placeholder="เช่น ล้างกุญแจ, สรุปค่ายอดน้ำส้ม..."
+                  placeholder="เช่น รายละเอียดงานหรือข้อตกลงเพิ่มเติม..."
                   className="w-full bg-background border border-white/5 p-2.5 rounded-lg text-text-main text-xs focus:border-[#5B5CEB] focus:outline-none placeholder-text-sub/50 h-16 resize-none"
                 />
               </div>
               <div>
-                <label className="block mb-1 text-[10px] text-text-sub font-semibold">กำหนดวันส่ง (Due Date)</label>
+                <label className="block mb-1 text-[10px] text-text-sub font-semibold">กำหนดส่ง (Due Date)</label>
                 <input 
                   type="text" 
                   value={dueDate}
@@ -262,7 +262,7 @@ function TasksForm() {
               disabled={createLoading}
               className="w-full bg-[#5B5CEB] hover:bg-[#5B5CEB]/90 disabled:bg-[#5B5CEB]/50 text-white font-bold text-xs py-3 rounded-xl shadow-lg transition-all flex items-center justify-center gap-2 cursor-pointer"
             >
-              {createLoading ? "กำลังสร้างภารกิจ..." : "สร้างภารกิจลงแผ่นงาน 🔨"}
+              {createLoading ? "กำลังบันทึก..." : "บันทึกรายการสิ่งที่ต้องทำ 💾"}
             </button>
           </form>
         </div>

@@ -43,6 +43,7 @@ export default function CalendarScreen() {
     } catch (err) {
       console.error("Error fetching calendar events:", err);
     } finally {
+      setView("เดือน");
       setLoading(false);
     }
   };
@@ -73,7 +74,6 @@ export default function CalendarScreen() {
 
     setCreateLoading(true);
     try {
-      // For calendar schema simplicity, we'll store dates as text in columns
       const res = await fetch("/api/expense", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -105,13 +105,9 @@ export default function CalendarScreen() {
 
   const getFilteredEvents = () => {
     if (startDate === null) return [];
-    
-    // In our mock/GAS data, we'll try to extract date index if it matches the format
     return events.filter(e => {
-      // Parse day number from start_time string, e.g., "วันที่ 20 พฤษภาคม..."
       const match = e.start_time ? e.start_time.match(/วันที่ (\d+)/) : null;
-      const day = match ? Number(match[1]) : 20; // fallback default
-      
+      const day = match ? Number(match[1]) : 20;
       if (endDate === null) {
         return day === startDate;
       }
@@ -127,7 +123,7 @@ export default function CalendarScreen() {
         <div className="w-24 h-24 mb-4 rounded-full overflow-hidden bg-surface border border-[#5B5CEB]/30 animate-bounce flex items-center justify-center">
           <Image src="/avatar/thinking.png" alt="Thinking" width={80} height={80} className="object-cover" />
         </div>
-        <p className="text-xs text-text-sub">กำลังซิงก์ตารางปฏิทินนัดหมาย...</p>
+        <p className="text-xs text-text-sub">กำลังซิงก์ปฏิทินนัดหมาย...</p>
       </div>
     );
   }
@@ -142,7 +138,7 @@ export default function CalendarScreen() {
             onClick={() => setShowCreateModal(true)}
             className="bg-[#5B5CEB] hover:bg-[#5B5CEB]/80 text-white font-semibold text-xs px-3 py-1.5 rounded-xl transition-all"
           >
-            + นัดหมาย
+            + นัดหมายกิจกรรม
           </button>
         </header>
 
@@ -205,7 +201,7 @@ export default function CalendarScreen() {
         {/* Event List Group */}
         <section className="mb-6">
           <h3 className="text-xs font-semibold text-text-sub mb-3">
-            รายการนัดหมาย ช่วงวันที่{" "}
+            รายการนัดหมายและกิจกรรม ช่วงวันที่{" "}
             {startDate !== null
               ? endDate !== null
                 ? `${startDate} - ${endDate}`
@@ -234,7 +230,7 @@ export default function CalendarScreen() {
               ))
             ) : (
               <div className="p-6 bg-surface/25 border border-dashed border-white/5 rounded-2xl text-center text-xs text-text-sub/70">
-                📭 ไม่มีรายการนัดหมายในช่วงวันที่เลือกครับบอส
+                📭 ไม่มีกิจกรรมส่วนตัวบันทึกไว้ในช่วงวันที่เลือกครับ
               </div>
             )}
           </div>
@@ -252,9 +248,9 @@ export default function CalendarScreen() {
             />
           </div>
           <div>
-            <h4 className="text-xs font-bold text-text-main mb-1">ช่วงเวลาของนัดหมาย 🗓️</h4>
+            <h4 className="text-xs font-bold text-text-main mb-1">ช่วงเวลาของกิจกรรม 🗓️</h4>
             <p className="text-[10px] text-text-sub leading-relaxed">
-              ตารางนัดหมายทั้งหมดซิงก์เชื่อมโยงกับฐานข้อมูลชีต `Calendar` บอสสามารถสร้างตารางนัดใหม่และกำหนดเวลาได้อย่างอิสระครับ!
+              ตารางกิจกรรมทั้งหมดซิงก์เชื่อมโยงกับฐานข้อมูลชีต Calendar สามารถสร้างตารางนัดใหม่และกำหนดเวลาได้อย่างอิสระครับ!
             </p>
           </div>
         </div>
@@ -274,16 +270,16 @@ export default function CalendarScreen() {
             >
               ✕
             </button>
-            <h3 className="text-sm font-bold text-text-main mb-4">📅 สร้างนัดหมายใหม่</h3>
+            <h3 className="text-sm font-bold text-text-main mb-4">📅 สร้างนัดหมายกิจกรรมใหม่</h3>
             
             <div className="space-y-4 mb-6">
               <div>
-                <label className="block mb-1 text-[10px] text-text-sub font-semibold">ชื่องานนัดหมาย (Event Title)</label>
+                <label className="block mb-1 text-[10px] text-text-sub font-semibold">ชื่องาน (Event Title)</label>
                 <input 
                   type="text" 
                   value={newEventTitle}
                   onChange={(e) => setNewEventTitle(e.target.value)}
-                  placeholder="เช่น ประชุมลูกค้า Little Bro..."
+                  placeholder="เช่น ไปวิ่งออกกำลังกายตอนเย็น..."
                   required
                   className="w-full bg-background border border-white/5 p-2.5 rounded-lg text-text-main text-xs focus:border-[#5B5CEB] focus:outline-none placeholder-text-sub/50"
                 />
@@ -307,7 +303,7 @@ export default function CalendarScreen() {
                     type="text" 
                     value={location}
                     onChange={(e) => setLocation(e.target.value)}
-                    placeholder="เช่น Google Meet / Lobby"
+                    placeholder="เช่น สวนสาธารณะ / ฟิตเนส"
                     className="w-full bg-background border border-white/5 p-2.5 rounded-lg text-text-main text-xs focus:border-[#5B5CEB] focus:outline-none placeholder-text-sub/50"
                   />
                 </div>
@@ -319,7 +315,7 @@ export default function CalendarScreen() {
                     type="text" 
                     value={startTime}
                     onChange={(e) => setStartTime(e.target.value)}
-                    placeholder="เช่น 10:00"
+                    placeholder="เช่น 17:30"
                     className="w-full bg-background border border-white/5 p-2.5 rounded-lg text-text-main text-xs focus:border-[#5B5CEB] focus:outline-none placeholder-text-sub/50"
                   />
                 </div>
@@ -329,7 +325,7 @@ export default function CalendarScreen() {
                     type="text" 
                     value={endTime}
                     onChange={(e) => setEndTime(e.target.value)}
-                    placeholder="เช่น 11:30"
+                    placeholder="เช่น 19:00"
                     className="w-full bg-background border border-white/5 p-2.5 rounded-lg text-text-main text-xs focus:border-[#5B5CEB] focus:outline-none placeholder-text-sub/50"
                   />
                 </div>
@@ -340,7 +336,7 @@ export default function CalendarScreen() {
                   type="text" 
                   value={notes}
                   onChange={(e) => setNotes(e.target.value)}
-                  placeholder="เช่น เตรียมสเปรดชีตมาด้วย..."
+                  placeholder="เช่น เตรียมรองเท้าวิ่งและหูฟัง..."
                   className="w-full bg-background border border-white/5 p-2.5 rounded-lg text-text-main text-xs focus:border-[#5B5CEB] focus:outline-none placeholder-text-sub/50"
                 />
               </div>
@@ -351,7 +347,7 @@ export default function CalendarScreen() {
               disabled={createLoading}
               className="w-full bg-[#5B5CEB] hover:bg-[#5B5CEB]/90 disabled:bg-[#5B5CEB]/50 text-white font-bold text-xs py-3 rounded-xl shadow-lg transition-all flex items-center justify-center gap-2 cursor-pointer"
             >
-              {createLoading ? "กำลังสร้างนัดหมาย..." : "สร้างนัดหมายลงแผ่นงาน 🔨"}
+              {createLoading ? "กำลังบันทึก..." : "บันทึกนัดหมายกิจกรรม 💾"}
             </button>
           </form>
         </div>

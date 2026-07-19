@@ -42,7 +42,7 @@ export default function CustomersScreen() {
   const handleAddCustomer = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!fullName) {
-      setMessage("⚠️ กรุณาระบุชื่อ-นามสกุลลูกค้า");
+      setMessage("⚠️ กรุณาระบุชื่อ-นามสกุล");
       return;
     }
 
@@ -63,7 +63,7 @@ export default function CustomersScreen() {
       });
       const result = await res.json();
       if (result.status === "success") {
-        setMessage("✅ บันทึกรายชื่อลูกค้าใหม่สำเร็จเรียบร้อยครับ!");
+        setMessage("✅ บันทึกรายชื่อผู้ติดต่อใหม่สำเร็จเรียบร้อยครับ!");
         setFullName("");
         setPhone("");
         setEmail("");
@@ -109,12 +109,12 @@ export default function CustomersScreen() {
             onClick={() => setShowAddModal(true)}
             className="bg-[#5B5CEB] hover:bg-[#5B5CEB]/90 text-white font-bold text-xs px-3.5 py-2 rounded-xl transition-all shadow-md flex items-center gap-1.5 cursor-pointer"
           >
-            <span>➕</span> เพิ่มลูกค้า
+            <span>➕</span> เพิ่มผู้ติดต่อ
           </button>
         </header>
 
         <h2 className="text-xl font-bold mb-6 text-center text-text-main">
-          👤 สมุดรายชื่อลูกค้า (Customer Hub)
+          👤 สมุดรายชื่อผู้ติดต่อ (Contacts)
         </h2>
 
         {/* Search Input Bar */}
@@ -122,7 +122,7 @@ export default function CustomersScreen() {
           <span className="text-text-sub mr-2">🔍</span>
           <input
             type="text"
-            placeholder="ค้นหาชื่อลูกค้า เบอร์โทร หรืออีเมล..."
+            placeholder="ค้นหาชื่อ เบอร์โทร หรืออีเมล..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             className="bg-transparent w-full focus:outline-none text-xs placeholder-text-sub text-text-main"
@@ -140,7 +140,7 @@ export default function CustomersScreen() {
         {/* Customer Listing */}
         {loading ? (
           <div className="text-center py-10 text-xs text-text-sub">
-            กำลังดาวน์โหลดสมุดรายชื่อลูกค้า...
+            กำลังดาวน์โหลดสมุดรายชื่อ...
           </div>
         ) : filteredCustomers.length > 0 ? (
           <div className="space-y-3">
@@ -196,7 +196,7 @@ export default function CustomersScreen() {
                       href={`mailto:${cust.email}`}
                       className="bg-[#3B82F6]/15 hover:bg-[#3B82F6]/25 text-[#3B82F6] border border-[#3B82F6]/25 text-[10px] font-bold py-2 rounded-xl text-center transition-all flex items-center justify-center gap-1"
                     >
-                      ✉️ ส่งเมลลูกค้า
+                      ✉️ ส่งเมลผู้ติดต่อ
                     </a>
                   )}
                 </div>
@@ -205,7 +205,7 @@ export default function CustomersScreen() {
           </div>
         ) : (
           <div className="p-8 bg-surface/20 border border-dashed border-white/5 rounded-2xl text-center text-xs text-text-sub">
-            📭 {searchQuery ? "ไม่พบข้อมูลลูกค้าที่ค้นหาครับ" : "ไม่มีข้อมูลลูกค้าบันทึกในแผ่นงานครับบอส"}
+            📭 {searchQuery ? "ไม่พบข้อมูลผู้ติดต่อที่ค้นหาครับ" : "ไม่มีข้อมูลผู้ติดต่อบันทึกในแผ่นงานครับ"}
           </div>
         )}
       </div>
@@ -227,11 +227,11 @@ export default function CustomersScreen() {
             >
               ✕
             </button>
-            <h3 className="text-sm font-bold text-text-main mb-4">👤 เพิ่มรายชื่อลูกค้าใหม่</h3>
+            <h3 className="text-sm font-bold text-text-main mb-4">👤 เพิ่มรายชื่อผู้ติดต่อใหม่</h3>
 
             <div className="space-y-3.5 mb-6 text-xs">
               <div>
-                <label className="block mb-1 font-semibold uppercase text-[9px] text-text-sub">ชื่อ-นามสกุลลูกค้า *</label>
+                <label className="block mb-1 font-semibold uppercase text-[9px] text-text-sub">ชื่อ-นามสกุล *</label>
                 <input 
                   type="text"
                   placeholder="เช่น สมชาย ใจดี"
@@ -267,7 +267,7 @@ export default function CustomersScreen() {
               <div>
                 <label className="block mb-1 font-semibold uppercase text-[9px] text-text-sub">รายละเอียดเพิ่มเติม</label>
                 <textarea
-                  placeholder="เช่น ลูกค้าห้อง 102 พัก 3 วัน..."
+                  placeholder="เช่น รายละเอียดหรือข้อมูลสำคัญ..."
                   value={contactInfo}
                   onChange={(e) => setContactInfo(e.target.value)}
                   rows={2}
@@ -296,7 +296,7 @@ export default function CustomersScreen() {
                   กำลังจัดเก็บลง Sheets...
                 </>
               ) : (
-                "บันทึกข้อมูลลูกค้า 💾"
+                "บันทึกรายชื่อติดต่อ 💾"
               )}
             </button>
           </form>

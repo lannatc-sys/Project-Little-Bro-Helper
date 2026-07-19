@@ -7,11 +7,11 @@
 
 // โครงสร้างผังตารางฐานข้อมูลมาตรฐานที่ระบบต้องล็อกไว้ (Row 1 Layout)
 const SHEETS_SCHEMA = {
-  "Users": ["user_id", "telegram_username", "google_email", "registered_at"],
+  "Profiles": ["user_id", "telegram_username", "google_email", "registered_at"],
   "Finance": ["timestamp", "transaction_type", "category", "amount", "description", "file_attachment_url"],
   "Task": ["task_id", "task_name", "details", "status", "due_date", "reminder_time"],
   "Calendar": ["event_id", "event_title", "start_time", "end_time", "location", "notes"],
-  "Customer": ["customer_id", "full_name", "phone_number", "email", "contact_info"],
+  "Contacts": ["customer_id", "full_name", "phone_number", "email", "contact_info"],
   "Settings": ["setting_key", "setting_value"]
 };
 
@@ -101,8 +101,8 @@ function doPost(e) {
         data.calendar = [];
       }
 
-      // 4. Customer data
-      var custSheet = ss.getSheetByName("Customer");
+      // 4. Contacts data
+      var custSheet = ss.getSheetByName("Contacts");
       if (custSheet) {
         var custRows = custSheet.getDataRange().getValues();
         var headers = custRows[0];
@@ -308,11 +308,11 @@ function doPost(e) {
 
     // CASE J: เพิ่มชื่อผู้ใช้งานระบบ (User Registration Module)
     if (action === "add_user") {
-      var usersSheet = ss.getSheetByName("Users");
-      if (!usersSheet) throw new Error("ไม่พบชีต 'Users'");
+      var usersSheet = ss.getSheetByName("Profiles");
+      if (!usersSheet) throw new Error("ไม่พบชีต 'Profiles'");
       
       var rows = usersSheet.getDataRange().getValues();
-      var userIdColIdx = SHEETS_SCHEMA["Users"].indexOf("user_id");
+      var userIdColIdx = SHEETS_SCHEMA["Profiles"].indexOf("user_id");
       var exists = false;
       var newUserId = requestData.user_id.toString();
       
@@ -320,7 +320,7 @@ function doPost(e) {
         if (rows[i][userIdColIdx].toString() === newUserId) {
           exists = true;
           // เลื่อนตัวตนผู้รับการแจ้งเตือนมาอยู่แถวบนสุดหากซ้ำ
-          usersSheet.getRange(i + 1, SHEETS_SCHEMA["Users"].indexOf("registered_at") + 1).setValue(new Date());
+          usersSheet.getRange(i + 1, SHEETS_SCHEMA["Profiles"].indexOf("registered_at") + 1).setValue(new Date());
           break;
         }
       }
@@ -340,18 +340,18 @@ function doPost(e) {
 
     // CASE K: เพิ่มข้อมูลลูกค้า (Add Customer Module)
     if (action === "add_customer") {
-      var custSheet = ss.getSheetByName("Customer");
-      if (!custSheet) throw new Error("ไม่พบชีต 'Customer'");
+      var custSheet = ss.getSheetByName("Contacts");
+      if (!custSheet) throw new Error("ไม่พบชีต 'Contacts'");
       
       custSheet.appendRow([
         "CUST_" + new Date().getTime(),
-        requestData.full_name || "Untitled Customer",
+        requestData.full_name || "Untitled Contact",
         requestData.phone_number || "",
         requestData.email || "",
         requestData.contact_info || ""
       ]);
       
-      return createJsonResponse({ status: "success", message: "บันทึกข้อมูลลูกค้าใหม่สำเร็จ" });
+      return createJsonResponse({ status: "success", message: "บันทึกข้อมูลรายชื่อติดต่อใหม่สำเร็จ" });
     }
 
     // CASE L: เรียกดูข้อมูลการตั้งค่าระบบ (Get Workspace Settings)
@@ -436,12 +436,12 @@ function checkTaskReminders() {
   var botToken = "8838172150:AAEYqB68iIygAtTxG1TqChycBXrBulB0BcQ";
   var chatId = "";
   
-  // ดึงสิทธิ์ผู้ส่งล่าสุดที่บันทึกไว้ในชีต Users (ค้นหาผู้ที่มีวันที่ลงทะเบียนล่าสุด)
-  var usersSheet = ss.getSheetByName("Users");
+  // ดึงสิทธิ์ผู้ส่งล่าสุดที่บันทึกไว้ในชีต Profiles (ค้นหาผู้ที่มีวันที่ลงทะเบียนล่าสุด)
+  var usersSheet = ss.getSheetByName("Profiles");
   if (usersSheet && usersSheet.getLastRow() > 1) {
     var rows = usersSheet.getDataRange().getValues();
-    var registeredAtColIdx = SHEETS_SCHEMA["Users"].indexOf("registered_at");
-    var userIdColIdx = SHEETS_SCHEMA["Users"].indexOf("user_id");
+    var registeredAtColIdx = SHEETS_SCHEMA["Profiles"].indexOf("registered_at");
+    var userIdColIdx = SHEETS_SCHEMA["Profiles"].indexOf("user_id");
     
     var latestTime = 0;
     var targetChatId = "";
@@ -482,7 +482,7 @@ function checkTaskReminders() {
         var taskName = row[taskNameIdx];
         var dueDate = row[dueDateIdx] || "ด่วนที่สุด";
         
-        var msg = "🔔 *แจ้งเตือนงานด่วนสะสมครับบอส!*\n\n*งาน*: " + taskName + "\n*กำหนดส่ง*: " + dueDate + "\n\nอย่าลืมเคลียร์งานนี้นะครับบอส! 👔";
+        var msg = "🔔 *แจ้งเตือนทวนความจำรายการงานสะสม*\n\n*งาน*: " + taskName + "\n*กำหนดส่ง*: " + dueDate + "\n\nกรุณาตรวจสอบความคืบหน้าของงานนี้ด้วยครับ";
         
         sendTelegramNotification(botToken, chatId, msg);
       }

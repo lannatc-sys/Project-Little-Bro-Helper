@@ -49,7 +49,7 @@ export default function WorkflowsScreen() {
       const data = await res.json();
       if (data.status === "success") {
         setSettings(prev => ({ ...prev, [key]: newValue }));
-        setMessage("✅ บันทึกการตั้งค่าเวิร์กโฟลว์สำเร็จ!");
+        setMessage("✅ บันทึกการตั้งค่าระบบอัตโนมัติสำเร็จ!");
         setTimeout(() => setMessage(""), 2000);
       }
     } catch (err: any) {
@@ -62,20 +62,20 @@ export default function WorkflowsScreen() {
   const workflowItems = [
     {
       key: "workflow_daily_finance_summary",
-      title: "📊 สรุปยอดการเงินประจำวัน",
-      description: "ประมวลผลยอดเงินรายรับ-รายจ่ายทั้งหมด และส่งรายงานสรุปเข้า Telegram ของบอสทุกเช้าเวลา 09:00 น.",
+      title: "📊 สรุปยอดเงินคงเหลือประจำวัน",
+      description: "ประมวลผลยอดเงินคงเหลือและบันทึกการเงินประจำวัน และส่งรายงานสรุปเข้า Telegram ทุกเช้าเวลา 09:00 น.",
       badge: "Telegram Push"
     },
     {
       key: "workflow_weekly_backup",
       title: "💾 สำรองฐานข้อมูลอัตโนมัติรายสัปดาห์",
-      description: "สั่งโคลนคัดลอกไฟล์ Google Sheets ทั้งใบ เพื่อแอบแบ็กอัปเก็บลงโฟลเดอร์ Google Drive ทุกคืนวันอาทิตย์",
+      description: "สั่งโคลนคัดลอกไฟล์แผ่นงานเพื่อสำรองเก็บแยกไว้ใน Google Drive ทุกคืนวันอาทิตย์",
       badge: "Google Drive"
     },
     {
       key: "workflow_high_expense_alert",
-      title: "🚨 แจ้งเตือนเมื่อค่าใช้จ่ายเกินตัว",
-      description: "ยิงสัญญาณแจ้งเตือนเข้าช่อง Telegram ทันทีหากมีการทำธุรกรรมสั่งจ่ายรายการเงินมูลค่าเกิน 10,000 บาท",
+      title: "🚨 แจ้งเตือนเมื่อค่าใช้จ่ายเกินเป้าหมาย",
+      description: "ยิงสัญญาณแจ้งเตือนเข้าช่อง Telegram ทันทีหากมีรายการค่าใช้จ่ายมูลค่าเกิน 10,000 บาท",
       badge: "Instant Trigger"
     }
   ];
@@ -91,10 +91,10 @@ export default function WorkflowsScreen() {
         </header>
 
         <h2 className="text-xl font-bold mb-2 text-center text-text-main">
-          ⚙️ ระบบรันสูตรทำงานอัตโนมัติ (Workflows)
+          ⚙️ ตั้งค่าระบบอัตโนมัติ (Personal Settings)
         </h2>
         <p className="text-[10px] text-text-sub text-center mb-8">
-          เปิด-ปิดสูตรคำสั่ง Hard-coded เพื่อรัน Trigger ข้อมูลลงแผ่นงานและคลาวด์อัตโนมัติ
+          เปิด-ปิดระบบรันสูตรทำงานและรายงานสถานะการทำงานอัตโนมัติ
         </p>
 
         {message && (
@@ -105,7 +105,7 @@ export default function WorkflowsScreen() {
 
         {loading ? (
           <div className="text-center py-10 text-xs text-text-sub">
-            กำลังดาวน์โหลดการตั้งค่าคิวเวิร์กโฟลว์...
+            กำลังดาวน์โหลดการตั้งค่าเวิร์กโฟลว์...
           </div>
         ) : (
           <div className="space-y-4">

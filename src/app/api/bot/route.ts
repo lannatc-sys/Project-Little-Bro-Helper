@@ -27,17 +27,17 @@ export async function POST(request: Request) {
 
       if (callbackData === "ai_approve") {
         fs.writeFileSync(approvalFilePath, JSON.stringify({ status: "approved", timestamp: Date.now() }, null, 2));
-        responseText = "🟢 *บอสอนุมัติเรียบร้อยครับ!*\nเอเจนต์รับสิทธิ์และกำลังดำเนินงานต่อในเครื่องคอมพิวเตอร์ทันทีครับบอส 👔💻";
+        responseText = "🟢 *บันทึกและดำเนินการเรียบร้อยครับ!*\nระบบได้รับสิทธิ์และกำลังรันขั้นตอนทำงานต่อทันทีครับ 💻";
       } else if (callbackData === "ai_reject") {
         fs.writeFileSync(approvalFilePath, JSON.stringify({ status: "awaiting_reason", timestamp: Date.now() }, null, 2));
-        responseText = "❌ *บอสปฏิเสธการรันคำสั่งครับ!*\n\nกรุณาพิมพ์เหตุผล หรือระบุสิ่งที่ต้องการให้ปรับปรุงแก้ไข ส่งกลับเข้าในแชทนี้ได้เลยครับบอส เอเจนต์หลังบ้านในคอมพิวเตอร์รอรับข้อความแก้ไขของบอสอยู่ครับ 👔";
+        responseText = "❌ *ระงับการทำงานชั่วคราวครับ!*\n\nกรุณาพิมพ์ข้อแนะนำสิ่งที่ต้องการให้แก้ไขส่งเข้ามาได้เลยครับ ระบบจะบันทึกข้อคิดเห็นเพื่อตรวจสอบแก้ไขต่อไปครับ";
       }
 
       // 1. ตอบกลับ callback query ของ Telegram เพื่อให้ปุ่มหยุดหมุนโหลด
       await fetch(`https://api.telegram.org/bot${token}/answerCallbackQuery`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ callback_query_id: callbackId, text: "รับทราบคำสั่งอนุมัติ!" })
+        body: JSON.stringify({ callback_query_id: callbackId, text: "รับทราบคำสั่งดำเนินการ!" })
       });
 
       // 2. อัปเดตข้อความเดิมเพื่อล็อกสถานะให้บอสเห็น
@@ -62,27 +62,27 @@ export async function POST(request: Request) {
 
     const chatId = update.message.chat.id;
     const text = (update.message.text || "").trim();
-    const username = update.message.from?.username || "Boss";
+    const username = update.message.from?.username || "User";
 
-    // B.1 Check if we are currently awaiting a rejection reason from the boss
+    // B.1 Check if we are currently awaiting a rejection reason
     if (fs.existsSync(approvalFilePath)) {
       try {
         const approvalData = JSON.parse(fs.readFileSync(approvalFilePath, "utf8"));
         if (approvalData.status === "awaiting_reason") {
-          // บันทึกคำสั่งเหตุผลในการปฏิเสธลงไฟล์
+          // บันทึกคำสั่งเหตุผลการระงับลงไฟล์
           fs.writeFileSync(
             approvalFilePath,
             JSON.stringify({ status: "rejected", reason: text, timestamp: Date.now() }, null, 2)
           );
 
-          // ตอบแชทกลับเพื่อรับทราบเหตุผลในการแก้ไข
+          // ตอบแชทกลับเพื่อรับทราบเหตุผล
           const telegramApiUrl = `https://api.telegram.org/bot${token}/sendMessage`;
           await fetch(telegramApiUrl, {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({
               chat_id: chatId,
-              text: `✅ *รับทราบข้อแนะนำการแก้ไขครับบอส!*\n\n*สิ่งที่ต้องการให้ปรับปรุง*: "${text}"\n\nระบบบันทึกความต้องการลงไฟล์คอมพิวเตอร์เรียบร้อยแล้ว เอเจนต์จะเปิดอ่านข้อความเพื่อนำไปพัฒนาตรวจสอบแก้ไขระบบทันทีครับบอส! 👔💻`,
+              text: `✅ *รับทราบข้อคิดเห็นเพื่อตรวจสอบแก้ไขเรียบร้อยครับ!*\n\n*ข้อแนะนำ*: "${text}"\n\nระบบบันทึกความคิดเห็นลงฐานข้อมูลเพื่อรอการตรวจสอบแก้ไขแล้วครับ 💻`,
               parse_mode: "Markdown"
             })
           });
@@ -99,7 +99,7 @@ export async function POST(request: Request) {
 
     // Parse Bot Commands
     if (text.startsWith("/start")) {
-      // ลงทะเบียน หรืออัปเดตสิทธิ์ Chat ID ปัจจุบันลงชีต Users หลังบ้าน
+      // ลงทะเบียน หรืออัปเดตสิทธิ์ Chat ID ปัจจุบันลงชีต Profiles หลังบ้าน
       const gasUrl = process.env.GOOGLE_APPS_SCRIPT_URL;
       const ssId = process.env.GOOGLE_SPREADSHEET_ID;
       if (gasUrl && ssId) {
@@ -119,41 +119,41 @@ export async function POST(request: Request) {
         }
       }
 
-      replyText = `สวัสดีครับคุณ ${username}! ยินดีต้อนรับสู่ระบบ Little Bro Helper 👔\nผมคือผู้ช่วยส่วนตัวในการจัดการฐานข้อมูลและบันทึกการเงินของคุณครับ\n\nผมได้ทำการสลับช่องทางการส่ง Push Notification และการเชื่อมโยงระบบมารายงานที่ห้องแชทนี้สำเร็จเรียบร้อยแล้วครับบอส! 📲\n\nบอสสามารถพิมพ์คุยบันทึกบัญชีด่วน หรือกดเปิด Mini App ด้านล่างได้เลยครับ`;
+      replyText = `สวัสดีครับคุณ ${username}! เริ่มต้นใช้งานระบบผู้ช่วยส่วนตัว Little Bro Helper เรียบร้อยแล้วครับ 📲\nผมพร้อมช่วยบันทึกการเงินและเตือนความจำกิจกรรมต่างๆ ของคุณแล้วครับ\n\nสามารถพิมพ์คุยบันทึกบัญชี หรือกดปุ่มเปิดหน้าต่างแอปด้านล่างได้เลยครับ`;
       inlineKeyboard = [
         [
           {
-            text: "🚀 เปิดระบบช่วยเหลือ (Mini App)",
+            text: "🚀 เปิดแอปผู้ช่วยส่วนตัว",
             web_app: { url: appUrl }
           }
         ]
       ];
     } else if (text.startsWith("/home")) {
-      replyText = `เปิดหน้าหลัก Mission Control ของบอสที่ปุ่มด้านล่างได้เลยครับ:`;
+      replyText = `เปิดหน้าหลักของคุณได้ที่ปุ่มด้านล่างนี้ครับ:`;
       inlineKeyboard = [
         [
           {
-            text: "🏠 หน้าหลัก Mission Control",
+            text: "🏠 หน้าหลักระบบผู้ช่วย",
             web_app: { url: appUrl }
           }
         ]
       ];
     } else if (text.startsWith("/money")) {
-      replyText = `บอสสามารถเปิดหน้าจอเพื่อบันทึกรายการรายจ่ายด่วนลง Google Sheets ได้เลยครับ:`;
+      replyText = `เปิดหน้าจอบันทึกรายรับ/รายจ่ายด่วนได้เลยครับ:`;
       inlineKeyboard = [
         [
           {
-            text: "💸 บันทึกรายรับ/รายจ่าย",
+            text: "💸 บันทึกบัญชีส่วนตัว",
             web_app: { url: `${appUrl}/add-expense` }
           }
         ]
       ];
     } else if (text.startsWith("/task")) {
-      replyText = `📋 เปิดคลังจัดการงานสะสมเพื่ออัปเดตงานเช็คลิสต์บน Google Sheets ได้ที่ปุ่มด้านล่างครับบอส:`;
+      replyText = `📋 เปิดคลังจัดการรายการสิ่งที่ต้องทำได้ที่ปุ่มด้านล่างนี้ครับ:`;
       inlineKeyboard = [
         [
           {
-            text: "📂 ดูภารกิจสะสมทั้งหมด",
+            text: "📂 ดูสิ่งที่ต้องทำทั้งหมด",
             web_app: { url: `${appUrl}/tasks` }
           }
         ]
@@ -177,13 +177,13 @@ export async function POST(request: Request) {
 
         // Classify Category from Keywords
         if (text.includes("ข้าว") || text.includes("อาหาร") || text.includes("กิน") || text.includes("คาเฟ่") || text.includes("กาแฟ")) {
-          category = isIncome ? "ขายสินค้า" : "ค่าอาหาร";
+          category = isIncome ? "รายรับทั่วไป" : "ค่าอาหาร";
         } else if (text.includes("น้ำมัน") || text.includes("รถ") || text.includes("เดินทาง") || text.includes("แท็กซี่")) {
-          category = "ค่าน้ำมันรถ";
+          category = "ค่าเดินทาง";
         } else if (text.includes("ไฟ") || text.includes("น้ำ") || text.includes("เน็ต") || text.includes("โทรศัพท์")) {
           category = "ค่าสาธารณูปโภค";
         } else if (text.includes("ห้อง") || text.includes("เช่า") || text.includes("หอพัก")) {
-          category = isIncome ? "ค่าเช่าห้องพัก" : "ค่าสิ่งของ";
+          category = isIncome ? "รายรับทั่วไป" : "ค่าที่พัก";
         }
 
         const gasUrl = process.env.GOOGLE_APPS_SCRIPT_URL;
@@ -204,19 +204,19 @@ export async function POST(request: Request) {
             });
             const gasResult = await gasRes.json();
             if (gasResult.status === "success") {
-              replyText = `✅ *บันทึกบัญชีลง Sheets สำเร็จครับบอส!*\n\n*ประเภท*: ${isIncome ? "📈 รายรับ" : "📉 รายจ่าย"}\n*จำนวน*: ฿${amount.toLocaleString("th-TH", { minimumFractionDigits: 2 })}\n*หมวดหมู่*: ${category}\n*รายละเอียด*: ${desc}\n\nตัวเลขถูกซิงก์เข้าสู่ Google Sheets เรียบร้อยครับ! 👔`;
+              replyText = `✅ *บันทึกรายการลงบัญชีสำเร็จเรียบร้อยครับ!*\n\n*ประเภท*: ${isIncome ? "📈 รายรับ" : "📉 รายจ่าย"}\n*จำนวน*: ฿${amount.toLocaleString("th-TH", { minimumFractionDigits: 2 })}\n*หมวดหมู่*: ${category}\n*รายละเอียด*: ${desc}\n\nข้อมูลการเงินถูกซิงก์ซ้อนเรียบร้อยแล้วครับ!`;
             } else {
-              replyText = `❌ เกิดข้อผิดพลาดในการเขียนสเปรดชีต: ${gasResult.message}`;
+              replyText = `❌ เกิดข้อผิดพลาดในการเขียนแผ่นงาน: ${gasResult.message}`;
             }
           } catch (err: any) {
             replyText = `⚠️ ระบบขัดข้องขณะซิงก์ข้อมูล: ${err.message}`;
           }
         } else {
-          replyText = `⚠️ ระบบหลังบ้านยังไม่ได้เปิดตาราง Google Sheets สำหรับรับรายการจากแชทบอทครับบอส`;
+          replyText = `⚠️ ระบบหลังบ้านยังไม่ได้เปิดตาราง Google Sheets สำหรับรับรายการจากแชทบอทครับ`;
         }
       } else {
         // Default text parser response
-        replyText = `สวัสดีครับบอส ผมคือ Little Bro 👔 ผู้ช่วยส่วนตัวประจำแชทของบอส\n\nบอสสามารถคุยและสั่งงานผมได้ดังนี้ครับ:\n\n1. *จดบัญชีด่วน*: พิมพ์รายการเงิน เช่น "จ่ายค่าข้าว 150" หรือ "รายรับค่าห้อง 4500" ได้ทันที!\n2. *เรียกใช้คำสั่งระบบ*:\n   /home - เปิดแดชบอร์ดหลัก\n   /money - หน้าจอรับ-จ่าย\n   /task - ดูรายการงานสะสม`;
+        replyText = `สวัสดีครับ ผมคือ Little Bro 👔 ผู้ช่วยส่วนตัวประจำแชทของคุณ\n\nสามารถคุยและสั่งงานผมได้ดังนี้ครับ:\n\n1. *จดบัญชีด่วน*: พิมพ์รายการเงิน เช่น "ค่าข้าว 150" หรือ "รายรับ 4500" ได้ทันที!\n2. *เรียกใช้คำสั่งระบบ*:\n   /home - เปิดแดชบอร์ดหลัก\n   /money - หน้าจอรับ-จ่าย\n   /task - ดูรายการสิ่งที่ต้องทำ`;
         inlineKeyboard = [
           [
             {
