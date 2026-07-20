@@ -12,7 +12,7 @@ export default function SettingsScreen() {
   
   const [showWorkspaceModal, setShowWorkspaceModal] = useState(false);
   const [showAccountModal, setShowAccountModal] = useState(false);
-  const [userEmail, setUserEmail] = useState("lannatc@gmail.com");
+  const [userEmail, setUserEmail] = useState("");
   const [isEditingEmail, setIsEditingEmail] = useState(false);
   const [newEmailInput, setNewEmailInput] = useState("");
   const [spreadsheetId, setSpreadsheetId] = useState("1jANLkV4IxXa3mybLPTs7L1RoHtfik7lVLtTlB0Ay1X8");
@@ -25,7 +25,7 @@ export default function SettingsScreen() {
   useEffect(() => {
     const savedTheme = localStorage.getItem("little_bro_theme") || "dark";
     setTheme(savedTheme);
-    const savedEmail = localStorage.getItem("little_bro_email") || "lannatc@gmail.com";
+    const savedEmail = localStorage.getItem("little_bro_email") || "";
     setUserEmail(savedEmail);
     const savedSheetId = localStorage.getItem("google_spreadsheet_id");
     if (savedSheetId) setSpreadsheetId(savedSheetId);
@@ -117,10 +117,12 @@ export default function SettingsScreen() {
   const resetOnboarding = async () => {
     if (confirm("ต้องการรีเซ็ตเพื่อย้อนกลับไปทำขั้นตอนยินดีต้อนรับ (Onboarding) ใหม่หรือไม่ครับ?")) {
       try {
-        const email = "lannatc@gmail.com"; // default mock email
-        await fetch(`/api/auth/status?email=${encodeURIComponent(email)}`, {
-          method: "DELETE"
-        });
+        const targetEmail = userEmail || localStorage.getItem("little_bro_email") || "";
+        if (targetEmail) {
+          await fetch(`/api/auth/status?email=${encodeURIComponent(targetEmail)}`, {
+            method: "DELETE"
+          });
+        }
       } catch (err) {
         console.error("Failed to wipe server registration cache:", err);
       }
@@ -132,10 +134,12 @@ export default function SettingsScreen() {
   const handleDeleteAccount = async () => {
     if (confirm("ต้องการลบบัญชีผู้ใช้รายนี้ออกจากระบบใช่หรือไม่?\n\nการลบนี้จะทำการล้างข้อมูลการจดจำเครื่องทั้งหมดและออกจากระบบทันที")) {
       try {
-        const email = "lannatc@gmail.com"; // default mock email
-        await fetch(`/api/auth/status?email=${encodeURIComponent(email)}`, {
-          method: "DELETE"
-        });
+        const targetEmail = userEmail || localStorage.getItem("little_bro_email") || "";
+        if (targetEmail) {
+          await fetch(`/api/auth/status?email=${encodeURIComponent(targetEmail)}`, {
+            method: "DELETE"
+          });
+        }
       } catch (err) {
         console.error("Failed to wipe server registration cache:", err);
       }
@@ -315,18 +319,29 @@ export default function SettingsScreen() {
             </div>
 
             {/* Other static options */}
+            {/* Password-less New Email Login option */}
             <div
-              onClick={resetOnboarding}
-              className="p-3 bg-surface/20 border border-white/5 rounded-xl hover:bg-surface/40 transition-all cursor-pointer flex items-center justify-between"
+              onClick={() => {
+                setShowAccountModal(true);
+                setIsEditingEmail(true);
+              }}
+              className="p-3.5 bg-gradient-to-r from-primary/20 via-surface/40 to-primary/10 border border-primary/40 rounded-xl hover:border-primary transition-all cursor-pointer flex items-center justify-between shadow-sm group"
             >
               <div className="flex items-center gap-3">
-                <span className="text-lg bg-surface p-2 rounded-lg">🔄</span>
+                <div className="w-9 h-9 rounded-xl bg-primary/20 border border-primary/30 flex items-center justify-center text-primary text-base shrink-0">
+                  📧
+                </div>
                 <div>
-                  <h4 className="text-xs font-semibold text-text-main">ย้อนกลับไปทำ Onboarding ใหม่</h4>
-                  <p className="text-[9px] text-text-sub">ล้างข้อมูลเพื่อดูขั้นตอนต้อนรับ Google Auth</p>
+                  <h4 className="text-xs font-bold text-text-main group-hover:text-primary transition-colors flex items-center gap-1.5">
+                    <span>ล็อกอินบัญชี Google ใหม่ (ไม่ถาม Password)</span>
+                    <span className="text-[8px] bg-[#10B981]/20 text-[#10B981] font-bold px-1.5 py-0.2 rounded-full">1-Click</span>
+                  </h4>
+                  <p className="text-[9px] text-text-sub">พิมพ์กรอกอีเมลใหม่เพื่อล็อกอินและสลับบัญชีใช้งานทันที</p>
                 </div>
               </div>
-              <span className="text-xs text-text-sub/45">➔</span>
+              <span className="bg-primary text-white text-[10px] font-bold px-3 py-1.5 rounded-lg shadow-sm group-hover:scale-105 transition-all shrink-0">
+                ล็อกอินใหม่ ➔
+              </span>
             </div>
             
             <div

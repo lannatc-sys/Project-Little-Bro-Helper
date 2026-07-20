@@ -15,7 +15,7 @@ export default function OnboardingScreen() {
   const [authSubStep, setAuthSubStep] = useState(1);
 
   // User details
-  const [email, setEmail] = useState("lannatc@gmail.com");
+  const [email, setEmail] = useState("");
   const [showCustomAccountInput, setShowCustomAccountInput] = useState(false);
   const [customEmail, setCustomEmail] = useState("");
   const [username, setUsername] = useState("Little Bro");
@@ -379,76 +379,35 @@ export default function OnboardingScreen() {
             {authSubStep === 1 ? (
               <div className="w-full text-center">
                 <h3 className="text-xs font-bold text-text-main mb-1">ลงชื่อเข้าใช้งานด้วย Google</h3>
-                <p className="text-[10px] text-text-sub mb-4">เลือกหรือสลับบัญชี Google เพื่อเชื่อมต่อกับ Little Bro Assistant</p>
+                <p className="text-[10px] text-text-sub mb-4">กรอกอีเมล Google Account เพื่อเชื่อมต่อกับ Little Bro Assistant</p>
                 
-                {/* Current Active Account Button */}
-                <button
-                  onClick={selectMockAccount}
-                  className="w-full p-3 bg-background/60 hover:bg-background border border-white/5 rounded-xl flex items-center justify-between text-left transition-all mb-3 cursor-pointer group"
-                >
-                  <div className="flex items-center gap-3">
-                    <div className="w-7 h-7 rounded-full overflow-hidden bg-[#5B5CEB]/20 text-[#5B5CEB] flex items-center justify-center font-bold text-xs uppercase">
-                      {email.charAt(0)}
-                    </div>
-                    <div>
-                      <h4 className="text-[11px] font-bold text-text-main leading-none group-hover:text-primary transition-colors">
-                        {email.split("@")[0]}
-                      </h4>
-                      <span className="text-[9px] text-text-sub">{email}</span>
-                    </div>
-                  </div>
-                  <span className="text-[9px] bg-primary/20 text-primary border border-primary/30 px-2 py-0.5 rounded-full font-bold">
-                    เลือก ➔
-                  </span>
-                </button>
-
-                {/* Custom Account Switcher */}
-                {!showCustomAccountInput ? (
-                  <button
-                    type="button"
-                    onClick={() => setShowCustomAccountInput(true)}
-                    className="text-[10px] text-primary hover:underline font-bold flex items-center justify-center gap-1 mx-auto cursor-pointer pt-1"
-                  >
-                    <span>🔄 สลับใช้บัญชี Google อื่น (Switch Account)</span>
-                  </button>
-                ) : (
-                  <div className="space-y-2 text-left pt-3 border-t border-white/10 animate-fadeIn">
-                    <label className="text-[10px] text-text-main font-bold block">กรอกอีเมล Google Account ใหม่:</label>
+                <div className="space-y-3 text-left">
+                  <div>
+                    <label className="text-[10px] text-text-main font-bold block mb-1.5">กรอกอีเมล Google Account ของคุณ:</label>
                     <input
                       type="email"
-                      value={customEmail}
-                      onChange={(e) => setCustomEmail(e.target.value)}
+                      value={email}
+                      onChange={(e) => setEmail(e.target.value)}
                       placeholder="เช่น user@gmail.com หรือ company@domain.com"
-                      className="w-full bg-background border border-white/15 p-2.5 rounded-xl text-xs text-text-main focus:border-primary focus:outline-none"
+                      className="w-full bg-background border border-white/15 p-3 rounded-xl text-xs text-text-main focus:border-primary focus:outline-none"
                       autoFocus
                     />
-                    <div className="flex gap-2 pt-1">
-                      <button
-                        type="button"
-                        onClick={() => setShowCustomAccountInput(false)}
-                        className="flex-1 py-2 bg-background border border-white/10 text-text-sub text-[10px] rounded-xl font-bold hover:text-text-main"
-                      >
-                        ยกเลิก
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => {
-                          if (!customEmail || !customEmail.includes("@")) {
-                            alert("⚠️ กรุณากรอกอีเมล Google ให้ถูกต้องครับ (เช่น user@gmail.com)");
-                            return;
-                          }
-                          setEmail(customEmail.trim());
-                          localStorage.setItem("little_bro_email", customEmail.trim());
-                          setShowCustomAccountInput(false);
-                          setAuthSubStep(2);
-                        }}
-                        className="flex-1 py-2 bg-primary text-white text-[10px] rounded-xl font-bold hover:opacity-90 shadow-sm"
-                      >
-                        ใช้บัญชีนี้ ➔
-                      </button>
-                    </div>
                   </div>
-                )}
+                  <button
+                    type="button"
+                    onClick={() => {
+                      if (!email || !email.includes("@")) {
+                        alert("⚠️ กรุณากรอกอีเมล Google ให้ถูกต้องครับ (เช่น user@gmail.com)");
+                        return;
+                      }
+                      localStorage.setItem("little_bro_email", email.trim());
+                      setAuthSubStep(2);
+                    }}
+                    className="w-full py-3 bg-primary text-white text-xs font-bold rounded-xl hover:opacity-90 shadow-md transition-all cursor-pointer"
+                  >
+                    ยืนยันใช้อีเมลนี้เข้าใช้งาน ➔
+                  </button>
+                </div>
               </div>
             ) : (
               <div className="w-full text-text-main">

@@ -40,15 +40,15 @@ export async function POST(request: Request) {
       const profileInserts = profiles.map((p: any) => ({
         user_id: p.user_id || spreadsheetId || "unknown_user",
         telegram_username: p.telegram_username || "",
-        google_email: p.google_email || "lannatc@gmail.com",
+        google_email: p.google_email || "",
         registered_at: p.registered_at ? new Date(p.registered_at).toISOString() : new Date().toISOString()
       }));
       await supabase.from("profiles").insert(profileInserts);
     } else if (spreadsheetId) {
       await supabase.from("profiles").insert({
         user_id: spreadsheetId,
-        telegram_username: "iGAMER",
-        google_email: "lannatc@gmail.com",
+        telegram_username: "User",
+        google_email: "",
         registered_at: new Date().toISOString()
       });
     }
