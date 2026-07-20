@@ -23,8 +23,9 @@ export default function RootLayout({
     <html
       lang="th"
       className={`${notoSansThai.variable} h-full antialiased`}
+      suppressHydrationWarning
     >
-      <body className="min-h-full bg-[#09090B] text-white flex flex-col font-sans">
+      <body className="min-h-full bg-[#09090B] text-white flex flex-col font-sans" suppressHydrationWarning>
         <ClientWrapper>
           {children}
         </ClientWrapper>
