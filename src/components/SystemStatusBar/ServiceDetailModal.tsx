@@ -25,8 +25,9 @@ export const ServiceDetailModal: React.FC<ServiceDetailModalProps> = ({
     try {
       await onReconnect(service.id);
       setReconnectResult("✅ ทดสอบการเชื่อมต่อสำเร็จ (HTTP 200 OK - Latency: " + Math.floor(Math.random() * 20 + 15) + "ms)");
-    } catch (err: any) {
-      setReconnectResult("❌ การเชื่อมต่อล้มเหลว: " + (err.message || "Network Error"));
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : "Network Error";
+      setReconnectResult("❌ การเชื่อมต่อล้มเหลว: " + msg);
     } finally {
       setIsReconnecting(false);
     }

@@ -1,6 +1,6 @@
 "use client";
 
-import React, { createContext, useContext, useEffect, useState } from "react";
+import React, { createContext, useContext, useState } from "react";
 
 export interface GoogleUserProfile {
   google_id: string;
@@ -35,42 +35,38 @@ const GoogleAuthContext = createContext<GoogleAuthContextType>({
 });
 
 export const GoogleAuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const [user, setUser] = useState<GoogleUserProfile | null>(null);
-  const [loading, setLoading] = useState<boolean>(true);
-
-  useEffect(() => {
-    // Restore Google OAuth 2.0 user session from localStorage
+  const [user, setUser] = useState<GoogleUserProfile | null>(() => {
+    if (typeof window === "undefined") return null;
     const savedUser = localStorage.getItem("little_bro_user_profile");
     const savedEmail = localStorage.getItem("little_bro_email");
 
     if (savedUser) {
       try {
-        const parsed = JSON.parse(savedUser);
-        setUser(parsed);
-      } catch (err) {
+        return JSON.parse(savedUser);
+      } catch {
         if (savedEmail) {
-          const fallbackUser: GoogleUserProfile = {
-            google_id: "google_" + Date.now(),
+          return {
+            google_id: "google_saved",
             email: savedEmail,
             name: savedEmail.split("@")[0] || "Google User",
             picture: "/avatar/shan.png",
             authenticated: true
           };
-          setUser(fallbackUser);
         }
       }
     } else if (savedEmail) {
-      const fallbackUser: GoogleUserProfile = {
-        google_id: "google_" + Date.now(),
+      return {
+        google_id: "google_saved",
         email: savedEmail,
         name: savedEmail.split("@")[0] || "Google User",
         picture: "/avatar/shan.png",
         authenticated: true
       };
-      setUser(fallbackUser);
     }
-    setLoading(false);
-  }, []);
+    return null;
+  });
+
+  const [loading, setLoading] = useState<boolean>(false);
 
   const signInWithGoogle = async (customEmail?: string): Promise<GoogleUserProfile> => {
     setLoading(true);

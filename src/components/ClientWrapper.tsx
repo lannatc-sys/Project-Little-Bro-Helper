@@ -44,7 +44,10 @@ export default function ClientWrapper({
 }: {
   children: React.ReactNode;
 }) {
-  const [theme, setTheme] = useState("dark");
+  const [theme, setTheme] = useState(() => {
+    if (typeof window === "undefined") return "shan-light";
+    return localStorage.getItem("little_bro_theme") || "shan-light";
+  });
   const [mounted, setMounted] = useState(false);
 
   const applyThemeClass = (targetTheme: string) => {
@@ -57,11 +60,9 @@ export default function ClientWrapper({
   };
 
   useEffect(() => {
-    const savedTheme = localStorage.getItem("little_bro_theme") || "shan-light";
-    setTheme(savedTheme);
-    applyThemeClass(savedTheme);
+    applyThemeClass(theme);
     setMounted(true);
-  }, []);
+  }, [theme]);
 
   useEffect(() => {
     const handleThemeChange = (newTheme: string) => {
@@ -71,10 +72,10 @@ export default function ClientWrapper({
       window.dispatchEvent(new CustomEvent("little_bro_theme_updated", { detail: newTheme }));
     };
 
-    (window as any).toggleLittleBroTheme = handleThemeChange;
+    (window as unknown as { toggleLittleBroTheme: (t: string) => void }).toggleLittleBroTheme = handleThemeChange;
 
     return () => {
-      delete (window as any).toggleLittleBroTheme;
+      delete (window as unknown as { toggleLittleBroTheme?: (t: string) => void }).toggleLittleBroTheme;
     };
   }, []);
 

@@ -8,17 +8,15 @@ import { ServiceDetailModal } from "./ServiceDetailModal";
 export const SystemStatusBar: React.FC = () => {
   const [services, setServices] = useState<ServiceItem[]>(INITIAL_SERVICES);
   const [selectedService, setSelectedService] = useState<ServiceItem | null>(null);
-  const [activeCategory, setActiveCategory] = useState<string>("All");
-  const [lastCheckTime, setLastCheckTime] = useState<string>("");
+  const [lastCheckTime, setLastCheckTime] = useState<string>(() =>
+    new Date().toLocaleTimeString("th-TH", { hour: "2-digit", minute: "2-digit", second: "2-digit" })
+  );
 
   // Real-time background update simulation (periodic health checks without page refresh)
   useEffect(() => {
-    setLastCheckTime(new Date().toLocaleTimeString("th-TH", { hour: "2-digit", minute: "2-digit", second: "2-digit" }));
-
     const interval = setInterval(() => {
       setServices((prev) =>
         prev.map((s) => {
-          // Slightly fluctuate latency to simulate live connectivity
           const newLatency = Math.max(8, s.latency + Math.floor(Math.random() * 9 - 4));
           return {
             ...s,
@@ -53,13 +51,6 @@ export const SystemStatusBar: React.FC = () => {
     );
   };
 
-  const categories = ["All", "AI & LLM", "Database & Storage", "Cloud & Hosting", "Messaging & Social", "Integrations"];
-
-  const filteredServices = services.filter((s) => {
-    if (activeCategory === "All") return true;
-    return s.category === activeCategory;
-  });
-
   const connectedCount = services.filter((s) => s.status === "connected" || s.status === "syncing").length;
   const totalCount = services.length;
   const totalErrors = services.filter((s) => s.notificationCount > 0 || s.status === "disconnected").length;
@@ -93,7 +84,7 @@ export const SystemStatusBar: React.FC = () => {
 
           {/* Horizontally Scrollable Badges Container */}
           <div className="flex items-center gap-2 overflow-x-auto no-scrollbar py-0.5 scroll-smooth">
-            {filteredServices.map((service) => (
+            {services.map((service) => (
               <ServiceBadge
                 key={service.id}
                 service={service}
