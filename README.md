@@ -1,40 +1,31 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# 📜 Little Bro Assistant
 
-## Getting Started
+ระบบผู้ช่วยอัจฉริยะส่วนบุคคลและจัดการงาน/การเงิน (Personal Assistant & Financial Management System)
 
-First, run the development server:
+---
+
+## 🌟 ฟีเจอร์หลัก (Key Features)
+
+1. **🏷️ Branding & Identity:** ระบบปรับโฉมใหม่ภายใต้ชื่อ **Little Bro Assistant** ครอบคลุมทั้งเว็บแอปและแชทบอท
+2. **🎨 Shan Heritage & Multi-Theme Architecture:** ธีม 4 สไตล์ (Shan Light, Shan Dark, Dark Modern, Light Modern) พร้อมมาสคอต Little Bro คมชัด 100%
+3. **👑 Admin Console System:** แผงควบคุมระบบด้วย PIN 1234, System Health Monitor, Feature Toggles, User Directory และ System Logs
+4. **💬 LINE OA & Telegram Chatbots:** ระบบแชทบอทอ่านภาษาไทยธรรมชาติ ("ค่าข้าว 120") พร้อม LINE Push Notification API และ Telegram Bot Integration
+5. **📊 Google Workspace & Tasks Auto-Sync:** ซิงก์งานอัตโนมัติไปยัง Google Tasks API และรองรับโครงสร้าง Google Sheets 6 โมดูลหลัก
+6. **📝 Redesigned Tasks Modal:** ฟอร์มบันทึกงาน 4 ช่อง พร้อมระบบ Optimistic Update รู้ผลบันทึกทันที
+7. **🔒 Safe E-Slip Archiving:** ย้ายเอนจินประมวลผลสลิปไปยัง Archive ป้องกันการสิ้นเปลืองโทเค็น
+8. **⚡ Supabase Database Dual-Sync:** อ่าน/เขียนข้อมูลรวดเร็วระดับ Sub-100ms ควบคู่กับการซิงก์ Google Sheets เบื้องหลัง
+9. **🔑 Google Account Switcher:** สลับหรือพิมพ์เปลี่ยนบัญชี Google (`user@gmail.com`) ได้ทันทีจากหน้า Onboarding และ Settings
+
+---
+
+## 🚀 การใช้งานเบื้องหลัง (Getting Started)
 
 ```bash
+# ติดตั้ง Dependencies
+npm install
+
+# รัน Development Server
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
-
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
-
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
-
-## Learn More
-
-To learn more about Next.js, take a look at the following resources:
-
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
-
-## Vercel Deployment Status
-- Webhook configured on Vercel production domain.
-- Frontend deployed to production environment.
+เปิด [http://localhost:3000](http://localhost:3000) บนบราวเซอร์เพื่อเริ่มใช้งานระบบ **Little Bro Assistant**

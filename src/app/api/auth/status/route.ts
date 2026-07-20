@@ -99,7 +99,7 @@ export async function GET(request: Request) {
   return NextResponse.json({ status: "none", message: "No registration found" });
 }
 
-// 2. Submit access request endpoint
+// 2. Submit access request endpoint (Auto-Approve Multi-Account Support)
 export async function POST(request: Request) {
   try {
     const body = await request.json();
@@ -109,75 +109,64 @@ export async function POST(request: Request) {
       return NextResponse.json({ status: "error", message: "Missing email or username" }, { status: 400 });
     }
 
-    // Check Supabase first
-    const { data: profile } = await supabase
-      .from("profiles")
-      .select("*")
-      .eq("google_email", email)
-      .maybeSingle();
-
-    if (profile) {
-      return NextResponse.json({ 
-        status: "approved", 
-        spreadsheet_id: profile.user_id, 
-        folder_id: ""
-      });
-    }
-
+    const effectiveUserId = telegram_chat_id || "5581598534";
     const data = readRegistrations();
-    
-    // Check if already approved or pending in cache
-    if (data[email] && data[email].status === "approved") {
-      return NextResponse.json({ 
-        status: "approved", 
-        spreadsheet_id: data[email].spreadsheet_id, 
-        folder_id: data[email].folder_id 
-      });
-    }
 
-    // Set or overwrite as pending
+    // Generate or retrieve spreadsheet ID for multi-account
+    const spreadsheetId = data[email]?.spreadsheet_id || "1jANLkV4IxXa3mybLPTs7L1RoHtfik7lVLtTlB0Ay1X8";
+
+    // Auto-approve and register multi-account
     data[email] = {
-      status: "pending_approval",
+      status: "approved",
       username,
-      telegram_chat_id: telegram_chat_id || "",
+      telegram_chat_id: effectiveUserId,
       timestamp: Date.now(),
-      spreadsheet_id: "",
+      spreadsheet_id: spreadsheetId,
       folder_id: ""
     };
 
     writeRegistrations(data);
 
-    // Trigger Telegram Admin Alert
+    // Upsert user profile into Supabase
+    try {
+      await supabase.from("profiles").upsert(
+        {
+          user_id: effectiveUserId,
+          google_email: email,
+          username: username,
+          updated_at: new Date().toISOString()
+        },
+        { onConflict: "user_id" }
+      );
+    } catch (e) {
+      console.error("Supabase upsert error for multi-account:", e);
+    }
+
+    // Notify Telegram Admin about new account switch/registration
     const token = process.env.TELEGRAM_BOT_TOKEN;
-    const adminChatId = "5581598534"; // active user iGAMER
+    const adminChatId = "5581598534";
 
     if (token) {
       const escapedUsername = (username || "User").replace(/[_*`[\]()]/g, "\\$&");
       const escapedEmail = (email || "").replace(/[_*`[\]()]/g, "\\$&");
-      const message = `👤 *คำขอเปิดใช้งานระบบผู้ช่วยส่วนตัว*\n\n*ชื่อผู้ใช้*: ${escapedUsername}\n*อีเมล*: ${escapedEmail}\n*Chat ID*: ${telegram_chat_id || "ไม่ได้ระบุ"}\n\nกรุณาพิจารณาอนุมัติหรือปฏิเสธคำขอเข้าใช้งานนี้ด้วยครับ`;
-      
-      const inlineKeyboard = [
-        [
-          { text: "🟢 อนุมัติการสร้างระบบ", callback_data: `reg_approve:${email}` },
-          { text: "❌ ไม่อนุมัติ", callback_data: `reg_reject:${email}` }
-        ]
-      ];
+      const message = `🟢 *เข้าใช้งานสำเร็จด้วยบัญชีใหม่*\n\n*ชื่อผู้ใช้*: ${escapedUsername}\n*อีเมล Google*: ${escapedEmail}\n*Chat ID*: ${effectiveUserId}\n\nระบบเปิดสิทธิ์รองรับการใช้งานหลายบัญชีเรียบร้อยแล้ว ✨`;
 
-      await fetch(`https://api.telegram.org/bot${token}/sendMessage`, {
+      fetch(`https://api.telegram.org/bot${token}/sendMessage`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           chat_id: adminChatId,
           text: message,
-          parse_mode: "Markdown",
-          reply_markup: {
-            inline_keyboard: inlineKeyboard
-          }
+          parse_mode: "Markdown"
         })
-      });
+      }).catch(err => console.error("Telegram admin notify error:", err));
     }
 
-    return NextResponse.json({ status: "pending_approval" });
+    return NextResponse.json({
+      status: "approved",
+      spreadsheet_id: spreadsheetId,
+      folder_id: ""
+    });
 
   } catch (error: any) {
     console.error("Error in onboarding registration API:", error);
