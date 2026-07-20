@@ -108,6 +108,7 @@ function TasksForm() {
         setDueDate("");
         setReminderTime("09:00");
         setShowCreateModal(false);
+        alert("✅ บันทึกงานซิงก์ลง Google Tasks เรียบร้อยแล้วครับ!");
         fetchTasks();
       } else {
         alert("❌ เกิดข้อผิดพลาด: " + (result.message || "ไม่สามารถบันทึกงานได้"));
@@ -241,99 +242,111 @@ function TasksForm() {
         </div>
       </div>
 
-      {/* Fix #4: Create Task Modal with 4 Exact Fields (ชื่องาน, วันที่, เวลา, อธิบายเพิ่มเติม) */}
+      {/* Google Tasks Style Creation Modal (Exact Dark UI matching reference screenshot) */}
       {showCreateModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/75 backdrop-blur-md animate-fadeIn">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md animate-fadeIn">
           <form 
             onSubmit={handleCreateTask}
-            className="bg-surface border border-white/15 w-full max-w-md rounded-3xl p-6 shadow-2xl flex flex-col relative text-text-main space-y-4"
+            className="bg-[#1E1E1E] border border-white/10 w-full max-w-sm rounded-3xl p-5 shadow-2xl flex flex-col relative text-white space-y-4"
           >
-            {/* Modal Header */}
-            <div className="flex justify-between items-center border-b border-white/10 pb-3">
-              <div className="flex items-center gap-2">
-                <span className="text-xl">📝</span>
-                <h3 className="text-sm font-bold text-text-main">บันทึกความจำ / สิ่งที่ต้องทำ</h3>
-              </div>
+            {/* Modal Top Close Button */}
+            <div className="flex justify-end items-center">
               <button 
                 type="button"
                 onClick={() => setShowCreateModal(false)}
-                className="text-text-sub hover:text-text-main p-1 rounded-full hover:bg-white/5 transition-all text-sm"
+                className="text-text-sub hover:text-white p-1 rounded-full hover:bg-white/10 transition-all text-base"
               >
                 ✕
               </button>
             </div>
             
-            {/* 4 Form Fields */}
-            <div className="space-y-3.5">
-              {/* Field 1: ชื่องาน */}
-              <div>
-                <label className="block mb-1 text-[11px] text-text-main font-bold">
-                  1. ชื่องาน <span className="text-red-400">*</span>
-                </label>
-                <input 
-                  type="text" 
-                  value={newTaskName}
-                  onChange={(e) => setNewTaskName(e.target.value)}
-                  placeholder="เช่น ซื้อของเข้าบ้าน, เคลียร์บัญชีปลายเดือน..."
-                  required
-                  className="w-full bg-background border border-white/10 p-3 rounded-xl text-text-main text-xs focus:border-primary focus:outline-none placeholder-text-sub/50 shadow-inner"
-                />
-              </div>
+            {/* Title Input (เพิ่มชื่อ) */}
+            <div>
+              <input 
+                type="text" 
+                value={newTaskName}
+                onChange={(e) => setNewTaskName(e.target.value)}
+                placeholder="เพิ่มชื่อ"
+                required
+                className="w-full bg-transparent border-b border-white/20 pb-2 text-base font-bold text-white focus:border-[#5B5CEB] focus:outline-none placeholder-text-sub/50"
+                autoFocus
+              />
+            </div>
 
-              {/* Field 2 & 3: วันที่ & เวลา (Side by Side) */}
-              <div className="grid grid-cols-2 gap-3">
-                {/* Field 2: วันที่ */}
-                <div>
-                  <label className="block mb-1 text-[11px] text-text-main font-bold flex items-center gap-1">
-                    <span>📅</span>
-                    <span>2. วันที่</span>
-                  </label>
+            {/* Date & Time Row with Clock Icon 🕒 */}
+            <div className="space-y-2.5">
+              <div className="flex items-center gap-2">
+                <span className="text-text-sub text-base">🕒</span>
+                <div className="flex gap-2 flex-1">
+                  {/* Date Input */}
                   <input 
                     type="date" 
                     value={dueDate}
                     onChange={(e) => setDueDate(e.target.value)}
-                    className="w-full bg-background border border-white/10 p-2.5 rounded-xl text-text-main text-xs focus:border-primary focus:outline-none shadow-inner"
+                    className="flex-1 bg-[#2A2A2A] border border-white/5 p-2 rounded-xl text-xs text-white focus:border-[#5B5CEB] focus:outline-none"
                   />
-                </div>
-
-                {/* Field 3: เวลา */}
-                <div>
-                  <label className="block mb-1 text-[11px] text-text-main font-bold flex items-center gap-1">
-                    <span>⏰</span>
-                    <span>3. เวลา</span>
-                  </label>
+                  {/* Time Input */}
                   <input 
                     type="time" 
                     value={reminderTime}
                     onChange={(e) => setReminderTime(e.target.value)}
-                    className="w-full bg-background border border-white/10 p-2.5 rounded-xl text-text-main text-xs focus:border-primary focus:outline-none shadow-inner"
+                    className="w-24 bg-[#2A2A2A] border border-white/5 p-2 rounded-xl text-xs text-white focus:border-[#5B5CEB] focus:outline-none text-center"
                   />
                 </div>
               </div>
 
-              {/* Field 4: อธิบายเพิ่มเติม */}
-              <div>
-                <label className="block mb-1 text-[11px] text-text-main font-bold flex items-center gap-1">
-                  <span>💬</span>
-                  <span>4. อธิบายเพิ่มเติม</span>
+              {/* Checkbox & Repeat Row */}
+              <div className="pl-6 flex items-center justify-between text-xs text-text-sub">
+                <label className="flex items-center gap-2 cursor-pointer hover:text-white">
+                  <input type="checkbox" className="rounded bg-[#2A2A2A] border-white/20 accent-[#5B5CEB]" />
+                  <span>ตลอดวัน</span>
                 </label>
-                <textarea 
-                  value={newDetails}
-                  onChange={(e) => setNewDetails(e.target.value)}
-                  placeholder="ระบุข้อความรายละเอียดเพิ่มเติม..."
-                  className="w-full bg-background border border-white/10 p-3 rounded-xl text-text-main text-xs focus:border-primary focus:outline-none placeholder-text-sub/50 h-20 resize-none shadow-inner"
-                />
+                <select className="bg-[#2A2A2A] border border-white/5 text-[11px] text-text-sub rounded-lg p-1 focus:outline-none">
+                  <option value="none">ไม่เกิดซ้ำ</option>
+                  <option value="daily">ทุกวัน</option>
+                  <option value="weekly">ทุกสัปดาห์</option>
+                  <option value="monthly">ทุกเดือน</option>
+                </select>
               </div>
             </div>
 
-            {/* Submit Button */}
-            <div className="pt-2">
+            {/* Description Row with List Icon ≡ */}
+            <div className="flex items-start gap-2 pt-1">
+              <span className="text-text-sub text-base mt-2">≡</span>
+              <textarea 
+                value={newDetails}
+                onChange={(e) => setNewDetails(e.target.value)}
+                placeholder="เพิ่มคำอธิบาย"
+                className="flex-1 bg-[#2A2A2A] border border-white/5 p-3 rounded-2xl text-xs text-white focus:border-[#5B5CEB] focus:outline-none placeholder-text-sub/50 h-20 resize-none"
+              />
+            </div>
+
+            {/* Category / Task List Selector Row with List Icon 📋 */}
+            <div className="flex items-center gap-2">
+              <span className="text-text-sub text-base">📋</span>
+              <select className="flex-1 bg-[#2A2A2A] border border-white/5 text-xs text-white rounded-xl p-2.5 focus:border-[#5B5CEB] focus:outline-none">
+                <option value="tasks">Little Bro Assistant Tasks</option>
+                <option value="expense">ค่าใช้จ่าย</option>
+                <option value="general">งานทั่วไป</option>
+              </select>
+            </div>
+
+            {/* Bottom Bar: Direct Google Tasks Link & Save Button */}
+            <div className="pt-3 border-t border-white/10 flex items-center justify-between">
+              <a
+                href="https://tasks.google.com"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-[10px] text-primary hover:underline font-bold"
+              >
+                เปิด Google Tasks ➔
+              </a>
               <button
                 type="submit"
                 disabled={createLoading}
-                className="w-full bg-primary hover:bg-primary/90 disabled:opacity-50 text-white font-bold text-xs py-3 rounded-xl shadow-lg transition-all flex items-center justify-center gap-2 cursor-pointer"
+                className="bg-[#5B5CEB] hover:bg-[#5B5CEB]/90 disabled:opacity-50 text-white font-bold text-xs px-6 py-2.5 rounded-xl shadow-lg transition-all cursor-pointer"
               >
-                {createLoading ? "กำลังบันทึก..." : "บันทึกรายการสิ่งที่ต้องทำ 💾"}
+                {createLoading ? "กำลังบันทึก..." : "บันทึก"}
               </button>
             </div>
           </form>
