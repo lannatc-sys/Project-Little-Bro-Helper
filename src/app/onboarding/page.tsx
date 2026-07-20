@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { useGoogleAuth } from "@/components/GoogleAuthProvider";
+import { PrivacyPolicyModal } from "@/components/PrivacyPolicyModal";
 
 export default function OnboardingScreen() {
   const router = useRouter();
@@ -11,6 +12,7 @@ export default function OnboardingScreen() {
 
   const [step, setStep] = useState(1);
   const [authMode, setAuthMode] = useState<"signin" | "signup">("signin");
+  const [showPrivacyModal, setShowPrivacyModal] = useState(false);
   
   // Credentials
   const [emailInput, setEmailInput] = useState("");
@@ -236,7 +238,7 @@ export default function OnboardingScreen() {
               </div>
             </div>
 
-            {/* PDPA Checkbox */}
+            {/* PDPA Checkbox with clickable Privacy Policy Modal Link */}
             <label className="flex items-start gap-2.5 cursor-pointer pt-1">
               <input
                 type="checkbox"
@@ -245,7 +247,18 @@ export default function OnboardingScreen() {
                 className="w-4 h-4 mt-0.5 rounded text-primary border-white/20 bg-transparent focus:ring-0 cursor-pointer"
               />
               <span className="text-[10px] text-text-sub leading-relaxed">
-                ฉันยอมรับข้อตกลงความเป็นส่วนตัวและซิงก์ข้อมูลกับบัญชีส่วนตัว
+                ฉันยอมรับ{" "}
+                <button
+                  type="button"
+                  onClick={(e) => {
+                    e.preventDefault();
+                    setShowPrivacyModal(true);
+                  }}
+                  className="text-primary underline font-bold hover:text-white"
+                >
+                  นโยบายความเป็นส่วนตัว (Privacy Policy)
+                </button>{" "}
+                และข้อตกลงการซิงก์ข้อมูลส่วนตัว
               </span>
             </label>
 
@@ -258,7 +271,7 @@ export default function OnboardingScreen() {
               {isAuthenticating ? (
                 <>
                   <span className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></span>
-                  <span>กำลังตรวจสอบข้อมูล...</span>
+                  <span>กำลังอนุมัติเข้าใช้งาน...</span>
                 </>
               ) : (
                 <span>{authMode === "signin" ? "เข้าสู่ระบบ (Sign In) ➔" : "สร้างบัญชีใหม่ (Create Account) ➔"}</span>
@@ -291,13 +304,13 @@ export default function OnboardingScreen() {
         </div>
       )}
 
-      {/* STEP 3: Success Screen */}
+      {/* STEP 3: Success Screen (Auto-Approved) */}
       {step === 3 && (
         <div className="flex-1 flex flex-col justify-center items-center text-center w-full z-10 space-y-5 my-auto">
           <div>
-            <h2 className="text-xl font-bold mb-1 text-text-main">เข้าสู่ระบบสำเร็จ! 🎉</h2>
+            <h2 className="text-xl font-bold mb-1 text-text-main">อนุมัติเข้าใช้งานสำเร็จ! 🎉</h2>
             <span className="text-[10px] text-[#10B981] bg-[#10B981]/15 px-3 py-1 rounded-full font-bold border border-[#10B981]/30">
-              Authenticated & Workspace Ready
+              ● Auto-Approved & Ready
             </span>
           </div>
 
@@ -337,6 +350,12 @@ export default function OnboardingScreen() {
           </button>
         </div>
       )}
+
+      {/* Privacy Policy Modal */}
+      <PrivacyPolicyModal
+        isOpen={showPrivacyModal}
+        onClose={() => setShowPrivacyModal(false)}
+      />
 
       {/* Progress Dots */}
       <div className="flex gap-1.5 mt-4">
