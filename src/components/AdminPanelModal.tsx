@@ -97,13 +97,62 @@ export default function AdminPanelModal({
     { id: "U2fe9ffc64c98971b04b2200ac04411ff", username: "LINE OA User", platform: "LINE OA", role: "Member", registered: "20/07/2026" }
   ]);
 
+  // Dynamic Admin Email Management States
+  const [adminEmails, setAdminEmails] = useState<string[]>(["lannatc@gmail.com", "admin@littlebroassistant.com"]);
+  const [newAdminEmailInput, setNewAdminEmailInput] = useState("");
+
   useEffect(() => {
     // Check if previously authenticated in session
     const isAuth = sessionStorage.getItem("little_bro_admin_auth") === "true";
     if (isAuth) {
       setIsAuthenticated(true);
     }
+
+    const savedAdmins = localStorage.getItem("little_bro_admin_emails");
+    if (savedAdmins) {
+      try {
+        const parsed = JSON.parse(savedAdmins);
+        if (Array.isArray(parsed) && parsed.length > 0) {
+          setAdminEmails(parsed);
+        }
+      } catch (err) {
+        console.error("Failed to parse admin emails:", err);
+      }
+    }
   }, [isOpen]);
+
+  const handleAddAdmin = (e: React.FormEvent) => {
+    e.preventDefault();
+    const trimmed = newAdminEmailInput.trim().toLowerCase();
+    if (!trimmed || !trimmed.includes("@")) {
+      alert("กรุณากรอกอีเมลผู้ดูแลระบบให้ถูกต้องครับ");
+      return;
+    }
+    if (adminEmails.map(e => e.toLowerCase()).includes(trimmed)) {
+      alert("อีเมลผู้ดูแลระบบนี้มีอยู่ในระบบแล้วครับ");
+      return;
+    }
+    const updated = [...adminEmails, trimmed];
+    setAdminEmails(updated);
+    localStorage.setItem("little_bro_admin_emails", JSON.stringify(updated));
+    window.dispatchEvent(new CustomEvent("little_bro_admins_updated", { detail: updated }));
+    setNewAdminEmailInput("");
+    alert(`✅ เพิ่มอีเมลผู้ดูแลระบบ (${trimmed}) สำเร็จเรียบร้อยแล้วครับ!`);
+  };
+
+  const handleRemoveAdmin = (targetEmail: string) => {
+    if (adminEmails.length <= 1) {
+      alert("⚠️ ไม่สามารถลบผู้ดูแลระบบคนสุดท้ายได้ครับ!\n\nระบบต้องมีผู้ดูแลอย่างน้อย 1 ท่านเสมอเพื่อความปลอดภัยและความต่อเนื่องในการจัดการระบบ");
+      return;
+    }
+    if (confirm(`ต้องการลบสิทธิ์ผู้ดูแลระบบของอีเมล (${targetEmail}) ใช่หรือไม่?`)) {
+      const updated = adminEmails.filter(e => e.toLowerCase() !== targetEmail.toLowerCase());
+      setAdminEmails(updated);
+      localStorage.setItem("little_bro_admin_emails", JSON.stringify(updated));
+      window.dispatchEvent(new CustomEvent("little_bro_admins_updated", { detail: updated }));
+      alert(`✅ ลบผู้ดูแลระบบ (${targetEmail}) เรียบร้อยแล้วครับ`);
+    }
+  };
 
   const handleVerifyPin = (e: React.FormEvent) => {
     e.preventDefault();
@@ -433,26 +482,89 @@ export default function AdminPanelModal({
               </div>
             )}
 
-            {/* TAB 3: USERS LIST */}
+            {/* TAB 3: USERS & ADMIN MANAGEMENT */}
             {activeTab === "users" && (
-              <div className="space-y-2 max-h-[45vh] overflow-y-auto pr-1">
-                <div className="text-[10px] text-text-sub mb-2">
-                  รายชื่อผู้ใช้งานและผู้รับการแจ้งเตือนหลักในระบบ ({usersList.length} รายการ)
-                </div>
-                {usersList.map((u) => (
-                  <div key={u.id} className="p-3 bg-background border border-white/5 rounded-xl flex items-center justify-between">
-                    <div>
-                      <div className="flex items-center gap-2">
-                        <span className="text-xs font-bold text-text-main">{u.username}</span>
-                        <span className="text-[8px] bg-primary/20 text-primary border border-primary/30 px-1.5 py-0.2 rounded-full font-bold">
-                          {u.role}
-                        </span>
-                      </div>
-                      <p className="text-[9px] text-text-sub font-mono">ID: {u.id} • {u.platform}</p>
-                    </div>
-                    <span className="text-[9px] text-text-sub">{u.registered}</span>
+              <div className="space-y-4 max-h-[45vh] overflow-y-auto pr-1">
+                {/* Admin Email Management Section */}
+                <div className="p-3.5 bg-background border border-primary/30 rounded-2xl space-y-3 shadow-inner">
+                  <div className="flex justify-between items-center">
+                    <h4 className="text-xs font-bold text-text-main flex items-center gap-1.5">
+                      <span>👑 จัดการผู้ดูแลระบบ (Admin List)</span>
+                      <span className="text-[9px] bg-primary text-white font-bold px-1.5 py-0.2 rounded-full">
+                        {adminEmails.length} ท่าน
+                      </span>
+                    </h4>
+                    <span className="text-[8px] text-text-sub">ขั้นต่ำ 1 ท่านเสมอ</span>
                   </div>
-                ))}
+
+                  {/* Form to Add New Admin */}
+                  <form onSubmit={handleAddAdmin} className="flex gap-2">
+                    <input
+                      type="email"
+                      value={newAdminEmailInput}
+                      onChange={(e) => setNewAdminEmailInput(e.target.value)}
+                      placeholder="ระบุอีเมลผู้ดูแลระบบคนใหม่..."
+                      className="flex-1 bg-surface border border-white/10 p-2 rounded-xl text-xs text-text-main focus:border-primary focus:outline-none"
+                    />
+                    <button
+                      type="submit"
+                      className="px-3 py-2 bg-primary hover:bg-primary/90 text-white text-xs font-bold rounded-xl transition-all cursor-pointer shrink-0 shadow-sm"
+                    >
+                      + เพิ่มแอดมิน
+                    </button>
+                  </form>
+
+                  {/* List of Active Admin Emails */}
+                  <div className="space-y-1.5 pt-1">
+                    {adminEmails.map((email) => (
+                      <div
+                        key={email}
+                        className="p-2.5 bg-surface/80 border border-white/5 rounded-xl flex items-center justify-between text-xs"
+                      >
+                        <div className="flex items-center gap-2">
+                          <span className="text-xs">🔑</span>
+                          <span className="font-semibold text-text-main font-mono text-[11px]">{email}</span>
+                          <span className="text-[8px] bg-[#10B981]/20 text-[#10B981] font-bold px-1.5 py-0.2 rounded-full">
+                            Admin Active
+                          </span>
+                        </div>
+                        <button
+                          type="button"
+                          onClick={() => handleRemoveAdmin(email)}
+                          className={`px-2 py-1 text-[10px] font-bold rounded-lg border transition-all cursor-pointer ${
+                            adminEmails.length <= 1
+                              ? "bg-gray-500/10 text-gray-400 border-gray-500/20 cursor-not-allowed opacity-50"
+                              : "bg-red-500/10 hover:bg-red-500/20 text-red-400 border-red-500/20"
+                          }`}
+                          title={adminEmails.length <= 1 ? "ไม่สามารถลบผู้ดูแลคนสุดท้ายได้" : "ลบสิทธิ์ผู้ดูแลระบบ"}
+                        >
+                          🗑️ ลบแอดมิน
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Member / Platform Users List */}
+                <div className="space-y-2">
+                  <div className="text-[10px] text-text-sub font-semibold">
+                    รายชื่อสมาชิกผู้รับการแจ้งเตือนในระบบ ({usersList.length} รายการ)
+                  </div>
+                  {usersList.map((u) => (
+                    <div key={u.id} className="p-3 bg-background border border-white/5 rounded-xl flex items-center justify-between">
+                      <div>
+                        <div className="flex items-center gap-2">
+                          <span className="text-xs font-bold text-text-main">{u.username}</span>
+                          <span className="text-[8px] bg-primary/20 text-primary border border-primary/30 px-1.5 py-0.2 rounded-full font-bold">
+                            {u.role}
+                          </span>
+                        </div>
+                        <p className="text-[9px] text-text-sub font-mono">ID: {u.id} • {u.platform}</p>
+                      </div>
+                      <span className="text-[9px] text-text-sub">{u.registered}</span>
+                    </div>
+                  ))}
+                </div>
               </div>
             )}
 

@@ -23,6 +23,8 @@ export default function SettingsScreen() {
   const [isBackingUp, setIsBackingUp] = useState(false);
   const [isMigrating, setIsMigrating] = useState(false);
 
+  const [adminList, setAdminList] = useState<string[]>(["lannatc@gmail.com", "admin@littlebroassistant.com"]);
+
   useEffect(() => {
     const savedTheme = localStorage.getItem("little_bro_theme") || "dark";
     setTheme(savedTheme);
@@ -32,6 +34,22 @@ export default function SettingsScreen() {
     if (savedSheetId) setSpreadsheetId(savedSheetId);
     const savedFolderId = localStorage.getItem("google_folder_id");
     if (savedFolderId) setFolderId(savedFolderId);
+
+    const savedAdmins = localStorage.getItem("little_bro_admin_emails");
+    if (savedAdmins) {
+      try {
+        const parsed = JSON.parse(savedAdmins);
+        if (Array.isArray(parsed) && parsed.length > 0) setAdminList(parsed);
+      } catch (e) {}
+    }
+
+    const handleAdminsUpdate = (e: any) => {
+      if (e.detail && Array.isArray(e.detail)) {
+        setAdminList(e.detail);
+      }
+    };
+    window.addEventListener("little_bro_admins_updated", handleAdminsUpdate);
+    return () => window.removeEventListener("little_bro_admins_updated", handleAdminsUpdate);
   }, []);
 
   const handleThemeChange = (newTheme: string) => {
@@ -213,7 +231,7 @@ export default function SettingsScreen() {
           userEmail.toLowerCase().includes("sys") || 
           userEmail.toLowerCase().includes("lannatc") || 
           userEmail.toLowerCase().includes("gamer") ||
-          ["lannatc@gmail.com", "admin@littlebroassistant.com"].includes(userEmail.toLowerCase().trim())
+          adminList.some(a => a.toLowerCase().trim() === userEmail.toLowerCase().trim())
         ) && (
           <section className="mb-6 bg-gradient-to-r from-primary/10 via-surface/40 to-[#EF4444]/10 border border-primary/30 p-4 rounded-2xl space-y-3 shadow-md">
             <div className="flex justify-between items-center">
