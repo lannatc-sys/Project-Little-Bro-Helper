@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import BottomNav from "@/components/BottomNav";
+import { SystemStatusBar } from "@/components/SystemStatusBar";
 
 export const THEMES = [
   {
@@ -88,6 +89,7 @@ export default function ClientWrapper({
   return (
     <div className={`min-h-screen w-full flex flex-col bg-background ${theme.startsWith("shan") ? "shan-bg-pattern" : ""}`}>
       <main className="flex-1 w-full relative pb-20 transition-all duration-300 max-w-2xl mx-auto bg-background min-h-screen border-x border-white/5 shadow-2xl">
+        <SystemStatusBar />
         {children}
         <BottomNav />
       </main>
