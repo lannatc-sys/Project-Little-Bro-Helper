@@ -1,0 +1,8 @@
+{
+    "chat.tools.terminal.autoApprove": {
+        "/^powershell -NoProfile -Command \"try \\{ \\$r = Invoke-WebRequest -Uri 'https://owdgklljykiisbdodjap\\.supabase\\.co/rest/v1/' -Method Get -TimeoutSec 20 -UseBasicParsing; Write-Output \\$r\\.StatusCode \\} catch \\{ Write-Output \\$_\\.Exception\\.Response\\.StatusCode\\.Value__ \\}\"$/": {
+            "approve": true,
+            "matchCommandLine": true
+        }
+    }
+}

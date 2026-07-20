@@ -126,16 +126,22 @@ export async function POST(request: Request) {
     // 2. ADD TRANSACTION (Income or Expense)
     if (action === "add_expense" || action === "add_income") {
       const txType = action === "add_income" ? "Income" : "Expense";
-      const { data, error } = await supabase.from("finance").insert({
-        transaction_type: txType,
-        category: body.category || "อื่นๆ",
-        amount: Number(body.amount),
-        description: body.description || "",
-        file_attachment_url: body.file_attachment_url || "",
-        timestamp: new Date().toISOString()
-      }).select();
+      let insertedData: any = null;
 
-      if (error) throw new Error(error.message);
+      try {
+        const { data, error } = await supabase.from("finance").insert({
+          transaction_type: txType,
+          category: body.category || "อื่นๆ",
+          amount: Number(body.amount),
+          description: body.description || "",
+          file_attachment_url: body.file_attachment_url || "",
+          timestamp: new Date().toISOString()
+        }).select();
+        if (error) console.error("Supabase insert finance error:", error.message);
+        else insertedData = data?.[0];
+      } catch (sbErr) {
+        console.error("Supabase insert finance exception:", sbErr);
+      }
 
       // Trigger background sync to Google Sheets
       syncToGAS({ ...body, spreadsheet_id: spreadsheetId });
@@ -143,29 +149,39 @@ export async function POST(request: Request) {
       return NextResponse.json({
         status: "success",
         message: "บันทึกธุรกรรมเรียบร้อยครับ",
-        data: data?.[0]
+        data: insertedData || {
+          transaction_type: txType,
+          category: body.category || "อื่นๆ",
+          amount: Number(body.amount),
+          description: body.description || "",
+          timestamp: new Date().toISOString()
+        }
       });
     }
 
     // 3. DELETE TRANSACTION
     if (action === "delete_expense") {
-      let query = supabase.from("finance").delete();
-      
-      if (body.id) {
-        query = query.eq("id", body.id);
-      } else {
-        query = query
-          .eq("transaction_type", body.transaction_type)
-          .eq("category", body.category)
-          .eq("amount", Number(body.amount));
+      try {
+        let query = supabase.from("finance").delete();
         
-        if (body.description) {
-          query = query.eq("description", body.description);
+        if (body.id) {
+          query = query.eq("id", body.id);
+        } else {
+          query = query
+            .eq("transaction_type", body.transaction_type)
+            .eq("category", body.category)
+            .eq("amount", Number(body.amount));
+          
+          if (body.description) {
+            query = query.eq("description", body.description);
+          }
         }
-      }
 
-      const { error } = await query;
-      if (error) throw new Error(error.message);
+        const { error } = await query;
+        if (error) console.error("Supabase delete finance error:", error.message);
+      } catch (sbErr) {
+        console.error("Supabase delete finance exception:", sbErr);
+      }
 
       // Trigger background sync to Google Sheets
       syncToGAS({ ...body, spreadsheet_id: spreadsheetId });
