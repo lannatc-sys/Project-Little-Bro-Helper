@@ -23,7 +23,7 @@ export default function SettingsScreen() {
   const [isBackingUp, setIsBackingUp] = useState(false);
   const [isMigrating, setIsMigrating] = useState(false);
 
-  const [adminList, setAdminList] = useState<string[]>(["lannatc@gmail.com", "admin@littlebroassistant.com"]);
+  const [adminList, setAdminList] = useState<string[]>(["lannatc@gmail.com"]);
 
   useEffect(() => {
     const savedTheme = localStorage.getItem("little_bro_theme") || "dark";

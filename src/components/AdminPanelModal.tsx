@@ -97,8 +97,8 @@ export default function AdminPanelModal({
     { id: "U2fe9ffc64c98971b04b2200ac04411ff", username: "LINE OA User", platform: "LINE OA", role: "Member", registered: "20/07/2026" }
   ]);
 
-  // Dynamic Admin Email Management States
-  const [adminEmails, setAdminEmails] = useState<string[]>(["lannatc@gmail.com", "admin@littlebroassistant.com"]);
+  // Dynamic Admin Email Management States (Sole Default: lannatc@gmail.com)
+  const [adminEmails, setAdminEmails] = useState<string[]>(["lannatc@gmail.com"]);
   const [newAdminEmailInput, setNewAdminEmailInput] = useState("");
 
   useEffect(() => {
@@ -113,11 +113,19 @@ export default function AdminPanelModal({
       try {
         const parsed = JSON.parse(savedAdmins);
         if (Array.isArray(parsed) && parsed.length > 0) {
+          // If contains legacy multi-admins, override to lannatc@gmail.com if requested
           setAdminEmails(parsed);
+        } else {
+          setAdminEmails(["lannatc@gmail.com"]);
+          localStorage.setItem("little_bro_admin_emails", JSON.stringify(["lannatc@gmail.com"]));
         }
       } catch (err) {
-        console.error("Failed to parse admin emails:", err);
+        setAdminEmails(["lannatc@gmail.com"]);
+        localStorage.setItem("little_bro_admin_emails", JSON.stringify(["lannatc@gmail.com"]));
       }
+    } else {
+      setAdminEmails(["lannatc@gmail.com"]);
+      localStorage.setItem("little_bro_admin_emails", JSON.stringify(["lannatc@gmail.com"]));
     }
   }, [isOpen]);
 
@@ -152,6 +160,14 @@ export default function AdminPanelModal({
       window.dispatchEvent(new CustomEvent("little_bro_admins_updated", { detail: updated }));
       alert(`✅ ลบผู้ดูแลระบบ (${targetEmail}) เรียบร้อยแล้วครับ`);
     }
+  };
+
+  const handleResetAdminsToSingle = () => {
+    const soleAdmin = ["lannatc@gmail.com"];
+    setAdminEmails(soleAdmin);
+    localStorage.setItem("little_bro_admin_emails", JSON.stringify(soleAdmin));
+    window.dispatchEvent(new CustomEvent("little_bro_admins_updated", { detail: soleAdmin }));
+    alert("✅ ล้างข้อมูล Admin ทั้งหมด และตั้งค่า lannatc@gmail.com เป็นผู้ดูแลเพียงคนเดียวเรียบร้อยแล้วครับ!");
   };
 
   const handleVerifyPin = (e: React.FormEvent) => {
@@ -494,7 +510,13 @@ export default function AdminPanelModal({
                         {adminEmails.length} ท่าน
                       </span>
                     </h4>
-                    <span className="text-[8px] text-text-sub">ขั้นต่ำ 1 ท่านเสมอ</span>
+                    <button
+                      type="button"
+                      onClick={handleResetAdminsToSingle}
+                      className="text-[9px] bg-red-500/20 hover:bg-red-500/30 text-red-400 border border-red-500/30 px-2 py-0.5 rounded-lg font-bold transition-all cursor-pointer"
+                    >
+                      🧹 รีเซ็ตเหลือ lannatc@gmail.com
+                    </button>
                   </div>
 
                   {/* Form to Add New Admin */}
