@@ -16,7 +16,66 @@ export default function AdminPanelModal({
   const [pin, setPin] = useState("");
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [pinError, setPinError] = useState("");
-  const [activeTab, setActiveTab] = useState<"system" | "features" | "users" | "logs">("system");
+  const [activeTab, setActiveTab] = useState<"chat" | "system" | "features" | "users" | "logs">("chat");
+
+  // Admin Chat Box state
+  const [chatInput, setChatInput] = useState("");
+  const [chatMessages, setChatMessages] = useState<Array<{ id: number; sender: "admin" | "bot" | "system"; text: string; time: string }>>([
+    { id: 1, sender: "system", text: "👑 [Admin System] เชื่อมต่อกล่องแชทผู้ดูแลระบบเรียบร้อยแล้ว", time: "10:00" },
+    { id: 2, sender: "bot", text: "สวัสดีครับแอดมิน! 💜 น้อง Little Bro พร้อมรับคำสั่งทดสอบ แชทคุย หรือกระจายข่าวสารแล้วครับ", time: "10:01" }
+  ]);
+
+  const handleSendChatMessage = (textToSend?: string) => {
+    const messageText = (textToSend || chatInput).trim();
+    if (!messageText) return;
+
+    const nowTime = new Date().toLocaleTimeString("th-TH", { hour: "2-digit", minute: "2-digit" });
+    const userMsgId = Date.now();
+
+    const newAdminMsg = {
+      id: userMsgId,
+      sender: "admin" as const,
+      text: messageText,
+      time: nowTime
+    };
+
+    setChatMessages(prev => [...prev, newAdminMsg]);
+    if (!textToSend) setChatInput("");
+
+    // Simulate Bot / System Automated Response
+    setTimeout(() => {
+      let botReplyText = "";
+      const lower = messageText.toLowerCase();
+
+      if (lower.includes("สถานะ") || lower.includes("status")) {
+        botReplyText = "📊 [System Health] ระบบทั้งหมดทำงานเป็นปกติ:\n- Supabase DB: 🟢 Connected (Sub-100ms)\n- Google Sheets API: 🟢 Connected\n- Telegram Bot: 🟢 Active (@bot)\n- LINE OA: 🟢 Active (@320futtz)";
+      } else if (lower.includes("ข้าว") || lower.includes("ค่า") || lower.includes("บาท") || lower.match(/\d+/)) {
+        botReplyText = `💸 [Mock Expense] น้องบันทึกรายการ "${messageText}" ลงในชีต Finance และ Supabase เรียบร้อยแล้วครับพี่แอดมิน! ✨`;
+      } else if (lower.includes("ประกาศ") || lower.includes("broadcast")) {
+        botReplyText = "📢 [Admin Broadcast] ดันข้อความแจ้งเตือนประกาศระบบไปยังผู้ใช้ทุกคนผ่าน LINE OA & Telegram เรียบร้อยแล้วครับ!";
+      } else if (lower.includes("สวัสดี") || lower.includes("hello") || lower.includes("hi")) {
+        botReplyText = "สวัสดีครับพี่แอดมิน! มีอะไรให้ Little Bro ช่วยรับคำสั่งเพิ่มเติมไหมครับ? 😊";
+      } else {
+        botReplyText = `🤖 [Little Bro Bot] รับทราบคำสั่งแอดมิน: "${messageText}" — ระบบบันทึกและประมวลผลคำสั่งสำเร็จเรียบร้อยครับ!`;
+      }
+
+      setChatMessages(prev => [
+        ...prev,
+        {
+          id: Date.now(),
+          sender: "bot",
+          text: botReplyText,
+          time: new Date().toLocaleTimeString("th-TH", { hour: "2-digit", minute: "2-digit" })
+        }
+      ]);
+    }, 600);
+  };
+
+  const handleClearChatHistory = () => {
+    setChatMessages([
+      { id: Date.now(), sender: "system", text: "🧹 ล้างประวัติการแชทกล่องผู้ดูแลระบบเรียบร้อยแล้ว", time: new Date().toLocaleTimeString("th-TH", { hour: "2-digit", minute: "2-digit" }) }
+    ]);
+  };
 
   // Feature Toggles state
   const [featureToggles, setFeatureToggles] = useState({
@@ -136,17 +195,18 @@ export default function AdminPanelModal({
           /* Admin Main Console */
           <div className="space-y-4">
             {/* Admin Tabs */}
-            <div className="flex bg-background p-1 rounded-xl border border-white/5 text-xs justify-between">
+            <div className="flex bg-background p-1 rounded-xl border border-white/5 text-xs justify-between gap-1 overflow-x-auto">
               {[
+                { id: "chat", label: "💬 แชท Admin" },
                 { id: "system", label: "🖥️ สถานะระบบ" },
-                { id: "features", label: "⚡ สวิตช์ฟีเจอร์" },
+                { id: "features", label: "⚡ ฟีเจอร์" },
                 { id: "users", label: "👥 สมาชิก" },
-                { id: "logs", label: "📜 ประวัติระบบ" }
+                { id: "logs", label: "📜 ประวัติ" }
               ].map((tab) => (
                 <button
                   key={tab.id}
                   onClick={() => setActiveTab(tab.id as any)}
-                  className={`flex-1 py-1.5 rounded-lg font-bold text-[11px] transition-all ${
+                  className={`flex-1 py-1.5 px-2 rounded-lg font-bold text-[10px] whitespace-nowrap transition-all ${
                     activeTab === tab.id
                       ? "bg-primary text-white shadow-sm"
                       : "text-text-sub hover:text-text-main"
@@ -156,6 +216,109 @@ export default function AdminPanelModal({
                 </button>
               ))}
             </div>
+
+            {/* TAB 0: ADMIN CHAT BOX */}
+            {activeTab === "chat" && (
+              <div className="space-y-3">
+                {/* Chat Container */}
+                <div className="bg-background/80 border border-white/10 rounded-2xl p-3 h-[42vh] flex flex-col justify-between shadow-inner">
+                  {/* Messages Scroll View */}
+                  <div className="flex-1 overflow-y-auto space-y-2.5 pr-1 text-xs">
+                    {chatMessages.map((msg) => (
+                      <div
+                        key={msg.id}
+                        className={`flex flex-col ${
+                          msg.sender === "admin"
+                            ? "items-end"
+                            : msg.sender === "system"
+                            ? "items-center"
+                            : "items-start"
+                        }`}
+                      >
+                        {msg.sender === "system" ? (
+                          <div className="px-3 py-1 bg-white/5 border border-white/10 rounded-full text-[9px] text-text-sub text-center my-1">
+                            {msg.text}
+                          </div>
+                        ) : (
+                          <div className="max-w-[85%] space-y-0.5">
+                            <div className="flex items-center gap-1.5 px-1">
+                              <span className="text-[8px] text-text-sub font-semibold">
+                                {msg.sender === "admin" ? "👑 Admin" : "🤖 Little Bro Assistant"}
+                              </span>
+                              <span className="text-[8px] text-text-sub/50">{msg.time}</span>
+                            </div>
+                            <div
+                              className={`p-2.5 rounded-2xl text-[11px] leading-relaxed whitespace-pre-wrap ${
+                                msg.sender === "admin"
+                                  ? "bg-primary text-white rounded-tr-none shadow-md"
+                                  : "bg-surface border border-white/10 text-text-main rounded-tl-none"
+                              }`}
+                            >
+                              {msg.text}
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+
+                  {/* Quick Action Chips */}
+                  <div className="flex gap-1.5 py-2 overflow-x-auto text-[9px] border-t border-white/5 no-scrollbar">
+                    <button
+                      type="button"
+                      onClick={() => handleSendChatMessage("เช็คสถานะระบบ")}
+                      className="px-2.5 py-1 bg-surface hover:bg-white/10 border border-white/10 rounded-lg text-text-sub hover:text-text-main shrink-0"
+                    >
+                      📊 เช็คสถานะระบบ
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => handleSendChatMessage("ทดสอบจดรายจ่าย ค่าข้าว 60 บาท")}
+                      className="px-2.5 py-1 bg-surface hover:bg-white/10 border border-white/10 rounded-lg text-text-sub hover:text-text-main shrink-0"
+                    >
+                      💸 ทดสอบจดรายจ่าย
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => handleSendChatMessage("ประกาศระบบ")}
+                      className="px-2.5 py-1 bg-surface hover:bg-white/10 border border-white/10 rounded-lg text-text-sub hover:text-text-main shrink-0"
+                    >
+                      📢 ประกาศข่าวสาร
+                    </button>
+                    <button
+                      type="button"
+                      onClick={handleClearChatHistory}
+                      className="px-2 py-1 bg-red-500/10 hover:bg-red-500/20 border border-red-500/20 rounded-lg text-red-400 shrink-0"
+                    >
+                      🧹 ล้างแชท
+                    </button>
+                  </div>
+
+                  {/* Input Field & Send Button */}
+                  <form
+                    onSubmit={(e) => {
+                      e.preventDefault();
+                      handleSendChatMessage();
+                    }}
+                    className="flex gap-2 pt-1"
+                  >
+                    <input
+                      type="text"
+                      value={chatInput}
+                      onChange={(e) => setChatInput(e.target.value)}
+                      placeholder="พิมพ์ข้อความ หรือคำสั่งทดสอบ..."
+                      className="flex-1 bg-surface border border-white/15 p-2 rounded-xl text-xs text-text-main focus:border-primary focus:outline-none"
+                    />
+                    <button
+                      type="submit"
+                      className="px-3.5 py-2 bg-primary text-white text-xs font-bold rounded-xl hover:opacity-90 transition-all cursor-pointer shadow-sm shrink-0"
+                    >
+                      ส่ง ➔
+                    </button>
+                  </form>
+                </div>
+              </div>
+            )}
 
             {/* TAB 1: SYSTEM HEALTH */}
             {activeTab === "system" && (

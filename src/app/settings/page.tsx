@@ -157,7 +157,7 @@ export default function SettingsScreen() {
         </header>
 
         {/* Profile Card */}
-        <div className="bg-surface/40 border border-white/5 p-4 rounded-2xl mb-6 flex items-center gap-4">
+        <div className="bg-surface/40 border border-white/5 p-4 rounded-2xl mb-4 flex items-center gap-4">
           <div className="w-12 h-12 rounded-full overflow-hidden border border-[#5B5CEB]/30 bg-surface">
             <Image
               src="/avatar/hello.png"
@@ -177,6 +177,62 @@ export default function SettingsScreen() {
               จัดการ / สลับบัญชี Google ➔
             </button>
           </div>
+        </div>
+
+        {/* Top 2 Main Quick Action Buttons: Theme & Admin Chat */}
+        <div className="grid grid-cols-2 gap-3 mb-6">
+          {/* Button 1: Theme Switcher */}
+          <button
+            onClick={() => setShowThemeModal(true)}
+            className="p-3.5 bg-gradient-to-br from-surface/90 via-surface to-[#DAA520]/20 border border-[#DAA520]/40 rounded-2xl hover:border-[#DAA520] transition-all cursor-pointer shadow-lg hover:scale-[1.02] flex flex-col justify-between text-left group"
+          >
+            <div className="flex justify-between items-start mb-3">
+              <div className="w-9 h-9 rounded-xl bg-[#FAF4ED] border border-[#DAA520]/40 overflow-hidden flex items-center justify-center shrink-0 shadow-inner avatar-container">
+                <Image 
+                  src="/avatar/shan.png" 
+                  alt="Theme Avatar" 
+                  width={32} 
+                  height={32} 
+                  className="object-cover scale-110 opacity-100 avatar-img" 
+                />
+              </div>
+              <span className="text-[8px] bg-[#DAA520] text-black font-bold px-2 py-0.5 rounded-full">
+                2 ธีมหลัก
+              </span>
+            </div>
+            <div>
+              <h3 className="text-xs font-bold text-text-main group-hover:text-primary transition-colors flex items-center gap-1">
+                <span>🎨 ธีมระบบ</span>
+              </h3>
+              <p className="text-[9px] text-text-sub mt-0.5 line-clamp-1">
+                {theme === "shan-light" && "🌾 Shan Warm"}
+                {theme === "shan-dark" && "🏮 Shan Night"}
+                {theme === "dark" && "🌙 Dark Modern"}
+                {theme === "light" && "☀️ Light Modern"}
+              </p>
+            </div>
+          </button>
+
+          {/* Button 2: Admin Console & Chat Box */}
+          <button
+            onClick={() => setShowAdminModal(true)}
+            className="p-3.5 bg-gradient-to-br from-primary/20 via-surface to-[#EF4444]/15 border border-primary/40 rounded-2xl hover:border-primary transition-all cursor-pointer shadow-lg hover:scale-[1.02] flex flex-col justify-between text-left group"
+          >
+            <div className="flex justify-between items-start mb-3">
+              <div className="w-9 h-9 rounded-xl bg-primary/20 border border-primary/40 flex items-center justify-center text-primary text-base shrink-0 shadow-inner">
+                💬
+              </div>
+              <span className="text-[8px] bg-primary text-white font-bold px-2 py-0.5 rounded-full">
+                Admin Chat
+              </span>
+            </div>
+            <div>
+              <h3 className="text-xs font-bold text-text-main group-hover:text-primary transition-colors flex items-center gap-1">
+                <span>👑 ปุ่มแอดมิน</span>
+              </h3>
+              <p className="text-[9px] text-text-sub mt-0.5">เปิดแผงควบคุม & กล่องแชท 💬</p>
+            </div>
+          </button>
         </div>
 
         {/* Theme & Display Options */}
