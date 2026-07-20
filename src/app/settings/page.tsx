@@ -12,6 +12,9 @@ export default function SettingsScreen() {
   
   const [showWorkspaceModal, setShowWorkspaceModal] = useState(false);
   const [showAccountModal, setShowAccountModal] = useState(false);
+  const [userEmail, setUserEmail] = useState("lannatc@gmail.com");
+  const [isEditingEmail, setIsEditingEmail] = useState(false);
+  const [newEmailInput, setNewEmailInput] = useState("");
   const [spreadsheetId, setSpreadsheetId] = useState("1jANLkV4IxXa3mybLPTs7L1RoHtfik7lVLtTlB0Ay1X8");
   const [folderId, setFolderId] = useState("");
   const [isInitializing, setIsInitializing] = useState(false);
@@ -22,6 +25,8 @@ export default function SettingsScreen() {
   useEffect(() => {
     const savedTheme = localStorage.getItem("little_bro_theme") || "dark";
     setTheme(savedTheme);
+    const savedEmail = localStorage.getItem("little_bro_email") || "lannatc@gmail.com";
+    setUserEmail(savedEmail);
     const savedSheetId = localStorage.getItem("google_spreadsheet_id");
     if (savedSheetId) setSpreadsheetId(savedSheetId);
     const savedFolderId = localStorage.getItem("google_folder_id");
@@ -160,12 +165,12 @@ export default function SettingsScreen() {
           </div>
           <div className="flex-1">
             <h3 className="text-sm font-bold text-text-main">Little Bro</h3>
-            <p className="text-[9px] text-text-sub mb-1">บัญชีส่วนตัว • lannatc@gmail.com</p>
+            <p className="text-[9px] text-text-sub mb-1">บัญชีส่วนตัว • {userEmail}</p>
             <button
               onClick={() => setShowAccountModal(true)}
               className="bg-[#5B5CEB]/25 hover:bg-[#5B5CEB]/40 text-[#5B5CEB] border border-[#5B5CEB]/30 text-[9px] font-semibold px-2.5 py-1 rounded-lg transition-all cursor-pointer"
             >
-              จัดการบัญชี Google
+              จัดการ / สลับบัญชี Google ➔
             </button>
           </div>
         </div>
@@ -461,10 +466,52 @@ export default function SettingsScreen() {
             
             <div className="space-y-4 mb-6 text-xs">
               <div className="bg-background/50 p-3.5 rounded-xl border border-white/5 space-y-2">
-                <div>
-                  <span className="text-[10px] text-text-sub block">อีเมลผู้ดูแลบัญชี</span>
-                  <span className="font-semibold text-text-main">lannatc@gmail.com</span>
+                <div className="flex justify-between items-center">
+                  <div>
+                    <span className="text-[10px] text-text-sub block">อีเมลผู้ดูแลบัญชีปัจจุบัน</span>
+                    <span className="font-semibold text-text-main text-xs">{userEmail}</span>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setIsEditingEmail(!isEditingEmail);
+                      setNewEmailInput(userEmail);
+                    }}
+                    className="text-[10px] bg-primary/20 text-primary border border-primary/30 px-2 py-1 rounded-lg font-bold hover:bg-primary hover:text-white transition-all cursor-pointer"
+                  >
+                    {isEditingEmail ? "ปิด" : "🔄 สลับบัญชี"}
+                  </button>
                 </div>
+
+                {isEditingEmail && (
+                  <div className="pt-2 border-t border-white/10 space-y-2 animate-fadeIn">
+                    <label className="text-[10px] font-bold text-text-main block">กรอกอีเมล Google Account ใหม่:</label>
+                    <input
+                      type="email"
+                      value={newEmailInput}
+                      onChange={(e) => setNewEmailInput(e.target.value)}
+                      placeholder="เช่น myemail@gmail.com..."
+                      className="w-full bg-background border border-white/15 p-2 rounded-lg text-xs text-text-main font-mono focus:border-primary focus:outline-none"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => {
+                        if (!newEmailInput || !newEmailInput.includes("@")) {
+                          alert("⚠️ กรุณากรอกอีเมล Google ให้ถูกต้องครับ (เช่น user@gmail.com)");
+                          return;
+                        }
+                        setUserEmail(newEmailInput.trim());
+                        localStorage.setItem("little_bro_email", newEmailInput.trim());
+                        setIsEditingEmail(false);
+                        alert(`✅ สลับเปลี่ยนบัญชีเป็น ${newEmailInput.trim()} เรียบร้อยแล้วครับ!`);
+                      }}
+                      className="w-full py-2 bg-primary text-white text-[10px] font-bold rounded-lg shadow-sm hover:opacity-90 transition-all cursor-pointer"
+                    >
+                      ยืนยันสลับบัญชี Google ➔
+                    </button>
+                  </div>
+                )}
+
                 <div>
                   <span className="text-[10px] text-text-sub block">Google Spreadsheet ID</span>
                   <span className="font-mono text-[9px] text-text-sub break-all">{spreadsheetId}</span>
