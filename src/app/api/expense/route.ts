@@ -11,37 +11,114 @@ export async function POST(request: Request) {
 
     // Background sync function to Google Sheets (GAS)
     const syncToGAS = (payload: any) => {
+      const targetSpreadsheetId = payload.spreadsheet_id || spreadsheetId;
       if (appsScriptUrl && !appsScriptUrl.includes("placeholder")) {
         fetch(appsScriptUrl, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(payload)
+          body: JSON.stringify({ ...payload, spreadsheet_id: targetSpreadsheetId })
         }).catch(err => console.error("GAS sync background error:", err));
       }
     };
 
-    // 1. GET DASHBOARD DATA
+    // 1. GET DASHBOARD DATA (Dual-Sync: Supabase + Google Sheets Fallback)
     if (action === "get_dashboard_data") {
-      const [financeRes, tasksRes, calendarRes, settingsRes, profilesRes] = await Promise.all([
-        supabase.from("finance").select("*").order("timestamp", { ascending: false }),
-        supabase.from("tasks").select("*").order("task_id", { ascending: false }),
-        supabase.from("calendar_events").select("*").order("start_time", { ascending: true }),
-        supabase.from("settings").select("*"),
-        supabase.from("profiles").select("*")
-      ]);
+      let financeData: any[] = [];
+      let tasksData: any[] = [];
+      let calendarData: any[] = [];
+      let settingsData: any[] = [];
+      let profilesData: any[] = [];
 
-      if (financeRes.error) throw new Error(financeRes.error.message);
-      if (tasksRes.error) throw new Error(tasksRes.error.message);
-      if (calendarRes.error) throw new Error(calendarRes.error.message);
+      try {
+        const [financeRes, tasksRes, calendarRes, settingsRes, profilesRes] = await Promise.all([
+          supabase.from("finance").select("*").order("timestamp", { ascending: false }),
+          supabase.from("tasks").select("*").order("task_id", { ascending: false }),
+          supabase.from("calendar_events").select("*").order("start_time", { ascending: true }),
+          supabase.from("settings").select("*"),
+          supabase.from("profiles").select("*")
+        ]);
+
+        financeData = financeRes.data || [];
+        tasksData = tasksRes.data || [];
+        calendarData = calendarRes.data || [];
+        settingsData = settingsRes.data || [];
+        profilesData = profilesRes.data || [];
+      } catch (err) {
+        console.error("Supabase query error:", err);
+      }
+
+      // If Supabase is empty or missing data, auto-sync from Google Sheets (GAS)
+      if (appsScriptUrl && !appsScriptUrl.includes("placeholder") && (financeData.length === 0 || tasksData.length === 0)) {
+        try {
+          const gasRes = await fetch(appsScriptUrl, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              action: "get_dashboard_data",
+              spreadsheet_id: body.spreadsheet_id || spreadsheetId
+            })
+          });
+          const gasResult = await gasRes.json();
+          if (gasResult.status === "success" && gasResult.data) {
+            const gasData = gasResult.data;
+            const gasFinance = gasData.finance || [];
+            const gasTasks = gasData.tasks || [];
+            const gasCalendar = gasData.calendar || [];
+
+            // Auto-populate Supabase if Supabase was empty
+            if (financeData.length === 0 && gasFinance.length > 0) {
+              financeData = gasFinance;
+              const financeInserts = gasFinance.map((f: any) => ({
+                transaction_type: f.transaction_type || "Expense",
+                category: f.category || "อื่นๆ",
+                amount: Number(f.amount) || 0,
+                description: f.description || "",
+                file_attachment_url: f.file_attachment_url || "",
+                timestamp: f.timestamp ? new Date(f.timestamp).toISOString() : new Date().toISOString()
+              }));
+              supabase.from("finance").insert(financeInserts).then();
+            }
+
+            if (tasksData.length === 0 && gasTasks.length > 0) {
+              tasksData = gasTasks;
+              const taskInserts = gasTasks.map((t: any) => ({
+                task_id: t.task_id || ("TASK_" + Date.now()),
+                task_name: t.task_name || "Untitled Task",
+                details: t.details || "",
+                status: t.status || "Pending",
+                due_date: t.due_date || "",
+                reminder_time: t.reminder_time || "",
+                google_task_id: t.google_task_id || ""
+              }));
+              supabase.from("tasks").insert(taskInserts).then();
+            }
+
+            if (calendarData.length === 0 && gasCalendar.length > 0) {
+              calendarData = gasCalendar;
+              const calendarInserts = gasCalendar.map((c: any) => ({
+                event_id: c.event_id || ("EVT_" + Date.now()),
+                event_title: c.event_title || "Untitled Event",
+                start_time: c.start_time || "",
+                end_time: c.end_time || "",
+                location: c.location || "",
+                notes: c.notes || ""
+              }));
+              supabase.from("calendar_events").insert(calendarInserts).then();
+            }
+          }
+        } catch (gasErr) {
+          console.error("GAS fallback error:", gasErr);
+        }
+      }
 
       return NextResponse.json({
         status: "success",
         data: {
-          finance: financeRes.data || [],
-          tasks: tasksRes.data || [],
-          calendar: calendarRes.data || [],
-          settings: settingsRes.data || [],
-          profiles: profilesRes.data || []
+          finance: financeData,
+          tasks: tasksData,
+          calendar: calendarData,
+          settings: settingsData,
+          profiles: profilesData
         }
       });
     }
