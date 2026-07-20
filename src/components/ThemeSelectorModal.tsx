@@ -43,13 +43,13 @@ export default function ThemeSelectorModal({
 
         {/* Shan Heritage Highlight Banner */}
         <div className="p-3.5 rounded-2xl bg-gradient-to-r from-[#C46210]/20 via-[#DAA520]/20 to-[#3D2B1F]/20 border border-[#DAA520]/30 flex items-center gap-3">
-          <div className="w-12 h-12 rounded-xl bg-[#FAF4ED] border border-[#DAA520]/40 overflow-hidden flex items-center justify-center shrink-0 shadow-sm">
+          <div className="w-12 h-12 rounded-xl bg-[#FAF4ED] border border-[#DAA520]/40 overflow-hidden flex items-center justify-center shrink-0 shadow-sm avatar-container">
             <Image
               src="/avatar/shan.png"
               alt="Little Bro Shan"
               width={44}
               height={44}
-              className="object-cover scale-110"
+              className="object-cover scale-110 opacity-100 avatar-img"
             />
           </div>
           <div>

@@ -220,13 +220,13 @@ export default function HomeScreen() {
                 <span className="absolute top-1 right-1 w-2 h-2 bg-[#EF4444] rounded-full"></span>
               )}
             </button>
-            <div className="w-10 h-10 rounded-full border border-[#5B5CEB]/30 overflow-hidden bg-surface">
+            <div className="w-10 h-10 rounded-full border border-primary/40 overflow-hidden bg-surface flex items-center justify-center shrink-0 shadow-sm avatar-container">
               <Image
                 src={avatar}
                 alt="Little Bro Avatar"
                 width={40}
                 height={40}
-                className="object-cover"
+                className="object-cover scale-110 opacity-100 avatar-img"
               />
             </div>
           </div>

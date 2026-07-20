@@ -93,3 +93,15 @@ body {
   background-image: radial-gradient(rgba(218, 165, 32, 0.15) 1px, transparent 1px);
   background-size: 16px 16px;
 }
+
+/* Avatar Rendering Guarantee Rules: 100% Opaque & No Filters */
+img[src*="/avatar/"],
+.avatar-img,
+.avatar-container img {
+  opacity: 1.0 !important;
+  filter: none !important;
+  backdrop-filter: none !important;
+  mix-blend-mode: normal !important;
+  image-rendering: -webkit-optimize-contrast;
+  image-rendering: crisp-edges;
+}

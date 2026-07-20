@@ -188,13 +188,13 @@ export default function SettingsScreen() {
             className="w-full p-3.5 bg-gradient-to-r from-surface via-surface to-[#DAA520]/15 border border-[#DAA520]/40 rounded-xl hover:border-[#DAA520] transition-all cursor-pointer flex items-center justify-between shadow-sm group"
           >
             <div className="flex items-center gap-3 text-left">
-              <div className="w-10 h-10 rounded-xl bg-[#FAF4ED] border border-[#DAA520]/40 overflow-hidden flex items-center justify-center shrink-0 shadow-inner">
+              <div className="w-10 h-10 rounded-xl bg-[#FAF4ED] border border-[#DAA520]/40 overflow-hidden flex items-center justify-center shrink-0 shadow-inner avatar-container">
                 <Image 
                   src="/avatar/shan.png" 
                   alt="Theme Avatar" 
                   width={36} 
                   height={36} 
-                  className="object-cover scale-110" 
+                  className="object-cover scale-110 opacity-100 avatar-img" 
                 />
               </div>
               <div>
