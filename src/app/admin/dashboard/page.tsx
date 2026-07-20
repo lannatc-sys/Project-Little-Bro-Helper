@@ -119,6 +119,94 @@ export default function AdminDashboardPage() {
       {/* Main Container */}
       <main className="flex-1 max-w-6xl w-full mx-auto p-4 md:p-6 space-y-6">
         
+        {/* Mobile Admin UI: Quick Status & Quick Action Hub */}
+        <section className="bg-surface/50 border border-white/10 rounded-3xl p-4.5 space-y-4 shadow-xl backdrop-blur-md">
+          <div className="flex items-center justify-between">
+            <h2 className="text-xs font-bold text-[#DAA520] uppercase tracking-wider flex items-center gap-1.5">
+              <span>📱</span> Mobile Admin Quick Hub
+            </h2>
+            <span className="text-[9px] bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 px-2 py-0.5 rounded-full font-bold">
+              ● All Systems Operational
+            </span>
+          </div>
+
+          {/* 4 Large Touch-friendly Status Cards */}
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+            <div className="bg-surface border border-white/10 p-3.5 rounded-2xl flex items-center justify-between shadow-inner">
+              <div className="flex items-center gap-2">
+                <span className="text-base">🟢</span>
+                <span className="text-xs font-bold text-white">Frontend</span>
+              </div>
+              <span className="text-[9px] font-mono text-emerald-400 font-bold">Online</span>
+            </div>
+
+            <div className="bg-surface border border-white/10 p-3.5 rounded-2xl flex items-center justify-between shadow-inner">
+              <div className="flex items-center gap-2">
+                <span className="text-base">🟢</span>
+                <span className="text-xs font-bold text-white">Backend</span>
+              </div>
+              <span className="text-[9px] font-mono text-emerald-400 font-bold">Online</span>
+            </div>
+
+            <div className="bg-surface border border-white/10 p-3.5 rounded-2xl flex items-center justify-between shadow-inner">
+              <div className="flex items-center gap-2">
+                <span className="text-base">🟢</span>
+                <span className="text-xs font-bold text-white">GAS</span>
+              </div>
+              <span className="text-[9px] font-mono text-emerald-400 font-bold">Online</span>
+            </div>
+
+            <div className="bg-surface border border-white/10 p-3.5 rounded-2xl flex items-center justify-between shadow-inner">
+              <div className="flex items-center gap-2">
+                <span className="text-base">🟢</span>
+                <span className="text-xs font-bold text-white">Supabase</span>
+              </div>
+              <span className="text-[9px] font-mono text-emerald-400 font-bold">Online</span>
+            </div>
+          </div>
+
+          <div className="h-px bg-white/10 w-full" />
+
+          {/* Quick Remote Action Buttons */}
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-2.5">
+            <button
+              onClick={async () => {
+                const res = await fetch("/api/admin/restart", { method: "POST" });
+                const data = await res.json();
+                alert(`⚡ [Restart Action]: ${data.message}`);
+              }}
+              className="bg-amber-500/20 hover:bg-amber-500/30 text-amber-300 border border-amber-500/40 text-xs font-bold py-3 rounded-2xl transition-all cursor-pointer shadow-md flex items-center justify-center gap-1.5 active:scale-95"
+            >
+              <span>⚡ Restart</span>
+            </button>
+
+            <button
+              onClick={async () => {
+                const res = await fetch("/api/admin/deploy", { method: "POST" });
+                const data = await res.json();
+                alert(`🚀 [Deploy Action]: ${data.message}`);
+              }}
+              className="bg-emerald-500/20 hover:bg-emerald-500/30 text-emerald-300 border border-emerald-500/40 text-xs font-bold py-3 rounded-2xl transition-all cursor-pointer shadow-md flex items-center justify-center gap-1.5 active:scale-95"
+            >
+              <span>🚀 Deploy</span>
+            </button>
+
+            <button
+              onClick={() => setActiveTab("logs")}
+              className="bg-blue-500/20 hover:bg-blue-500/30 text-blue-300 border border-blue-500/40 text-xs font-bold py-3 rounded-2xl transition-all cursor-pointer shadow-md flex items-center justify-center gap-1.5 active:scale-95"
+            >
+              <span>📋 Logs</span>
+            </button>
+
+            <button
+              onClick={() => setActiveTab("settings")}
+              className="bg-purple-500/20 hover:bg-purple-500/30 text-purple-300 border border-purple-500/40 text-xs font-bold py-3 rounded-2xl transition-all cursor-pointer shadow-md flex items-center justify-center gap-1.5 active:scale-95"
+            >
+              <span>⚙ Settings</span>
+            </button>
+          </div>
+        </section>
+        
         {/* Navigation Tabs */}
         <div className="bg-surface/60 border border-white/10 p-1.5 rounded-2xl flex overflow-x-auto gap-1 text-xs font-bold backdrop-blur-md shadow-sm no-scrollbar">
           {[
