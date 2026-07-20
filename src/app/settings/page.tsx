@@ -179,144 +179,127 @@ export default function SettingsScreen() {
           </div>
         </div>
 
-        {/* Top 2 Main Quick Action Buttons: Theme & Admin Chat */}
-        <div className="grid grid-cols-2 gap-3 mb-6">
-          {/* Button 1: Theme Switcher */}
-          <button
-            onClick={() => setShowThemeModal(true)}
-            className="p-3.5 bg-gradient-to-br from-surface/90 via-surface to-[#DAA520]/20 border border-[#DAA520]/40 rounded-2xl hover:border-[#DAA520] transition-all cursor-pointer shadow-lg hover:scale-[1.02] flex flex-col justify-between text-left group"
-          >
-            <div className="flex justify-between items-start mb-3">
-              <div className="w-9 h-9 rounded-xl bg-[#FAF4ED] border border-[#DAA520]/40 overflow-hidden flex items-center justify-center shrink-0 shadow-inner avatar-container">
-                <Image 
-                  src="/avatar/shan.png" 
-                  alt="Theme Avatar" 
-                  width={32} 
-                  height={32} 
-                  className="object-cover scale-110 opacity-100 avatar-img" 
-                />
-              </div>
-              <span className="text-[8px] bg-[#DAA520] text-black font-bold px-2 py-0.5 rounded-full">
-                2 ธีมหลัก
-              </span>
-            </div>
-            <div>
-              <h3 className="text-xs font-bold text-text-main group-hover:text-primary transition-colors flex items-center gap-1">
-                <span>🎨 ธีมระบบ</span>
-              </h3>
-              <p className="text-[9px] text-text-sub mt-0.5 line-clamp-1">
-                {theme === "shan-light" && "🌾 Shan Warm"}
-                {theme === "shan-dark" && "🏮 Shan Night"}
-                {theme === "dark" && "🌙 Dark Modern"}
-                {theme === "light" && "☀️ Light Modern"}
-              </p>
-            </div>
-          </button>
-
-          {/* Button 2: Admin Console & Chat Box */}
-          <button
-            onClick={() => setShowAdminModal(true)}
-            className="p-3.5 bg-gradient-to-br from-primary/20 via-surface to-[#EF4444]/15 border border-primary/40 rounded-2xl hover:border-primary transition-all cursor-pointer shadow-lg hover:scale-[1.02] flex flex-col justify-between text-left group"
-          >
-            <div className="flex justify-between items-start mb-3">
-              <div className="w-9 h-9 rounded-xl bg-primary/20 border border-primary/40 flex items-center justify-center text-primary text-base shrink-0 shadow-inner">
-                💬
-              </div>
-              <span className="text-[8px] bg-primary text-white font-bold px-2 py-0.5 rounded-full">
-                Admin Chat
-              </span>
-            </div>
-            <div>
-              <h3 className="text-xs font-bold text-text-main group-hover:text-primary transition-colors flex items-center gap-1">
-                <span>👑 ปุ่มแอดมิน</span>
-              </h3>
-              <p className="text-[9px] text-text-sub mt-0.5">เปิดแผงควบคุม & กล่องแชท 💬</p>
-            </div>
-          </button>
-        </div>
-
-        {/* Theme & Display Options */}
-        <section className="mb-6 bg-surface/20 border border-white/10 p-4 rounded-2xl space-y-3">
+        {/* 1. SECTION: SYSTEM THEME SELECTION (ขาว / ดำ / ไตยใหญ่ อุ่น / ไตยใหญ่ ราตรี) */}
+        <section className="mb-6 bg-gradient-to-br from-surface/90 via-surface to-[#DAA520]/15 border border-[#DAA520]/40 p-4.5 rounded-3xl space-y-3.5 shadow-lg">
           <div className="flex justify-between items-center">
             <div className="flex items-center gap-2">
-              <span className="text-base">🎨</span>
-              <h3 className="text-xs font-bold text-text-main uppercase tracking-wider">ธีมระบบ (System Themes)</h3>
+              <span className="text-xl">🎨</span>
+              <div>
+                <h3 className="text-xs font-bold text-text-main uppercase tracking-wider">ธีมระบบ (System Themes)</h3>
+                <p className="text-[9px] text-text-sub">สลับธีมสี ขาว / ดำ / ไตยใหญ่ อุ่น / ไตยใหญ่ ราตรี ได้ทันที</p>
+              </div>
             </div>
-            <span className="text-[10px] bg-[#DAA520]/20 text-[#DAA520] border border-[#DAA520]/30 px-2 py-0.5 rounded-full font-bold">
-              4 สไตล์ให้เลือก
+            <span className="text-[9px] bg-[#DAA520] text-black font-bold px-2 py-0.5 rounded-full shadow-sm">
+              4 สีสไตล์
             </span>
           </div>
 
-          {/* Dedicated Theme Switcher Button Card */}
+          {/* 4 Direct 1-Click Theme Buttons Grid */}
+          <div className="grid grid-cols-2 gap-2 pt-1">
+            <button
+              onClick={() => handleThemeChange("light")}
+              className={`p-2.5 rounded-xl border text-xs font-bold transition-all flex items-center justify-between cursor-pointer ${
+                theme === "light"
+                  ? "bg-white text-black border-primary shadow-md scale-[1.02]"
+                  : "bg-surface/80 text-text-sub border-white/10 hover:border-white/30"
+              }`}
+            >
+              <span className="flex items-center gap-1.5">
+                <span>⚪</span>
+                <span>ธีมขาว (Light)</span>
+              </span>
+              {theme === "light" && <span className="text-[9px] text-primary font-extrabold">✓ ใช้อยู่</span>}
+            </button>
+
+            <button
+              onClick={() => handleThemeChange("dark")}
+              className={`p-2.5 rounded-xl border text-xs font-bold transition-all flex items-center justify-between cursor-pointer ${
+                theme === "dark"
+                  ? "bg-[#09090B] text-white border-primary shadow-md scale-[1.02]"
+                  : "bg-surface/80 text-text-sub border-white/10 hover:border-white/30"
+              }`}
+            >
+              <span className="flex items-center gap-1.5">
+                <span>🖤</span>
+                <span>ธีมดำ (Dark)</span>
+              </span>
+              {theme === "dark" && <span className="text-[9px] text-primary font-extrabold">✓ ใช้อยู่</span>}
+            </button>
+
+            <button
+              onClick={() => handleThemeChange("shan-light")}
+              className={`p-2.5 rounded-xl border text-xs font-bold transition-all flex items-center justify-between cursor-pointer ${
+                theme === "shan-light"
+                  ? "bg-[#FAF4ED] text-[#C46210] border-[#DAA520] shadow-md scale-[1.02]"
+                  : "bg-surface/80 text-text-sub border-white/10 hover:border-white/30"
+              }`}
+            >
+              <span className="flex items-center gap-1.5">
+                <span>🌾</span>
+                <span>ไตยใหญ่ (Warm)</span>
+              </span>
+              {theme === "shan-light" && <span className="text-[9px] text-[#C46210] font-extrabold">✓ ใช้อยู่</span>}
+            </button>
+
+            <button
+              onClick={() => handleThemeChange("shan-dark")}
+              className={`p-2.5 rounded-xl border text-xs font-bold transition-all flex items-center justify-between cursor-pointer ${
+                theme === "shan-dark"
+                  ? "bg-[#140F0A] text-[#D4AF37] border-[#D4AF37] shadow-md scale-[1.02]"
+                  : "bg-surface/80 text-text-sub border-white/10 hover:border-white/30"
+              }`}
+            >
+              <span className="flex items-center gap-1.5">
+                <span>🏮</span>
+                <span>ไตยใหญ่ (Night)</span>
+              </span>
+              {theme === "shan-dark" && <span className="text-[9px] text-[#D4AF37] font-extrabold">✓ ใช้อยู่</span>}
+            </button>
+          </div>
+
           <button
             onClick={() => setShowThemeModal(true)}
-            className="w-full p-3.5 bg-gradient-to-r from-surface via-surface to-[#DAA520]/15 border border-[#DAA520]/40 rounded-xl hover:border-[#DAA520] transition-all cursor-pointer flex items-center justify-between shadow-sm group"
+            className="w-full mt-2 py-2 px-3 bg-surface hover:bg-white/10 border border-white/10 rounded-xl text-[10px] text-text-sub hover:text-text-main font-semibold transition-all flex items-center justify-center gap-1 cursor-pointer"
           >
-            <div className="flex items-center gap-3 text-left">
-              <div className="w-10 h-10 rounded-xl bg-[#FAF4ED] border border-[#DAA520]/40 overflow-hidden flex items-center justify-center shrink-0 shadow-inner avatar-container">
-                <Image 
-                  src="/avatar/shan.png" 
-                  alt="Theme Avatar" 
-                  width={36} 
-                  height={36} 
-                  className="object-cover scale-110 opacity-100 avatar-img" 
-                />
-              </div>
-              <div>
-                <div className="flex items-center gap-1.5 mb-0.5">
-                  <h4 className="text-xs font-bold text-text-main group-hover:text-primary transition-colors">
-                    {theme === "shan-light" && "🌾 ธีมพี่น้องชาวไทยใหญ่ (Shan Warm)"}
-                    {theme === "shan-dark" && "🏮 ธีมพี่น้องชาวไทยใหญ่ (Shan Night)"}
-                    {theme === "dark" && "🌙 Dark Modern"}
-                    {theme === "light" && "☀️ Light Modern"}
-                  </h4>
-                  {theme.startsWith("shan") && (
-                    <span className="text-[8px] bg-[#DAA520] text-black font-bold px-1.5 py-0.2 rounded-full">Cultural</span>
-                  )}
-                </div>
-                <p className="text-[9px] text-text-sub">กดเปิดหน้าต่างเลือกธีมทั้งหมด (Shan Warm, Shan Night, Dark, Light)</p>
-              </div>
-            </div>
-
-            <span className="bg-primary text-white text-[10px] font-bold px-3.5 py-2 rounded-xl shadow-md group-hover:scale-105 transition-all flex items-center gap-1 shrink-0">
-              <span>เลือกธีมใหม่</span>
-              <span>➔</span>
-            </span>
+            <span>ดูพรีวิว & รายละเอียดธีมทั้งหมด ➔</span>
           </button>
         </section>
 
-        {/* Admin System Section */}
-        <section className="mb-6 bg-gradient-to-r from-primary/10 via-surface/40 to-[#EF4444]/10 border border-primary/30 p-4 rounded-2xl space-y-3 shadow-md">
+        {/* 2. SECTION: ADMIN CONSOLE & ADMIN CHAT BOX */}
+        <section className="mb-6 bg-gradient-to-br from-primary/15 via-surface to-[#EF4444]/15 border border-primary/40 p-4.5 rounded-3xl space-y-3.5 shadow-lg">
           <div className="flex justify-between items-center">
             <div className="flex items-center gap-2">
-              <span className="text-base">👑</span>
-              <h3 className="text-xs font-bold text-text-main uppercase tracking-wider">ระบบผู้ดูแลระบบ (Admin System)</h3>
+              <span className="text-xl">👑</span>
+              <div>
+                <h3 className="text-xs font-bold text-text-main uppercase tracking-wider">ระบบผู้ดูแลระบบ (Admin Console)</h3>
+                <p className="text-[9px] text-text-sub">เช็คสถานะระบบ, สวิตช์ฟีเจอร์ และกล่องแชทผู้ดูแลระบบ</p>
+              </div>
             </div>
-            <span className="text-[9px] bg-primary text-white px-2 py-0.5 rounded-full font-bold">
-              Admin Only
+            <span className="text-[9px] bg-primary text-white font-bold px-2 py-0.5 rounded-full shadow-sm">
+              PIN 1234
             </span>
           </div>
 
-          <div
+          <button
             onClick={() => setShowAdminModal(true)}
-            className="p-3.5 bg-surface/70 border border-primary/40 rounded-xl hover:border-primary transition-all cursor-pointer flex items-center justify-between shadow-sm"
+            className="w-full p-3.5 bg-surface/90 hover:bg-surface border border-primary/40 rounded-2xl hover:border-primary transition-all cursor-pointer flex items-center justify-between shadow-md group"
           >
             <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-xl bg-primary/20 border border-primary/40 flex items-center justify-center text-primary shrink-0 text-lg">
-                🔐
+              <div className="w-10 h-10 rounded-xl bg-primary/20 border border-primary/40 flex items-center justify-center text-primary text-lg shrink-0 shadow-inner">
+                💬
               </div>
-              <div>
-                <h4 className="text-xs font-bold text-text-main flex items-center gap-1.5">
-                  <span>แผงควบคุมระบบ Admin Console</span>
-                  <span className="text-[8px] bg-[#10B981]/20 text-[#10B981] font-bold px-1.5 py-0.2 rounded-full">PIN 1234</span>
+              <div className="text-left">
+                <h4 className="text-xs font-bold text-text-main group-hover:text-primary transition-colors flex items-center gap-1.5">
+                  <span>เปิดแผงควบคุม & กล่องแชท Admin</span>
                 </h4>
-                <p className="text-[9px] text-text-sub">ตรวจสอบสถานะเซิร์ฟเวอร์, สวิตช์เปิด-ปิดฟีเจอร์ และดูสมาชิก</p>
+                <p className="text-[9px] text-text-sub">พูดคุยโต้ตอบกับ Little Bro Assistant และเช็คความเรียบร้อยของระบบ</p>
               </div>
             </div>
-            <span className="bg-primary text-white text-[10px] font-bold px-3 py-1.5 rounded-lg shadow-sm">
-              เปิดแผงควบคุม ➔
+            <span className="bg-primary text-white text-[10px] font-bold px-3.5 py-2 rounded-xl shadow-md group-hover:scale-105 transition-all flex items-center gap-1 shrink-0">
+              <span>เข้าสู่ระบบ</span>
+              <span>➔</span>
             </span>
-          </div>
+          </button>
         </section>
 
         {/* Configuration List */}
