@@ -3,31 +3,75 @@
 @theme {
   --color-background: var(--bg-color);
   --color-surface: var(--surface-color);
-  --color-primary: #5B5CEB;
-  --color-secondary: #3B82F6;
+  --color-surface-card: var(--surface-card);
+  --color-primary: var(--primary-color);
+  --color-secondary: var(--accent-color);
   --color-success: #10B981;
   --color-warning: #F59E0B;
   --color-danger: #EF4444;
   --color-text-main: var(--text-main-color);
   --color-text-sub: var(--text-sub-color);
+  --color-border-custom: var(--border-color);
 
   --font-sans: var(--font-noto-sans-thai), sans-serif;
 }
 
-:root {
+/* Base Theme Variables */
+:root, :root.theme-dark {
   --bg-color: #09090B;
   --surface-color: #18181B;
+  --surface-card: #27272A;
+  --primary-color: #5B5CEB;
+  --accent-color: #8B5CF6;
   --text-main-color: #FFFFFF;
   --text-sub-color: #A1A1AA;
+  --border-color: rgba(255, 255, 255, 0.08);
   --foreground: #FFFFFF;
+  --avatar-path: "/avatar/hello.png";
+  --theme-banner: "";
 }
 
-:root.light-mode {
+/* Light Modern Theme */
+:root.theme-light {
   --bg-color: #F4F4F5;
-  --surface-color: #E4E4E7;
+  --surface-color: #FFFFFF;
+  --surface-card: #E4E4E7;
+  --primary-color: #5B5CEB;
+  --accent-color: #3B82F6;
   --text-main-color: #09090B;
   --text-sub-color: #71717A;
+  --border-color: rgba(0, 0, 0, 0.08);
   --foreground: #09090B;
+  --avatar-path: "/avatar/hello.png";
+  --theme-banner: "";
+}
+
+/* Shan Heritage Light (🌾 ธีมพี่น้องชาวไทยใหญ่ - โทนอุ่นผ้าทอ) */
+:root.theme-shan-light {
+  --bg-color: #F5EBE0;
+  --surface-color: #EFE0D0;
+  --surface-card: #FAF4ED;
+  --primary-color: #C46210;
+  --accent-color: #DAA520;
+  --text-main-color: #3D2B1F;
+  --text-sub-color: #7C5C43;
+  --border-color: rgba(196, 98, 16, 0.25);
+  --foreground: #3D2B1F;
+  --avatar-path: "/avatar/shan.png";
+}
+
+/* Shan Heritage Dark (🏮 ธีมพี่น้องชาวไทยใหญ่ - โทนราตรีทอง) */
+:root.theme-shan-dark {
+  --bg-color: #140F0A;
+  --surface-color: #241B13;
+  --surface-card: #33271D;
+  --primary-color: #D4AF37;
+  --accent-color: #E5A93C;
+  --text-main-color: #FDFBF7;
+  --text-sub-color: #C2A992;
+  --border-color: rgba(212, 175, 55, 0.25);
+  --foreground: #FDFBF7;
+  --avatar-path: "/avatar/shan.png";
 }
 
 body {
@@ -37,5 +81,15 @@ body {
   margin: 0;
   padding: 0;
   box-sizing: border-box;
-  transition: background-color 0.3s ease, color 0.3s ease;
+  transition: background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease;
+}
+
+/* Shan Pattern Motifs */
+.shan-pattern-border {
+  border-image: linear-gradient(to right, #DAA520, #C46210, #DAA520) 1;
+}
+
+.shan-bg-pattern {
+  background-image: radial-gradient(rgba(218, 165, 32, 0.15) 1px, transparent 1px);
+  background-size: 16px 16px;
 }

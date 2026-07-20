@@ -10,11 +10,12 @@ function TasksForm() {
   const [loading, setLoading] = useState(true);
   const [tasks, setTasks] = useState<any[]>([]);
   
-  // Create task states
+  // Create task modal states (Fix #4: 4 Exact fields: ชื่องาน, วันที่, เวลา, อธิบายเพิ่มเติม)
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [newTaskName, setNewTaskName] = useState("");
-  const [newDetails, setNewDetails] = useState("");
   const [dueDate, setDueDate] = useState("");
+  const [reminderTime, setReminderTime] = useState("09:00");
+  const [newDetails, setNewDetails] = useState("");
   const [createLoading, setCreateLoading] = useState(false);
 
   const fetchTasks = async () => {
@@ -64,9 +65,13 @@ function TasksForm() {
     }
   };
 
+  // Fix #3: Fix submission response and error handling
   const handleCreateTask = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!newTaskName.trim()) return;
+    if (!newTaskName.trim()) {
+      alert("กรุณากรอกชื่องานที่ต้องการบันทึกครับ");
+      return;
+    }
 
     setCreateLoading(true);
     try {
@@ -75,22 +80,41 @@ function TasksForm() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           action: "add_task",
-          task_name: newTaskName,
-          details: newDetails,
+          task_name: newTaskName.trim(),
+          details: newDetails.trim(),
           due_date: dueDate,
+          reminder_time: reminderTime,
           status: "Pending"
         })
       });
+
       const result = await res.json();
+
       if (result.status === "success") {
+        // Optimistic UI update
+        const createdTask = result.data || {
+          task_id: "TASK_" + Date.now(),
+          task_name: newTaskName.trim(),
+          details: newDetails.trim(),
+          due_date: dueDate,
+          reminder_time: reminderTime,
+          status: "Pending"
+        };
+        setTasks(prev => [createdTask, ...prev]);
+
+        // Reset form & close modal
         setNewTaskName("");
         setNewDetails("");
         setDueDate("");
+        setReminderTime("09:00");
         setShowCreateModal(false);
         fetchTasks();
+      } else {
+        alert("❌ เกิดข้อผิดพลาด: " + (result.message || "ไม่สามารถบันทึกงานได้"));
       }
-    } catch (err) {
+    } catch (err: any) {
       console.error("Error creating task:", err);
+      alert("❌ ไม่สามารถเชื่อมต่อกับระบบได้: " + err.message);
     } finally {
       setCreateLoading(false);
     }
@@ -99,7 +123,7 @@ function TasksForm() {
   const filteredTasks = tasks.filter((t) => {
     const isCompleted = t.status === "Completed";
     if (activeTab === "ทั้งหมด") return true;
-    if (activeTab === "วันนี้") return true; // simplified grouping
+    if (activeTab === "วันนี้") return true;
     if (activeTab === "กำลังทำ") return !isCompleted;
     if (activeTab === "เสร็จแล้ว") return isCompleted;
     return true;
@@ -108,7 +132,7 @@ function TasksForm() {
   if (loading) {
     return (
       <div className="min-h-screen bg-background flex flex-col items-center justify-center text-text-main p-6 font-sans">
-        <div className="w-24 h-24 mb-4 rounded-full overflow-hidden bg-surface border border-[#5B5CEB]/30 animate-bounce flex items-center justify-center">
+        <div className="w-24 h-24 mb-4 rounded-full overflow-hidden bg-surface border border-primary/30 animate-bounce flex items-center justify-center">
           <Image src="/avatar/thinking.png" alt="Thinking" width={80} height={80} className="object-cover" />
         </div>
         <p className="text-xs text-text-sub">กำลังซิงก์รายการงาน...</p>
@@ -121,12 +145,16 @@ function TasksForm() {
       <div>
         {/* Header Section */}
         <header className="mb-6 flex justify-between items-center">
-          <h1 className="text-xl font-bold text-text-main">สิ่งที่ต้องทำ</h1>
+          <div>
+            <h1 className="text-xl font-bold text-text-main">สิ่งที่ต้องทำ</h1>
+            <p className="text-[10px] text-text-sub">จัดการภารกิจและแจ้งเตือนความจำส่วนตัว</p>
+          </div>
           <button
             onClick={() => setShowCreateModal(true)}
-            className="bg-[#5B5CEB] hover:bg-[#5B5CEB]/80 text-white font-semibold text-xs px-3 py-1.5 rounded-xl transition-all"
+            className="bg-primary hover:bg-primary/90 text-white font-bold text-xs px-3.5 py-2 rounded-xl transition-all shadow-md flex items-center gap-1.5 cursor-pointer"
           >
-            + สร้างรายการ
+            <span>+</span>
+            <span>บันทึกความจำ</span>
           </button>
         </header>
 
@@ -138,7 +166,7 @@ function TasksForm() {
               onClick={() => setActiveTab(tab)}
               className={`flex-1 text-[11px] py-1.5 rounded-lg transition-all ${
                 activeTab === tab
-                  ? "bg-[#5B5CEB] text-white font-bold"
+                  ? "bg-primary text-white font-bold shadow-sm"
                   : "text-text-sub hover:text-text-main"
               }`}
             >
@@ -147,7 +175,7 @@ function TasksForm() {
           ))}
         </div>
 
-        {/* Task List container */}
+        {/* Task List Container */}
         <section className="mb-6 space-y-2">
           {filteredTasks.length > 0 ? (
             filteredTasks.map((task) => {
@@ -156,41 +184,46 @@ function TasksForm() {
                 <div
                   key={task.task_id}
                   onClick={() => toggleTask(task)}
-                  className="flex items-center justify-between p-3.5 bg-surface/30 hover:bg-surface/50 border border-white/5 rounded-xl cursor-pointer transition-all duration-200"
+                  className="flex items-center justify-between p-3.5 bg-surface/40 hover:bg-surface/70 border border-white/5 rounded-2xl cursor-pointer transition-all duration-200 shadow-sm"
                 >
                   <div className="flex items-center gap-3">
-                    <div className={`w-4 h-4 rounded border flex items-center justify-center transition-all ${
-                      isCompleted ? "bg-[#5B5CEB] border-[#5B5CEB]" : "border-white/20"
+                    <div className={`w-5 h-5 rounded-lg border flex items-center justify-center transition-all ${
+                      isCompleted ? "bg-primary border-primary" : "border-white/20 bg-background"
                     }`}>
                       {isCompleted && (
-                        <svg className="w-3 h-3 text-white" fill="none" stroke="currentColor" strokeWidth="3" viewBox="0 0 24 24">
+                        <svg className="w-3.5 h-3.5 text-white" fill="none" stroke="currentColor" strokeWidth="3" viewBox="0 0 24 24">
                           <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
                         </svg>
                       )}
                     </div>
                     <div>
-                      <span className={`text-xs block ${isCompleted ? "text-text-sub line-through" : "text-text-main"}`}>
+                      <span className={`text-xs font-semibold block ${isCompleted ? "text-text-sub line-through" : "text-text-main"}`}>
                         {task.task_name}
                       </span>
                       {task.details && (
-                        <p className="text-[9px] text-text-sub mt-0.5">{task.details}</p>
+                        <p className="text-[10px] text-text-sub mt-0.5">{task.details}</p>
                       )}
                     </div>
                   </div>
-                  <span className="text-[9px] text-text-sub font-mono">{task.due_date || "ด่วน"}</span>
+                  <div className="text-right">
+                    <span className="text-[10px] text-text-sub font-mono block">{task.due_date || "ด่วน"}</span>
+                    {task.reminder_time && (
+                      <span className="text-[9px] text-primary/80 block font-bold">⏰ {task.reminder_time}</span>
+                    )}
+                  </div>
                 </div>
               );
             })
           ) : (
-            <div className="p-8 bg-surface/20 border border-dashed border-white/5 rounded-2xl text-center text-xs text-text-sub">
+            <div className="p-8 bg-surface/20 border border-dashed border-white/10 rounded-2xl text-center text-xs text-text-sub">
               📭 ไม่มีรายการงานค้างสะสมครับ
             </div>
           )}
         </section>
 
         {/* Stance Avatar Card */}
-        <div className="bg-surface/40 border border-[#5B5CEB]/25 p-4 rounded-2xl flex items-center gap-4 mt-6">
-          <div className="w-14 h-14 rounded-full overflow-hidden bg-surface flex-shrink-0 border border-white/10">
+        <div className="bg-surface/40 border border-primary/25 p-4 rounded-2xl flex items-center gap-4 mt-6 shadow-sm">
+          <div className="w-14 h-14 rounded-full overflow-hidden bg-surface flex-shrink-0 border border-primary/30 shadow-md">
             <Image
               src="/avatar/plan.png"
               alt="Plan Stance"
@@ -202,68 +235,107 @@ function TasksForm() {
           <div>
             <h4 className="text-xs font-bold text-text-main mb-1">รายการสิ่งที่ต้องทำ 📋</h4>
             <p className="text-[10px] text-text-sub leading-relaxed">
-              รายการสิ่งที่ต้องทำจะถูกซิงก์ลงชีต Task โดยตรง สามารถกดติ๊กถูกเพื่ออัปเดตสถานะเสร็จสิ้นได้ทันทีครับ!
+              บันทึกงานจะถูกซิงก์ลง Google Tasks และ Google Sheets อัตโนมัติ สามารถติ๊กถูกเพื่ออัปเดตสถานะเสร็จสิ้นได้ทันทีครับ!
             </p>
           </div>
         </div>
       </div>
 
-      {/* Create Task Modal Overlay */}
+      {/* Fix #4: Create Task Modal with 4 Exact Fields (ชื่องาน, วันที่, เวลา, อธิบายเพิ่มเติม) */}
       {showCreateModal && (
-        <div className="absolute inset-0 bg-background/90 backdrop-blur-md flex items-center justify-center p-6 z-50">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/75 backdrop-blur-md animate-fadeIn">
           <form 
             onSubmit={handleCreateTask}
-            className="bg-surface border border-white/10 w-full max-w-sm rounded-3xl p-5 shadow-2xl flex flex-col relative text-text-main"
+            className="bg-surface border border-white/15 w-full max-w-md rounded-3xl p-6 shadow-2xl flex flex-col relative text-text-main space-y-4"
           >
-            <button 
-              type="button"
-              onClick={() => setShowCreateModal(false)}
-              className="absolute top-4 right-4 text-text-sub hover:text-text-main"
-            >
-              ✕
-            </button>
-            <h3 className="text-sm font-bold text-text-main mb-4">📝 สร้างรายการใหม่</h3>
+            {/* Modal Header */}
+            <div className="flex justify-between items-center border-b border-white/10 pb-3">
+              <div className="flex items-center gap-2">
+                <span className="text-xl">📝</span>
+                <h3 className="text-sm font-bold text-text-main">บันทึกความจำ / สิ่งที่ต้องทำ</h3>
+              </div>
+              <button 
+                type="button"
+                onClick={() => setShowCreateModal(false)}
+                className="text-text-sub hover:text-text-main p-1 rounded-full hover:bg-white/5 transition-all text-sm"
+              >
+                ✕
+              </button>
+            </div>
             
-            <div className="space-y-4 mb-6">
+            {/* 4 Form Fields */}
+            <div className="space-y-3.5">
+              {/* Field 1: ชื่องาน */}
               <div>
-                <label className="block mb-1 text-[10px] text-text-sub font-semibold">ชื่อรายการ (Task Name)</label>
+                <label className="block mb-1 text-[11px] text-text-main font-bold">
+                  1. ชื่องาน <span className="text-red-400">*</span>
+                </label>
                 <input 
                   type="text" 
                   value={newTaskName}
                   onChange={(e) => setNewTaskName(e.target.value)}
-                  placeholder="เช่น วางแผนการเงินประจำสัปดาห์..."
+                  placeholder="เช่น ซื้อของเข้าบ้าน, เคลียร์บัญชีปลายเดือน..."
                   required
-                  className="w-full bg-background border border-white/5 p-2.5 rounded-lg text-text-main text-xs focus:border-[#5B5CEB] focus:outline-none placeholder-text-sub/50"
+                  className="w-full bg-background border border-white/10 p-3 rounded-xl text-text-main text-xs focus:border-primary focus:outline-none placeholder-text-sub/50 shadow-inner"
                 />
               </div>
+
+              {/* Field 2 & 3: วันที่ & เวลา (Side by Side) */}
+              <div className="grid grid-cols-2 gap-3">
+                {/* Field 2: วันที่ */}
+                <div>
+                  <label className="block mb-1 text-[11px] text-text-main font-bold flex items-center gap-1">
+                    <span>📅</span>
+                    <span>2. วันที่</span>
+                  </label>
+                  <input 
+                    type="date" 
+                    value={dueDate}
+                    onChange={(e) => setDueDate(e.target.value)}
+                    className="w-full bg-background border border-white/10 p-2.5 rounded-xl text-text-main text-xs focus:border-primary focus:outline-none shadow-inner"
+                  />
+                </div>
+
+                {/* Field 3: เวลา */}
+                <div>
+                  <label className="block mb-1 text-[11px] text-text-main font-bold flex items-center gap-1">
+                    <span>⏰</span>
+                    <span>3. เวลา</span>
+                  </label>
+                  <input 
+                    type="time" 
+                    value={reminderTime}
+                    onChange={(e) => setReminderTime(e.target.value)}
+                    className="w-full bg-background border border-white/10 p-2.5 rounded-xl text-text-main text-xs focus:border-primary focus:outline-none shadow-inner"
+                  />
+                </div>
+              </div>
+
+              {/* Field 4: อธิบายเพิ่มเติม */}
               <div>
-                <label className="block mb-1 text-[10px] text-text-sub font-semibold">รายละเอียดเพิ่มเติม (Details)</label>
+                <label className="block mb-1 text-[11px] text-text-main font-bold flex items-center gap-1">
+                  <span>💬</span>
+                  <span>4. อธิบายเพิ่มเติม</span>
+                </label>
                 <textarea 
                   value={newDetails}
                   onChange={(e) => setNewDetails(e.target.value)}
-                  placeholder="เช่น รายละเอียดงานหรือข้อตกลงเพิ่มเติม..."
-                  className="w-full bg-background border border-white/5 p-2.5 rounded-lg text-text-main text-xs focus:border-[#5B5CEB] focus:outline-none placeholder-text-sub/50 h-16 resize-none"
-                />
-              </div>
-              <div>
-                <label className="block mb-1 text-[10px] text-text-sub font-semibold">กำหนดส่ง (Due Date)</label>
-                <input 
-                  type="text" 
-                  value={dueDate}
-                  onChange={(e) => setDueDate(e.target.value)}
-                  placeholder="เช่น 20 พฤษภาคม 2567"
-                  className="w-full bg-background border border-white/5 p-2.5 rounded-lg text-text-main text-xs focus:border-[#5B5CEB] focus:outline-none placeholder-text-sub/50"
+                  placeholder="ระบุข้อความรายละเอียดเพิ่มเติม..."
+                  className="w-full bg-background border border-white/10 p-3 rounded-xl text-text-main text-xs focus:border-primary focus:outline-none placeholder-text-sub/50 h-20 resize-none shadow-inner"
                 />
               </div>
             </div>
 
-            <button
-              type="submit"
-              disabled={createLoading}
-              className="w-full bg-[#5B5CEB] hover:bg-[#5B5CEB]/90 disabled:bg-[#5B5CEB]/50 text-white font-bold text-xs py-3 rounded-xl shadow-lg transition-all flex items-center justify-center gap-2 cursor-pointer"
-            >
-              {createLoading ? "กำลังบันทึก..." : "บันทึกรายการสิ่งที่ต้องทำ 💾"}
-            </button>
+            {/* Submit Button */}
+            <div className="pt-2">
+              <button
+                type="submit"
+                disabled={createLoading}
+                className="w-full bg-primary hover:bg-primary/90 disabled:opacity-50 text-white font-bold text-xs py-3 rounded-xl shadow-lg transition-all flex items-center justify-center gap-2 cursor-pointer"
+              >
+                {createLoading ? "กำลังบันทึก..." : "บันทึกรายการสิ่งที่ต้องทำ 💾"}
+              </button>
+            </div>
           </form>
         </div>
       )}

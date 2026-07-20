@@ -275,20 +275,39 @@ function doPost(e) {
       // อัปเดตสถานะใน Google Sheets
       taskSheet.getRange(foundRowIdx, statusColIdx + 1).setValue(newStatus);
       
-      // อัปเดตสถานะใน Google Tasks (ถ้ามี)
+      // อัปเดตสถานะและซิงก์ไปยัง Google Tasks (tasks.google.com)
       var errorMsg = "";
-      if (typeof Tasks !== "undefined" && googleTaskId) {
+      if (typeof Tasks !== "undefined") {
         try {
           var listId = getOrCreateGoogleTaskList();
           var statusVal = (newStatus === "Completed") ? "completed" : "needsAction";
-          var tTask = Tasks.Tasks.get(listId, googleTaskId);
-          tTask.status = statusVal;
-          if (statusVal === "completed") {
-            tTask.completed = new Date().toISOString();
+          
+          if (googleTaskId) {
+            var tTask = Tasks.Tasks.get(listId, googleTaskId);
+            tTask.status = statusVal;
+            if (statusVal === "completed") {
+              tTask.completed = new Date().toISOString();
+            } else {
+              tTask.completed = null;
+            }
+            Tasks.Tasks.update(tTask, listId, googleTaskId);
           } else {
-            tTask.completed = null;
+            // กรณีไม่มี google_task_id ให้สร้าง Task ใหม่ใน Google Tasks ทันที
+            var taskNameVal = rows[foundRowIdx - 1][SHEETS_SCHEMA["Task"].indexOf("task_name")] || "Untitled Task";
+            var detailsVal = rows[foundRowIdx - 1][SHEETS_SCHEMA["Task"].indexOf("details")] || "";
+            var taskObj = {
+              title: taskNameVal,
+              notes: detailsVal,
+              status: statusVal
+            };
+            if (statusVal === "completed") {
+              taskObj.completed = new Date().toISOString();
+            }
+            var createdTask = Tasks.Tasks.insert(taskObj, listId);
+            if (googleTaskIdColIdx !== -1) {
+              taskSheet.getRange(foundRowIdx, googleTaskIdColIdx + 1).setValue(createdTask.id);
+            }
           }
-          Tasks.Tasks.update(tTask, listId, googleTaskId);
         } catch (tErr) {
           errorMsg = " (การซิงก์ Google Tasks ขัดข้อง: " + tErr.toString() + ")";
         }

@@ -3,6 +3,41 @@
 import { useEffect, useState } from "react";
 import BottomNav from "@/components/BottomNav";
 
+export const THEMES = [
+  {
+    id: "dark",
+    name: "🌙 Dark Modern",
+    description: "โหมดมืดล้ำสมัย สบายสายตา",
+    badge: "Default",
+    previewBg: "#09090B",
+    previewPrimary: "#5B5CEB"
+  },
+  {
+    id: "light",
+    name: "☀️ Light Modern",
+    description: "โหมดสว่างคลีน เรียบหรูสบายตา",
+    badge: "Clean",
+    previewBg: "#F4F4F5",
+    previewPrimary: "#5B5CEB"
+  },
+  {
+    id: "shan-light",
+    name: "🌾 พี่น้องชาวไทยใหญ่ (Shan Warm)",
+    description: "โทนอุ่นผ้าทอไทยใหญ่ ทองและครีมละมุน",
+    badge: "Cultural ⭐",
+    previewBg: "#F5EBE0",
+    previewPrimary: "#C46210"
+  },
+  {
+    id: "shan-dark",
+    name: "🏮 พี่น้องชาวไทยใหญ่ (Shan Night)",
+    description: "โทนราตรีหรูหรา ทองล้านนาไทใหญ่",
+    badge: "Golden ⭐",
+    previewBg: "#140F0A",
+    previewPrimary: "#D4AF37"
+  }
+];
+
 export default function ClientWrapper({
   children,
 }: {
@@ -11,22 +46,31 @@ export default function ClientWrapper({
   const [theme, setTheme] = useState("dark");
   const [mounted, setMounted] = useState(false);
 
+  const applyThemeClass = (targetTheme: string) => {
+    const root = document.documentElement;
+    root.classList.remove("theme-dark", "theme-light", "theme-shan-light", "theme-shan-dark", "light-mode");
+    root.classList.add(`theme-${targetTheme}`);
+    if (targetTheme === "light") {
+      root.classList.add("light-mode");
+    }
+  };
+
   useEffect(() => {
-    // Read from localStorage on mount
-    const savedTheme = localStorage.getItem("little_bro_theme") || "dark";
-    
+    const savedTheme = localStorage.getItem("little_bro_theme") || "shan-light";
     setTheme(savedTheme);
-    document.documentElement.classList.toggle("light-mode", savedTheme === "light");
+    applyThemeClass(savedTheme);
     setMounted(true);
   }, []);
 
-  // Expose triggers to window so pages can call them easily
   useEffect(() => {
-    (window as any).toggleLittleBroTheme = (newTheme: string) => {
+    const handleThemeChange = (newTheme: string) => {
       setTheme(newTheme);
       localStorage.setItem("little_bro_theme", newTheme);
-      document.documentElement.classList.toggle("light-mode", newTheme === "light");
+      applyThemeClass(newTheme);
+      window.dispatchEvent(new CustomEvent("little_bro_theme_updated", { detail: newTheme }));
     };
+
+    (window as any).toggleLittleBroTheme = handleThemeChange;
 
     return () => {
       delete (window as any).toggleLittleBroTheme;
@@ -42,8 +86,8 @@ export default function ClientWrapper({
   }
 
   return (
-    <div className="min-h-screen w-full flex flex-col bg-background">
-      <main className="flex-1 w-full relative pb-20 transition-all duration-300 max-w-2xl mx-auto bg-background min-h-screen">
+    <div className={`min-h-screen w-full flex flex-col bg-background ${theme.startsWith("shan") ? "shan-bg-pattern" : ""}`}>
+      <main className="flex-1 w-full relative pb-20 transition-all duration-300 max-w-2xl mx-auto bg-background min-h-screen border-x border-white/5 shadow-2xl">
         {children}
         <BottomNav />
       </main>

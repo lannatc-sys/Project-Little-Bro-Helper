@@ -2,9 +2,13 @@
 
 import { useState, useEffect } from "react";
 import Image from "next/image";
+import ThemeSelectorModal from "@/components/ThemeSelectorModal";
+import AdminPanelModal from "@/components/AdminPanelModal";
 
 export default function SettingsScreen() {
   const [theme, setTheme] = useState("dark");
+  const [showThemeModal, setShowThemeModal] = useState(false);
+  const [showAdminModal, setShowAdminModal] = useState(false);
   
   const [showWorkspaceModal, setShowWorkspaceModal] = useState(false);
   const [showAccountModal, setShowAccountModal] = useState(false);
@@ -167,30 +171,86 @@ export default function SettingsScreen() {
         </div>
 
         {/* Theme & Display Options */}
-        <section className="mb-6 bg-surface/20 border border-white/5 p-4 rounded-2xl space-y-4">
-          <h3 className="text-xs font-bold text-text-sub uppercase tracking-wider">ตัวเลือกการแสดงผล (Display Settings)</h3>
-          
-          {/* Theme Selector */}
-          <div className="flex justify-between items-center text-xs">
-            <span>ธีมสีหน้าต่าง (Color Theme)</span>
-            <div className="flex bg-surface p-1 rounded-xl border border-white/5">
-              <button
-                onClick={() => handleThemeChange("dark")}
-                className={`px-3 py-1 rounded-lg font-bold transition-all text-xs ${
-                  theme === "dark" ? "bg-[#5B5CEB] text-white" : "text-text-sub hover:text-text-main"
-                }`}
-              >
-                🌙 Dark
-              </button>
-              <button
-                onClick={() => handleThemeChange("light")}
-                className={`px-3 py-1 rounded-lg font-bold transition-all text-xs ${
-                  theme === "light" ? "bg-[#5B5CEB] text-white" : "text-text-sub hover:text-text-main"
-                }`}
-              >
-                ☀️ Light
-              </button>
+        <section className="mb-6 bg-surface/20 border border-white/10 p-4 rounded-2xl space-y-3">
+          <div className="flex justify-between items-center">
+            <div className="flex items-center gap-2">
+              <span className="text-base">🎨</span>
+              <h3 className="text-xs font-bold text-text-main uppercase tracking-wider">ธีมระบบ (System Themes)</h3>
             </div>
+            <span className="text-[10px] bg-[#DAA520]/20 text-[#DAA520] border border-[#DAA520]/30 px-2 py-0.5 rounded-full font-bold">
+              4 สไตล์ให้เลือก
+            </span>
+          </div>
+
+          {/* Dedicated Theme Switcher Button Card */}
+          <button
+            onClick={() => setShowThemeModal(true)}
+            className="w-full p-3.5 bg-gradient-to-r from-surface via-surface to-[#DAA520]/15 border border-[#DAA520]/40 rounded-xl hover:border-[#DAA520] transition-all cursor-pointer flex items-center justify-between shadow-sm group"
+          >
+            <div className="flex items-center gap-3 text-left">
+              <div className="w-10 h-10 rounded-xl bg-[#FAF4ED] border border-[#DAA520]/40 overflow-hidden flex items-center justify-center shrink-0 shadow-inner">
+                <Image 
+                  src="/avatar/shan.png" 
+                  alt="Theme Avatar" 
+                  width={36} 
+                  height={36} 
+                  className="object-cover scale-110" 
+                />
+              </div>
+              <div>
+                <div className="flex items-center gap-1.5 mb-0.5">
+                  <h4 className="text-xs font-bold text-text-main group-hover:text-primary transition-colors">
+                    {theme === "shan-light" && "🌾 ธีมพี่น้องชาวไทยใหญ่ (Shan Warm)"}
+                    {theme === "shan-dark" && "🏮 ธีมพี่น้องชาวไทยใหญ่ (Shan Night)"}
+                    {theme === "dark" && "🌙 Dark Modern"}
+                    {theme === "light" && "☀️ Light Modern"}
+                  </h4>
+                  {theme.startsWith("shan") && (
+                    <span className="text-[8px] bg-[#DAA520] text-black font-bold px-1.5 py-0.2 rounded-full">Cultural</span>
+                  )}
+                </div>
+                <p className="text-[9px] text-text-sub">กดเปิดหน้าต่างเลือกธีมทั้งหมด (Shan Warm, Shan Night, Dark, Light)</p>
+              </div>
+            </div>
+
+            <span className="bg-primary text-white text-[10px] font-bold px-3.5 py-2 rounded-xl shadow-md group-hover:scale-105 transition-all flex items-center gap-1 shrink-0">
+              <span>เลือกธีมใหม่</span>
+              <span>➔</span>
+            </span>
+          </button>
+        </section>
+
+        {/* Admin System Section */}
+        <section className="mb-6 bg-gradient-to-r from-primary/10 via-surface/40 to-[#EF4444]/10 border border-primary/30 p-4 rounded-2xl space-y-3 shadow-md">
+          <div className="flex justify-between items-center">
+            <div className="flex items-center gap-2">
+              <span className="text-base">👑</span>
+              <h3 className="text-xs font-bold text-text-main uppercase tracking-wider">ระบบผู้ดูแลระบบ (Admin System)</h3>
+            </div>
+            <span className="text-[9px] bg-primary text-white px-2 py-0.5 rounded-full font-bold">
+              Admin Only
+            </span>
+          </div>
+
+          <div
+            onClick={() => setShowAdminModal(true)}
+            className="p-3.5 bg-surface/70 border border-primary/40 rounded-xl hover:border-primary transition-all cursor-pointer flex items-center justify-between shadow-sm"
+          >
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-xl bg-primary/20 border border-primary/40 flex items-center justify-center text-primary shrink-0 text-lg">
+                🔐
+              </div>
+              <div>
+                <h4 className="text-xs font-bold text-text-main flex items-center gap-1.5">
+                  <span>แผงควบคุมระบบ Admin Console</span>
+                  <span className="text-[8px] bg-[#10B981]/20 text-[#10B981] font-bold px-1.5 py-0.2 rounded-full">PIN 1234</span>
+                </h4>
+                <p className="text-[9px] text-text-sub">ตรวจสอบสถานะเซิร์ฟเวอร์, สวิตช์เปิด-ปิดฟีเจอร์ และดูสมาชิก</p>
+              </div>
+            </div>
+            <span className="bg-primary text-white text-[10px] font-bold px-3 py-1.5 rounded-lg shadow-sm">
+              เปิดแผงควบคุม ➔
+            </span>
           </div>
         </section>
 
@@ -458,6 +518,24 @@ export default function SettingsScreen() {
           </div>
         </div>
       )}
+
+      {/* Theme Selector Modal */}
+      <ThemeSelectorModal
+        isOpen={showThemeModal}
+        onClose={() => setShowThemeModal(false)}
+        currentTheme={theme}
+        onSelectTheme={(t) => {
+          handleThemeChange(t);
+          setShowThemeModal(false);
+        }}
+      />
+
+      {/* Admin System Modal */}
+      <AdminPanelModal
+        isOpen={showAdminModal}
+        onClose={() => setShowAdminModal(false)}
+        spreadsheetId={spreadsheetId}
+      />
 
       <footer className="mt-8 text-center text-[10px] text-text-sub/40">
         <p>Little Bro Assistant v1.0.0 • Antigravity Product Team</p>

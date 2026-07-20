@@ -9,7 +9,7 @@ export default function HomeScreen() {
   const router = useRouter();
   const [greeting, setGreeting] = useState("สวัสดีครับพี่ 💜");
   const [avatar, setAvatar] = useState("/avatar/hello.png");
-  
+
   // Notification states
   const [showNotifications, setShowNotifications] = useState(false);
   const [hasUnread, setHasUnread] = useState(true);
@@ -18,7 +18,7 @@ export default function HomeScreen() {
     { id: 2, text: "📅 บันทึกกิจกรรมใหม่: 'พรุ่งนี้ต้องทำกับข้าว'", time: "5 นาทีที่แล้ว", unread: true },
     { id: 3, text: "💸 ซิงก์รายรับโอนเงินอัตโนมัติจากบอท 100.00 บาท", time: "10 นาทีที่แล้ว", unread: true }
   ]);
-  
+
   // Dashboard sync states
   const [loading, setLoading] = useState(true);
   const [incomeSum, setIncomeSum] = useState(0);
@@ -34,10 +34,10 @@ export default function HomeScreen() {
         body: JSON.stringify({ action: "get_dashboard_data" })
       });
       const result = await res.json();
-      
+
       if (result.status === "success" && result.data) {
         const { finance = [], tasks = [], calendar = [] } = result.data;
-        
+
         // Calculate finance sums
         let inc = 0;
         let exp = 0;
@@ -66,6 +66,14 @@ export default function HomeScreen() {
   };
 
   useEffect(() => {
+    // Set avatar according to saved theme
+    const savedTheme = localStorage.getItem("little_bro_theme") || "shan-light";
+    if (savedTheme.startsWith("shan")) {
+      setAvatar("/avatar/shan.png");
+    } else {
+      setAvatar("/avatar/hello.png");
+    }
+
     // Check onboarding status
     const onboarded = localStorage.getItem("little_bro_onboarded");
     if (!onboarded) {
@@ -105,10 +113,10 @@ export default function HomeScreen() {
       try {
         const res = await fetch(`/api/auth/status?platform_id=${platformId}`);
         const data = await res.json();
-        
+
         if (data.status === "approved" && data.google_email) {
           const localEmail = localStorage.getItem("little_bro_email");
-          
+
           if (localEmail && localEmail !== data.google_email) {
             alert(`⚠️ น้องตรวจพบการลงทะเบียนด้วยบัญชีอีเมลอื่น (${data.google_email}) บนช่องทาง ${platformName} ของพี่ครับ!\n\nน้องขออนุญาตล้างข้อมูลแล้วกลับไปเริ่มตั้งค่า Onboarding ใหม่ทั้งหมดเพื่อความปลอดภัยนะครับพี่`);
             localStorage.clear();
@@ -135,27 +143,24 @@ export default function HomeScreen() {
       });
     }
 
-    const hour = new Date().getHours();
-    if (hour >= 5 && hour < 12) {
-      setGreeting("สวัสดีตอนเช้าครับ! ☀️");
-      setAvatar("/avatar/hello.png");
-    } else if (hour >= 12 && hour < 17) {
-      setGreeting("สวัสดีตอนบ่ายครับ! 🌤️");
-      setAvatar("/avatar/working.png");
-    } else if (hour >= 17 && hour < 22) {
-      setGreeting("สวัสดีตอนเย็นครับ! 🌙");
-      setAvatar("/avatar/great.png");
-    } else {
-      setGreeting("ดึกแล้วครับ รักษาสุขภาพด้วยนะครับ 💤");
-      setAvatar("/avatar/ready.png");
-    }
+    const handleThemeUpdate = (e: any) => {
+      const updatedTheme = e.detail || localStorage.getItem("little_bro_theme") || "";
+      if (updatedTheme.startsWith("shan")) {
+        setAvatar("/avatar/shan.png");
+      } else {
+        setAvatar("/avatar/hello.png");
+      }
+    };
 
-    fetchDashboardData();
+    window.addEventListener("little_bro_theme_updated", handleThemeUpdate);
+    return () => {
+      window.removeEventListener("little_bro_theme_updated", handleThemeUpdate);
+    };
   }, [router]);
 
   const toggleTask = async (task: any) => {
     const nextStatus = task.status === "Completed" ? "Pending" : "Completed";
-    
+
     // Optimistic local state update
     setTasks(prev => prev.map(t => t.task_id === task.task_id ? { ...t, status: nextStatus } : t));
 
@@ -204,7 +209,7 @@ export default function HomeScreen() {
             <p className="text-xs text-text-sub">มีอะไรให้ช่วยวันนี้บ้างครับ?</p>
           </div>
           <div className="flex items-center gap-3">
-            <button 
+            <button
               onClick={() => setShowNotifications(true)}
               className="bg-surface border border-white/5 p-2 rounded-full text-text-sub hover:text-text-main transition-colors relative"
             >
@@ -247,7 +252,7 @@ export default function HomeScreen() {
             <span className="text-lg bg-[#10B981]/20 p-2 rounded-xl text-[#10B981]">📈</span>
             <span className="text-[9px] text-text-sub truncate w-full">เพิ่มรายรับ</span>
           </Link>
-          
+
           <Link
             href="/add-expense?type=expense"
             className="flex flex-col items-center gap-1 p-2 bg-surface/40 hover:bg-surface/60 border border-white/5 rounded-xl transition-all text-center"
@@ -322,9 +327,8 @@ export default function HomeScreen() {
                     className="flex items-center justify-between p-3.5 bg-surface/30 hover:bg-surface/50 border border-white/5 rounded-xl cursor-pointer transition-all duration-200"
                   >
                     <div className="flex items-center gap-3">
-                      <div className={`w-4 h-4 rounded border flex items-center justify-center transition-all ${
-                        isCompleted ? "bg-[#5B5CEB] border-[#5B5CEB]" : "border-white/20"
-                      }`}>
+                      <div className={`w-4 h-4 rounded border flex items-center justify-center transition-all ${isCompleted ? "bg-[#5B5CEB] border-[#5B5CEB]" : "border-white/20"
+                        }`}>
                         {isCompleted && (
                           <svg className="w-3 h-3 text-white" fill="none" stroke="currentColor" strokeWidth="3" viewBox="0 0 24 24">
                             <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
@@ -381,8 +385,8 @@ export default function HomeScreen() {
       {showNotifications && (
         <div className="absolute inset-0 bg-background/80 backdrop-blur-md z-50 flex items-center justify-center p-6 animate-fade-in">
           <div className="bg-surface border border-white/10 w-full max-w-xs rounded-3xl p-5 shadow-2xl flex flex-col relative text-text-main">
-            
-            <button 
+
+            <button
               onClick={() => setShowNotifications(false)}
               className="absolute top-4 right-4 text-text-sub hover:text-text-main text-sm"
             >
@@ -395,13 +399,12 @@ export default function HomeScreen() {
 
             <div className="space-y-3 mb-6 max-h-60 overflow-y-auto pr-1">
               {notifications.map((notif) => (
-                <div 
-                  key={notif.id} 
-                  className={`p-3 rounded-xl border text-[10px] leading-relaxed transition-all ${
-                    notif.unread 
-                      ? "bg-[#5B5CEB]/10 border-[#5B5CEB]/30 text-text-main" 
+                <div
+                  key={notif.id}
+                  className={`p-3 rounded-xl border text-[10px] leading-relaxed transition-all ${notif.unread
+                      ? "bg-[#5B5CEB]/10 border-[#5B5CEB]/30 text-text-main"
                       : "bg-background/40 border-white/5 text-text-sub"
-                  }`}
+                    }`}
                 >
                   <p className="mb-1">{notif.text}</p>
                   <span className="text-[8px] opacity-60 block text-right">{notif.time}</span>

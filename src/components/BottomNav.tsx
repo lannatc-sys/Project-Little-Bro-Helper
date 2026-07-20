@@ -68,7 +68,7 @@ export default function BottomNav() {
 
   // Don't show bottom nav on onboarding pages if we make any, but for now we'll show it everywhere
   return (
-    <nav className="fixed bottom-0 left-0 right-0 max-w-md mx-auto bg-[#18181B]/80 backdrop-blur-lg border-t border-white/5 py-2 px-6 flex justify-between items-center z-50 shadow-2xl">
+    <nav className="fixed bottom-0 left-0 right-0 max-w-2xl mx-auto bg-surface/90 backdrop-blur-lg border-t border-white/10 py-2 px-6 flex justify-between items-center z-50 shadow-2xl transition-colors duration-300">
       {tabs.map((tab) => {
         const isActive = pathname === tab.path;
         return (
@@ -77,8 +77,8 @@ export default function BottomNav() {
             href={tab.path}
             className={`flex flex-col items-center gap-1 transition-all duration-300 ${
               isActive
-                ? "text-[#5B5CEB] scale-105 font-medium"
-                : "text-[#B3B3B3] hover:text-white"
+                ? "text-primary scale-105 font-bold"
+                : "text-text-sub hover:text-text-main"
             }`}
           >
             {tab.icon}

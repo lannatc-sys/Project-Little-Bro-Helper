@@ -220,10 +220,14 @@ export async function POST(request: Request) {
     }
 
     if (appsScriptUrl && !appsScriptUrl.includes("placeholder")) {
+      const payload = {
+        spreadsheet_id: body.spreadsheet_id || spreadsheetId,
+        ...body
+      };
       const response = await fetch(appsScriptUrl, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ ...body, spreadsheet_id: spreadsheetId })
+        body: JSON.stringify(payload)
       });
       const result = await response.json();
       return NextResponse.json(result);
