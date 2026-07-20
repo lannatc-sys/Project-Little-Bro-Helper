@@ -145,13 +145,15 @@ export default function OnboardingScreen() {
             </div>
           </div>
 
-          <button
-            type="button"
-            onClick={() => setStep(2)}
-            className="w-full bg-primary hover:bg-primary/90 text-white font-bold text-sm py-3.5 rounded-2xl shadow-lg shadow-primary/25 transition-all duration-300 hover:scale-[1.02] flex justify-center items-center gap-2 cursor-pointer"
-          >
-            <span>ไปหน้าเข้าสู่ระบบ ➔</span>
-          </button>
+          <div className="w-full space-y-2.5 pt-1">
+            <button
+              type="button"
+              onClick={() => setStep(2)}
+              className="w-full bg-primary hover:bg-primary/90 text-white font-bold text-xs py-3.5 rounded-2xl shadow-xl shadow-primary/25 transition-all duration-300 hover:scale-[1.01] flex justify-center items-center gap-2 cursor-pointer"
+            >
+              <span>เข้าสู่หน้าล็อกอิน (Sign In Portal) ➔</span>
+            </button>
+          </div>
         </div>
       )}
 
