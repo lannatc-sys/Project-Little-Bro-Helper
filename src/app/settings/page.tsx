@@ -5,8 +5,10 @@ import Image from "next/image";
 import Link from "next/link";
 import ThemeSelectorModal from "@/components/ThemeSelectorModal";
 import AdminPanelModal from "@/components/AdminPanelModal";
+import { useGoogleAuth } from "@/components/GoogleAuthProvider";
 
 export default function SettingsScreen() {
+  const { user, signInWithGoogle } = useGoogleAuth();
   const [theme, setTheme] = useState("dark");
   const [showThemeModal, setShowThemeModal] = useState(false);
   const [showAdminModal, setShowAdminModal] = useState(false);
@@ -175,27 +177,43 @@ export default function SettingsScreen() {
           <h1 className="text-xl font-bold text-text-main">ตั้งค่าระบบ</h1>
         </header>
 
-        {/* Profile Card */}
-        <div className="bg-surface/40 border border-white/5 p-4 rounded-2xl mb-4 flex items-center gap-4">
-          <div className="w-12 h-12 rounded-full overflow-hidden border border-[#5B5CEB]/30 bg-surface">
-            <Image
-              src="/avatar/hello.png"
-              alt="Owner Avatar"
-              width={48}
-              height={48}
-              className="object-cover"
-            />
+        {/* Profile Card (Google OAuth 2.0 Authenticated) */}
+        <div className="bg-surface/40 border border-white/10 p-4 rounded-2xl mb-4 flex items-center justify-between shadow-sm">
+          <div className="flex items-center gap-3.5">
+            <div className="w-12 h-12 rounded-full overflow-hidden border border-primary/40 bg-surface shadow-inner flex items-center justify-center shrink-0">
+              <Image
+                src="/avatar/shan.png"
+                alt="Owner Avatar"
+                width={48}
+                height={48}
+                className="object-cover scale-110"
+              />
+            </div>
+            <div className="overflow-hidden">
+              <div className="flex items-center gap-1.5">
+                <h3 className="text-xs font-bold text-text-main truncate">{user?.name || "Google OAuth User"}</h3>
+                <span className="text-[8px] bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 px-1.5 py-0.2 rounded-full font-bold">
+                  🔒 Google 2.0
+                </span>
+              </div>
+              <p className="text-[10px] text-text-sub font-mono truncate">{user?.email || userEmail || "lannatc@gmail.com"}</p>
+            </div>
           </div>
-          <div className="flex-1">
-            <h3 className="text-sm font-bold text-text-main">Little Bro</h3>
-            <p className="text-[9px] text-text-sub mb-1">บัญชีส่วนตัว • {userEmail}</p>
-            <button
-              onClick={() => setShowAccountModal(true)}
-              className="bg-[#5B5CEB]/25 hover:bg-[#5B5CEB]/40 text-[#5B5CEB] border border-[#5B5CEB]/30 text-[9px] font-semibold px-2.5 py-1 rounded-lg transition-all cursor-pointer"
-            >
-              จัดการ / สลับบัญชี Google ➔
-            </button>
-          </div>
+
+          <button
+            type="button"
+            onClick={() => {
+              const newEmail = prompt("กรอก Google Email ที่ต้องการสลับใช้งาน:", userEmail || "user@gmail.com");
+              if (newEmail && newEmail.includes("@")) {
+                signInWithGoogle(newEmail);
+                setUserEmail(newEmail);
+                alert(`✅ สลับเข้าใช้งานด้วยบัญชี Google (${newEmail}) สำเร็จเรียบร้อยแล้วครับ!`);
+              }
+            }}
+            className="bg-primary/20 hover:bg-primary/30 text-primary border border-primary/40 text-[10px] font-bold px-3 py-2 rounded-xl transition-all cursor-pointer shrink-0 shadow-sm"
+          >
+            สลับบัญชี Google ➔
+          </button>
         </div>
 
         {/* 1. SECTION: CLEAN SINGLE THEME SWITCHER BUTTON */}

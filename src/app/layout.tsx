@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Noto_Sans_Thai } from "next/font/google";
 import "./globals.css";
 import ClientWrapper from "@/components/ClientWrapper";
+import { GoogleAuthProvider } from "@/components/GoogleAuthProvider";
 
 const notoSansThai = Noto_Sans_Thai({
   subsets: ["thai", "latin"],
@@ -26,9 +27,11 @@ export default function RootLayout({
       suppressHydrationWarning
     >
       <body className="min-h-full bg-[#09090B] text-white flex flex-col font-sans" suppressHydrationWarning>
-        <ClientWrapper>
-          {children}
-        </ClientWrapper>
+        <GoogleAuthProvider>
+          <ClientWrapper>
+            {children}
+          </ClientWrapper>
+        </GoogleAuthProvider>
       </body>
     </html>
   );
