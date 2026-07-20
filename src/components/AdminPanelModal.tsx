@@ -354,20 +354,45 @@ export default function AdminPanelModal({
                   </div>
                 </div>
 
-                <div className="p-3.5 bg-background border border-white/5 rounded-2xl space-y-2">
-                  <h4 className="text-xs font-bold text-text-main">คำสั่งและเครื่องมือวินิจฉัย (Diagnostics)</h4>
-                  <div className="flex gap-2">
+                <div className="p-3.5 bg-background border border-white/5 rounded-2xl space-y-2.5">
+                  <div className="flex justify-between items-center">
+                    <h4 className="text-xs font-bold text-text-main">คำสั่งและเครื่องมือวินิจฉัย (Diagnostics)</h4>
+                    <span className="text-[9px] text-text-sub">Real-time Check</span>
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-2">
                     <button
-                      onClick={handleClearCache}
-                      className="flex-1 py-2 bg-surface hover:bg-white/5 border border-white/10 rounded-xl text-[10px] font-bold text-text-sub hover:text-text-main transition-all cursor-pointer"
+                      type="button"
+                      onClick={async () => {
+                        try {
+                          const res = await fetch("/api/health/env");
+                          const result = await res.json();
+                          if (result.status === "success" && result.report) {
+                            const rep = result.report;
+                            let msg = `🔍 ผลการตรวจสอบ Environment Variables (${rep.overallStatus}):\n\n`;
+                            msg += `✅ ผ่าน: ${rep.passedCount} | ⚠️ เตือน: ${rep.warningCount} | ❌ Error: ${rep.errorCount}\n\n`;
+                            rep.details.forEach((d: any) => {
+                              const icon = d.status === "OK" ? "✅" : d.status === "WARNING" ? "⚠️" : "❌";
+                              msg += `${icon} [${d.key}]: ${d.message} (${d.valueMasked})\n`;
+                            });
+                            alert(msg);
+                          } else {
+                            alert("❌ ไม่สามารถรันการวินิจฉัยได้: " + result.message);
+                          }
+                        } catch (err: any) {
+                          alert("❌ การเชื่อมต่อล้มเหลว: " + err.message);
+                        }
+                      }}
+                      className="py-2 px-3 bg-primary/20 hover:bg-primary/30 border border-primary/40 rounded-xl text-[10px] font-bold text-primary transition-all cursor-pointer text-center"
                     >
-                      🧹 ล้างแคชระบบ
+                      🔍 ตรวจสอบ Environment (.env)
                     </button>
                     <button
-                      onClick={() => alert("🟢 ฐานข้อมูลสเปรดชีตสมบูรณ์แบบ 100%")}
-                      className="flex-1 py-2 bg-surface hover:bg-white/5 border border-white/10 rounded-xl text-[10px] font-bold text-text-sub hover:text-text-main transition-all cursor-pointer"
+                      type="button"
+                      onClick={handleClearCache}
+                      className="py-2 px-3 bg-surface hover:bg-white/5 border border-white/10 rounded-xl text-[10px] font-bold text-text-sub hover:text-text-main transition-all cursor-pointer text-center"
                     >
-                      🩺 ตรวจสอบชีต 6 ตาราง
+                      🧹 ล้างแคชระบบ
                     </button>
                   </div>
                 </div>
